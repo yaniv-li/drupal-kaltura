@@ -40,7 +40,7 @@ function kalturaInitModalBox ( url, options )
 		if (options.height)
 			height = options.height;
 	}
-	
+
 	// create modalbox div, same note about styles as above
 	var objModalbox = document.createElement("div");
 	objModalbox.setAttribute('id','modalbox');
@@ -55,7 +55,7 @@ function kalturaInitModalBox ( url, options )
 	objModalboxContent.setAttribute('id','mbContent');
 	if ( url != null )
 	{
-		objModalboxContent.innerHTML = '<iframe scrolling="no" width="' + width + '" height="' + height + '" frameborder="0" src="' + url + '"/>';
+		objModalboxContent.innerHTML = '<iframe id="kaltura_modal_iframe" scrolling="no" width="' + width + '" height="' + height + '" frameborder="0" src="' + url + '"/>';
 	}
 	objModalbox.appendChild(objModalboxContent, objModalbox.firstChild);
 	
@@ -167,9 +167,28 @@ KalturaThumbRotator = {
 
 
 function remove_items_from_field(field_id) { document.getElementById(field_id).value = ''; }
+function remove_item_from_field(field_id, entry_id, kaltura_server) {
+	field_obj = document.getElementById(field_id);
+	field_obj.value = field_obj.value.replace(entry_id, '');
+	update_field_thumbs(field_obj, kaltura_server);
+}
 function get_title() { return document.getElementById("edit-title").value; }
 
 function kaltura_activate_player(thumb_div, player_div) {
 	document.getElementById(thumb_div).style.display = 'none';
 	document.getElementById(player_div).style.display = 'block';
+}
+
+function update_field_thumbs(hidden_field_obj, kaltura_server) {
+	entries = Array();
+	entries = hidden_field_obj.value.split(',');
+	target_div = window.top.document.getElementById(hidden_field_obj.id + '_thumbs_div');
+	target_div.innerHTML = '<div class="title">Added Media:</div>';
+	for(i=0;i<entries.length;i++) {
+		if(entries[i].length > 1) {
+			target_div.innerHTML += '<div class="kaltura_field_thumb"><img src="'+ kaltura_server +'/entry_id/'+ entries[i] +'" /><br />'+
+				'<input type="button" onclick="remove_item_from_field(\''+hidden_field_obj.id+'\', \''+ entries[i] +'\', \''+ kaltura_server +'\');" class="remove_media" /></div>';
+		}
+	}
+	target_div.innerHTML += '<div class="clear-block"></div>';
 }

@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura.install,v 1.1 2008/12/10 12:57:59 kaltura Exp $
+// $Id: kaltura.install,v 1.2 2008/12/22 09:11:26 kaltura Exp $
 
 /*
  * @file
@@ -222,7 +222,9 @@ function kaltura_uninstall() {
   watchdog('kaltura', 'the following vars were deleted during uninstall: '. rtrim($vars_deleted, ','));
 }
 
-
+/*
+ * Implementation of hook_requirements().
+ */
 function kaltura_requirements($phase) {
   $reqs = array();
   if (!module_exists('kaltura')) {

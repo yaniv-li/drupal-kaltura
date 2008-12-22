@@ -1,5 +1,5 @@
 <?php
-// $Id: node_kaltura_entry.module,v 1.1 2008/12/10 12:59:45 kaltura Exp $
+// $Id: node_kaltura_entry.module,v 1.2 2008/12/22 09:15:20 kaltura Exp $
 
 /*
  * @file
@@ -19,6 +19,9 @@ function node_kaltura_entry_perm() {
   );
 }
 
+/*
+ * Implementation of hook_access().
+ */
 function node_kaltura_entry_access($op, $node, $account) {
   switch ($op) {
     case 'create':
@@ -100,6 +103,13 @@ function kaltura_entry_settings_form() {
   $form['kaltura_entry_video_display']['clear_block_item'] = array(
     '#type' => 'item',
     '#value' => '<div class="clear-block"></div>',
+  );
+  $form['kaltura_entry_video_display']['kaltura_video_entry_player_ratio'] = array(
+    '#type' => 'select',
+    '#title' => t('If media aspect ratio is different then player aspect ratio'),
+    '#options' => array( 1 => 'Keep original media ratio', 0 => 'strech media to fit player'),
+    '#description' => t('Note - you might want to change the player width and height to fit the selected ratio'),
+    '#default_value' => variable_get('kaltura_video_entry_player_ratio', 0),
   );
   $form['kaltura_entry_video_display']['kaltura_video_entry_width'] = array(
     '#type' => 'textfield',
@@ -483,6 +493,10 @@ function node_kaltura_entry_update($node) {
   }
 }
 
+/*
+ * helper function that takes a node's taxonomy tags
+ * and pushes it into the kaltura tags field
+ */
 function _update_entry_tags_from_taxonomy(&$node) {
   $voc = variable_get('kaltura_entry_tags_voc', '');
   if ($voc != '') {
@@ -522,11 +536,11 @@ function node_kaltura_entry_load($node) {
 function node_kaltura_entry_view($node, $teaser = FALSE, $page = FALSE) {
   $node = node_prepare($node, $teaser);
   $node->content['kaltura_tags'] = array(
-    '#value' => theme('node_kaltura_entry_tags', $node, $teaser),
+    '#value' => theme('node_kaltura_entry_tags', $node),
     '#weight' => 1,
   );
   $node->content['kaltura_admin_tags'] = array(
-    '#value' => theme('node_kaltura_entry_admin_tags', $node, $teaser),
+    '#value' => theme('node_kaltura_entry_admin_tags', $node),
     '#weight' => 6,
   );
   if ($node->kaltura_entryId) {
@@ -561,9 +575,9 @@ function theme_node_kaltura_entry_entryId($node, $teaser) {
     $height = variable_get('kaltura_audio_entry_height', '364');
     return '[kaltura-widget media_type="'. $media_type .'" entry="'. $node->kaltura_entryId .'" size="large" width="'. $width .'" height="'. $height .'" /]';
   }
+  $width = variable_get('kaltura_video_entry_width', '410');
+  $height = variable_get('kaltura_video_entry_height', '364');
   if ($node->kstatus == 0 && variable_get('display_entry_not_ready', 0) != 0) {
-    $width = variable_get('kaltura_video_entry_width', '410');
-    $height = variable_get('kaltura_video_entry_height', '364');
     if (variable_get('entry_not_ready_text', '') != '') return variable_get('entry_not_ready_text', '');
     return t('This Kaltura Item is still rendering.');
   }  
@@ -574,7 +588,7 @@ function theme_node_kaltura_entry_entryId($node, $teaser) {
 /*
  * function to render the admin_tags field into HTML
  */
-function theme_node_kaltura_entry_admin_tags($node, $teaser) {
+function theme_node_kaltura_entry_admin_tags($node) {
   $admin_tags = "<div class=\"kaltura_admin_tags\"><label class=\"field_title\">". t('Kaltura Admin Tags') .": </label>". check_plain($node->kaltura_admin_tags) .'</div>';
   return $admin_tags;
 }
@@ -582,22 +596,32 @@ function theme_node_kaltura_entry_admin_tags($node, $teaser) {
 /*
  * function to render the thumbnail_url field into HTML
  */
-function theme_node_kaltura_entry_thumbnail_url($node, $teaser) {
-  if ($node->kaltura_media_type == 1) {
+function theme_node_kaltura_entry_thumbnail_url($node, $teaser, $nosize = FALSE, $size = array()) {
+  $skip = FALSE;
+  if (isset($size['width']) && isset($size['height'])) {
+    $width = $size['width'];
+    $height = $size['height'];
+    $skip = TRUE;
+  }
+  if ($node->kaltura_media_type == 1 && !$skip) {
     $width = variable_get('kaltura_video_entry_thumb_width', '120');
     $height = variable_get('kaltura_video_entry_thumb_height', '90');
   }
-  else {
+  elseif (!$skip) {
     $width = variable_get('kaltura_image_entry_thumb_width', '120');
     $height = variable_get('kaltura_image_entry_thumb_height', '90');
   }
   if ($node->kaltura_media_type == 1 && $node->kstatus == 2 && variable_get('kaltura_entry_rotate_thumb', 1) == 1) {
     $extra = 'onmouseover="KalturaThumbRotator.start(this)" onmouseout="KalturaThumbRotator.end(this)"';
   }
+  $size_str = '';
+  if ($nosize == FALSE) {
+    $size_str = '/width/'. $width .'/height/'. $height;
+  }
   if ($node->link_thumb || $teaser)
-    return '<a href="'. url('node/'. $node->nid) .'"><img src="'. $node->kaltura_thumbnail_url .'/width/'. $width .'/height/'. $height .'" '. $extra .' /></a>';
+    return '<div class="kaltura_thumb"><a href="'. url('node/'. $node->nid) .'"><img src="'. $node->kaltura_thumbnail_url . $size_str .'" '. $extra .' /></a></div>';
   else
-    return '<img src="'. $node->kaltura_thumbnail_url .'/width/'. $width .'/height/'. $height .'" '. $extra .' />';
+    return '<div class="kaltura_thumb"><img src="'. $node->kaltura_thumbnail_url . $size_str .'" '. $extra .' /></div>';
 }
 
 /*

@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura.notification.inc,v 1.1 2008/12/10 12:57:59 kaltura Exp $
+// $Id: kaltura.notification.inc,v 1.2 2008/12/22 09:11:26 kaltura Exp $
 
 /*
  * @file
@@ -40,7 +40,7 @@ function kaltura_notification_handler() {
   echo 'OK';
   foreach ($noti->data as $notification_data) {
     $times = _notification_received($notification_data['notification_id']);
-    if (!$times) {
+    if (!$times || $notification_data['notification_type'] == 'test') {
       _notification_save($notification_data['notification_id'], $notification_data);
       forward_notification($notification_data);
       kaltura_invoke('notification_handler', $notification_data);
@@ -93,6 +93,11 @@ function forward_notification($noti) {
   }
 }
 
+/*
+ * helper function to set the notification_status variable to 1
+ *
+ * should only be called when test notification recieved
+ */
 function _test_notification_received() {
   variable_set('kaltura_notification_status', 1);
 }
@@ -203,5 +208,6 @@ function _push_extra_data(&$node, $data) {
   );
   foreach ($fields as $node_key => $field) {
     if ($data[$field]) $node->$node_key = $data[$field];
+    if ($data[$field] && $field == 'length_in_msecs') $node->$node_key = (int)($data[$field]/1000);
   }
 }
