@@ -21,6 +21,10 @@ drupal_add_js(drupal_get_path("module", "kaltura") ."/kaltura.js");
 drupal_add_js(drupal_get_path("module", "kaltura") ."/swfobject.js");
 
 
+if (variable_get('kaltura_partner_id', '') != '') {
+  $server_url = (variable_get('kaltura_server_url', '') != '')? variable_get('kaltura_server_url', ''): KalturaSettings::SERVER_URL;
+  $GLOBALS['thumbnail_base_url'] = $server_url .'/p/'. variable_get('kaltura_partner_id', '') .'/sp/'. variable_get('kaltura_subp_id', '') .'/thumbnail';
+}
 /* 
  * Implementation of hook_perm().
  */
@@ -59,31 +63,6 @@ function kaltura_menu() {
     'weight' => -10,
   );
 
-  /*
-  $items['admin/settings/kaltura/general/notifications'] = array(
-    'title' => t('Kaltura Notification Settings'),
-    'file' => 'kaltura.admin.inc',
-    'file path' => drupal_get_path('module', 'kaltura'),
-    'description' => t('Manage notifications settings'),
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('kaltura_notifications_settings_form'),
-    'access arguments' => array('administer kaltura'),
-    'type' => MENU_NORMAL_ITEM,
-    'weight' => -9,
-  );
-
-  $items['admin/settings/kaltura/widgets'] = array(
-    'title' => t('Player Selection'),
-    'file' => 'kaltura.admin.inc',
-    'file path' => drupal_get_path('module', 'kaltura'),
-    'description' => t('Select which player you want to see on your site'),
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('kaltura_choose_player'),
-    'access arguments' => array('administer kaltura'),
-    'type' => MENU_NORMAL_ITEM,
-    'weight' => -8,
-  );
-  */
   $items['admin/settings/kaltura/import'] = array(
     'title' => t('Importing Entries from Kaltura to Drupal'),
     'file' => 'kaltura.admin.inc',
@@ -149,6 +128,15 @@ function access_allow_all() {
   return TRUE;
 }
 
+/*
+ * helper function that can be called as a normal function or to return AJAX response
+ *
+ * the function gets the type for which a player should be returned, and calls the fetch_widget_html() function
+ * with the relevant widgetId
+ *
+ * if $no_js is TRUE, the function was probably called from within the PHP code
+ * and not by JS ahah event
+ */
 function kaltura_preview_player($no_js = FALSE, $post_replacement = array()) {
   $args = func_get_args();
   if ($args[0] == 'type') $type = $args[1];
@@ -308,7 +296,6 @@ function kaltura_use_uiconf($default_uicid, $node_type, $theme_uicid, $media_typ
     //$uiconf_type = (user_access('edit kaltura items'))? 'remix': 'view';
     $uiconf_type = 'view';
   }
-  
   $default = _default_uiconf_by_type($media_type);
   $widget = variable_get('kaltura_'. $media_type .'_'. $node_type .'_widget', $default);
 
@@ -320,9 +307,14 @@ function kaltura_use_uiconf($default_uicid, $node_type, $theme_uicid, $media_typ
   return $default_uicid;
 }
 
+/*
+ * helper function that returns the default UICONF ID according to kaltura_settings.php file
+ *
+ */
 function _default_uiconf_by_type($media_type) {
   switch ($media_type) {
     case 'audio': $default = KalturaSettings::DEFAULT_AUDIO_PLAYER_UICONF; break;
+    case 'viewplaylist': $default = KalturaSettings::DEFAULT_VIEWPLAYLIST_PLAYER_UICONF; break;
     case 'video': $default = KalturaSettings::DEFAULT_VIDEO_PLAYER_UICONF; break;
     case 'roughcut': $default = KalturaSettings::DEFAULT_RC_PLAYER_UICONF; break;
     case 'comment': $default = KalturaSettings::DEFAULT_COMMENT_PLAYER_UICONF; break;
@@ -334,29 +326,92 @@ function _default_uiconf_by_type($media_type) {
  * callback function for the kaltura/entries URL
  */
 function kaltura_list_entries() {
-  $get_all = 'SELECT nid,title,type FROM {node} WHERE type LIKE \'kaltura_%\' AND status > 0 ORDER BY nid DESC';
+  global $pager_page_array, $pager_total;
+  $args = func_get_args();
+  if ($args[0] == 'allow-insert' && $args[1]) {
+    drupal_add_css(drupal_get_path('module', 'kaltura') .'/kaltura.css', 'all');
+    $allow_insert = TRUE;
+    $field_name = $args[1];
+  }
+  $media_types = new KalturaSettings;
+  $title = 'Kaltura Content';
+  $filter_media = '';
+  if ($_GET['filter']) {
+    $filter_media = 'AND knode.kaltura_media_type = '. mysql_escape_string($_GET['filter']);
+    $title .= ' (filter by - '. $media_types->media_types_map[$_GET['filter']] .')' ;
+  }
+  drupal_set_title($title);
+  $node_count = db_fetch_object(db_query('SELECT COUNT(node.nid) c FROM {node} node LEFT JOIN {node_kaltura} knode on node.nid = knode.nid WHERE type like \'kaltura%\' AND status > 0 '.$filter_media));
+  $pager_total[0] = ceil($node_count->c/20);
+  if ($_GET['page']) {
+    $start = 20*(int)$_GET['page'];
+    $pager_page_array[0] = $_GET['page'];
+  }
+  else $start = 0;
+  $get_all = 'SELECT node.nid,node.title,node.type,knode.kaltura_entryId,knode.kaltura_thumbnail_url FROM {node} node '.
+    'LEFT JOIN {node_kaltura} knode on node.nid = knode.nid WHERE (type = \'kaltura_entry\' OR type = \'kaltura_mix\') '. $filter_media .' AND status > 0 ORDER BY nid DESC LIMIT '. $start .', 20';
   $result = db_query($get_all);
   while ($node_nid = db_fetch_object($result)) {
-    $nodes[$node_nid->nid] = array( 'title' => $node_nid->title, 'type' => $node_nid->type);
+    $nodes[$node_nid->nid] = $node_nid;
+    
   }
-  $html = theme("list_of_entries", $nodes);
-  return $html;
+  $html = theme("list_of_entries", $nodes, $allow_insert, $field_name);
+  $pager = '';
+  if (ceil($node_count->c/20) > 1) $pager = theme('pager', NULL, 20, 0, array(), ceil($node_count->c/20));
+  if ($allow_insert && $field_name) {
+    $html =     '<div id="media-upload-header">
+	<ul id="sidemenu">
+	<li id="tab-kaltura"><a href="'. $_GET['cwurl'] .'">Add Interactive Video</a></li>
+	<li id="tab-kaltura_browse"><a class="current" href="'. url('kaltura/entries/allow-insert/'. $field_id) .'">Browse Interactive Videos</a></li>
+        <li><a href="#" onclick="window.top.kalturaCloseModalBox();return false;">Close</a></li>
+        </ul>
+    </div><div class="ktitle"><h3>'. $title .'</h3></div>'. $html;
+    $js = '$(document).ready(function() { '. PHP_EOL .'window.top.document.getElementById("kaltura_modal_iframe").className += " remove_overflow"; ';
+    $js .= PHP_EOL .'window.top.document.getElementById("kaltura_modal_iframe").scrolling = "";';
+    $js .= PHP_EOL .'window.top.document.getElementById("modalbox").style.height = "500px";';
+    $js .= PHP_EOL .'window.top.document.getElementById("kaltura_modal_iframe").height = "500";';
+    $js .= PHP_EOL .'window.top.document.getElementById("modalbox").className += " white_bg"; });';
+    echo theme('kaltura_modal', array( 'flashEmbed' => $html .'<div class="kaltura_pager">'. $pager .'</div>', 'javascript' => $js ));
+    exit();
+  }
+  return $html.$pager;
 }
 
 /*
  * function to render the HTML for the kaltura/entries page
  */
-function theme_list_of_entries($arr_nodes_nids) {
-  $str = '<ul>';
+function theme_list_of_entries($arr_nodes_nids, $allow_insert = FALSE, $field_name = '') {
+  $url_option = array( 'query' => array( 'cwurl' => $_GET['cwurl'] ) );
+  $filter = 'Show only: '. l('All', $_GET['q'], $url_option) .' | '. l('Videos', $_GET['q'], array( 'query' => array( 'filter' => '1', 'cwurl' => $_GET['cwurl'] ) )) .' | ';
+  $filter .= l('Photos', $_GET['q'], array( 'query' => array( 'filter' => '2', 'cwurl' => $_GET['cwurl'] ) )) .' | '.
+    l('Remixes', $_GET['q'], array( 'query' => array( 'filter' => '6', 'cwurl' => $_GET['cwurl'] ) ));
+  $filter .= ' | '. l('Audio', $_GET['q'], array( 'query' => array( 'filter' => '5', 'cwurl' => $_GET['cwurl'] ) ));
+  $str = '<div id="kaltura_entries_page" class="'. (($allow_insert)? 'minimal_mode': '') .'"><div class="kfilter">'. $filter .'</div><ul>';
   if (is_array($arr_nodes_nids) && count($arr_nodes_nids)) {
     foreach ($arr_nodes_nids as $nid => $dets) {
-      $str .= '<li>'. l($dets['title'], 'node/'. $nid) .' ( '. $dets['type'] .' )</li>'. PHP_EOL;
+      $str .= '<li class="kentry"><div class="kentry_title">'. l($dets->title, 'node/'. $nid, array( 'attributes' => array('target' => '_blank') )) .'</div>'. PHP_EOL;
+      $str .= '<div class="kentry_thumb">'. theme('node_'. $dets->type .'_thumbnail_url', $dets, 0, $nosize = TRUE) .'</div>';
+      if ($allow_insert) {
+        $str .= '<input type="button" class="kentry_add" value="" title="Insert" onclick="add_existing_media(\''. $field_name .'\', \''. $dets->kaltura_entryId .'\');" />';
+      }
+      $str .= '</li>';
     }
   }
   else {
-    $str .= '<li>None</li>'. PHP_EOL;
+    $str .= '<div>None</div>'. PHP_EOL;
   }
-  $str .= '</ul>';
+  $str .= '</div><div class="clear-block"></div>';
+  global $thumbnail_base_url;
+  if ($allow_insert) {
+    $str .= '<script>
+              function add_existing_media(field_id, entry) {
+                field = window.top.document.getElementById(field_id);
+                field.value = entry;
+                update_field_thumbs(field, \''. $thumbnail_base_url .'\');
+                window.top.kalturaCloseModalBox();
+              }
+              </script>';
+  }
   
   return $str;
 }
@@ -400,7 +455,7 @@ function kaltura_cron() {
       $update_entry = 'UPDATE {node_kaltura} SET kstatus = %d, kaltura_views = %d, kaltura_plays = %d, kaltura_rank = %d, kaltura_total_rank = %d,
         kaltura_duration = %d, kaltura_votes = %d, kaltura_thumbnail_url = \'%s\' WHERE kaltura_entryId = \'%s\'';
       if ($entry['duration']) $duration = $entry['duration'];
-      else $duration = $entry['length_in_msecs'];
+      else $duration = (int)($entry['length_in_msecs']/1000);
       $updated = db_query($update_entry, $entry['status'], $entry['views'], $entry['plays'], $entry['rank'], $entry['totalRank'], $duration,
       $entry['votes'], $entry['thumbnailUrl'], $entry['id']);
     }
@@ -428,6 +483,10 @@ function kaltura_help($path, $arg) {
   }
 }
 
+
+/*
+ * helper function to load HTML content for Drupal's help pages
+ */
 function get_help_html($page) {
   switch ($page) {
     case 'general':
@@ -441,6 +500,9 @@ function get_help_html($page) {
   return $help_html;
 }
 
+/*
+ * helper function that gets a widgetId, calls Kaltura's getWidget service and returns the embed code of the widget
+ */
 function fetch_widget_html($widget_id) {
   $session_user = KalturaHelpers::getSessionUser();
   $kaltura_client = KalturaHelpers::getKalturaClient();  
@@ -469,7 +531,7 @@ function kaltura_choose_player($as_single_form, $type, $node_type, $return_widge
   foreach ($widgets->kdp_widgets[$type] as $skins => $confs) {
     if ($return_widget_html)
       $embbed = fetch_widget_html('_'. $pid .'_'. $confs['remix_uiconf']);
-    $options[$skins] = $skins .': '. (($return_widget_html)? $embbed: '<img src="'. $base_path . drupal_get_path('module', 'kaltura') .'/'. $confs['preview_image'] .'" />');
+    $options[$skins] = $skins .': '. (($return_widget_html)? $embbed: '<br /><img src="'. $base_path . drupal_get_path('module', 'kaltura') .'/'. $confs['preview_image'] .'" />');
   }
   
   $default = _default_uiconf_by_type($type);
@@ -504,3 +566,44 @@ function kaltura_cw_destination() {
  * include another file with mostly theme'ing functions
  */
 include('kaltura.themeing.inc');
+
+/*
+ * Implementation of hook_block().
+ */
+function kaltura_block($op = 'list', $delta = 0, $edit = array()) {
+  if ($op == 'list') {
+    $blocks[0] = array( 'info' => t('Upload media block'),
+      'weight' => 0, 'status' => 0 );
+    return $blocks;
+  }
+  elseif ($op == 'configure' && $delta == 0) {
+  }
+  elseif ($op == 'save' && $delta == 0) {
+  }
+  elseif ($op == 'view') {
+    switch($delta) {
+      case 0:
+        if (user_access('create kaltura items')) {
+          $block = array('subject' => t('Upload Media'),
+            'content' => kaltura_upload_block());
+        }
+        break;
+    }
+    return $block;
+  }
+}
+
+/*
+ * returns the upload block content
+ */
+function kaltura_upload_block() {
+  return '<input type="button" onclick="kalturaInitModalBox(\''. url("kaltura/contribution_wizard/kshow_id#-2^navigate_back#0") .'\');" value="Click to Upload Media" />';
+}
+
+function format_cw_vars($vars = array()) {
+  $str = '';
+  foreach ($vars as $key => $val) {
+    $str .= $key .'#'. $val .'^';
+  }
+  return $str;
+}

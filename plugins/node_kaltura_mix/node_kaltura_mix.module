@@ -22,6 +22,9 @@ function node_kaltura_mix_perm() {
   );
 }
 
+/*
+ * Implementation of hook_access().
+ */
 function node_kaltura_mix_access($op, $node, $account) {
   switch ($op) {
     case 'create':
@@ -567,6 +570,10 @@ function node_kaltura_mix_update($node) {
   }
 }
 
+/*
+ * helper function that takes the node's taxonomy tags
+ * and pushes them into the kaltura tags fields
+ */
 function _update_mix_tags_from_taxonomy(&$node) {
   $voc = variable_get('kaltura_mix_tags_voc', '');
   //echo $voc;
@@ -649,13 +656,23 @@ function theme_node_kaltura_mix_entryId($node, $teaser) {
 /*
  * function to render the thumbnail_url field into HTML
  */
-function theme_node_kaltura_mix_thumbnail_url($node, $teaser) {
-  $width = variable_get('kaltura_mix_thumb_width', '120');
-  $height = variable_get('kaltura_mix_thumb_height', '90');
+function theme_node_kaltura_mix_thumbnail_url($node, $teaser, $nosize = FALSE, $size = array()) {
+  if (isset($size['width']) && isset($size['height'])) {
+    $width = $size['width'];
+    $height = $size['height'];
+  }
+  else {
+    $width = variable_get('kaltura_mix_thumb_width', '120');
+    $height = variable_get('kaltura_mix_thumb_height', '90');
+  }
+  $size_str = '';
+  if ($nosize == FALSE) {
+    $size_str = '/width/'. $width .'/height/'. $height;
+  }  
   if ($node->link_thumb || $teaser)
-    return '<a href="'. url('node/'. $node->nid) .'"><img src="'. $node->kaltura_thumbnail_url .'/width/'. $width .'/height/'. $height .'" '. $extra .' /></a>';
+    return '<div class="kaltura_thumb"><a href="'. url('node/'. $node->nid) .'"><img src="'. $node->kaltura_thumbnail_url . $size_str .'" '. $extra .' /></a></div>';
   else
-    return '<img src="'. $node->kaltura_thumbnail_url .'/width/'. $width .'/height/'. $height .'" '. $extra .' />';
+    return '<div class="kaltura_thumb"><img src="'. $node->kaltura_thumbnail_url . $size_str .'" '. $extra .' /></div>';
 }
 
 /*

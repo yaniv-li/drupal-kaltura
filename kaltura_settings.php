@@ -24,11 +24,17 @@ class KalturaSettings
   const DRUPAL_STATS_URL = "http://corp.kaltura.com/stats/drupal/";
   const DEFAULT_VIDEO_PLAYER_UICONF = 'dark';
   const DEFAULT_AUDIO_PLAYER_UICONF = 'dark';
+  const DEFAULT_VIEWPLAYLIST_PLAYER_UICONF = 'dark';
   const DEFAULT_RC_PLAYER_UICONF = 'dark';
   const DEFAULT_COMMENT_PLAYER_UICONF = 'dark';
   
   public $kdp_widgets = array(
       'audio' => array(
+        'dark' => array( 'view_uiconf' => '605', 'remix_uiconf' => '604', 'preview_image' => 'dark-player.jpg' ),
+        'gray' => array( 'view_uiconf' => '607', 'remix_uiconf' => '606', 'preview_image' => 'gray-player.jpg' ),
+        'white-blue' => array( 'view_uiconf' => '609', 'remix_uiconf' => '608', 'preview_image' => 'white-blue-player.jpg' ),
+      ),
+      'viewplaylist' => array(
         'dark' => array( 'view_uiconf' => '605', 'remix_uiconf' => '604', 'preview_image' => 'dark-player.jpg' ),
         'gray' => array( 'view_uiconf' => '607', 'remix_uiconf' => '606', 'preview_image' => 'gray-player.jpg' ),
         'white-blue' => array( 'view_uiconf' => '609', 'remix_uiconf' => '608', 'preview_image' => 'white-blue-player.jpg' ),
@@ -48,6 +54,12 @@ class KalturaSettings
         'gray' => array( 'view_uiconf' => '607', 'remix_uiconf' => '606', 'preview_image' => 'gray-player.jpg' ),
         'white-blue' => array( 'view_uiconf' => '609', 'remix_uiconf' => '608', 'preview_image' => 'white-blue-player.jpg' ),
       ),
-    );
+  );
+  
+  public $media_types_map = array(
+    1 => 'Video',
+    2 => 'Photo',
+    5 => 'Audio',
+    6 => 'Remix',
+  );
 } 
-

@@ -21,19 +21,35 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 /**
-Generated at 26/11 18:11:48
+Generated at 16/12 13:12:11
 **/
 
 require_once("kaltura_client_base.php");
 
-class KalturaConversionProfile
+class KalturaContentCategories
 {
-	public $name;
-	public $profileType;
-	public $width;
-	public $height;
-	public $aspectRatio;
-	public $bypassFlv;
+	public $categories = array(
+		'Arts & Literature',
+		'Automotive',
+		'Business',
+		'Comedy',
+		'Education',
+		'Entertainment',
+		'Film & Animation',
+		'Gaming',
+		'Howto & Style',
+		'Lifestyle',
+		'Men',
+		'Music',
+		'News & Politics',
+		'Nonprofits & Activism',
+		'People & Blogs',
+		'Pets & Animals',
+		'Science & Technology',
+		'Sports',
+		'Travel & Events',
+		'Women',
+	);
 }
 
 class KalturaEntry
@@ -64,6 +80,7 @@ class KalturaEntry
 	public $siteUrl;
 	public $description;
 	public $mediaDate;
+	public $adminTags;
 }
 
 class KalturaBatchJob
@@ -97,6 +114,7 @@ class KalturaModeration
 	public $objectType;
 	public $objectId;
 	public $reportCode;
+	public $status;
 }
 
 class KalturaUiConf
@@ -107,6 +125,7 @@ class KalturaUiConf
 	public $height;
 	public $htmlParams;
 	public $swfUrl;
+	public $swfUrlVersion;
 	public $confFile;
 	public $confVars;
 	public $useCdn;
@@ -147,6 +166,53 @@ class KalturaPuserKuser
 {
 }
 
+class KalturaConvesionProfileFilter
+{
+	const ORDER_BY_CREATED_AT_ASC = "+created_at";
+	const ORDER_BY_CREATED_AT_DESC = "-created_at";
+	const ORDER_BY_PROFILE_TYPE_ASC = "+profile_type";
+	const ORDER_BY_PROFILE_TYPE_DESC = "-profile_type";
+	const ORDER_BY_ID_ASC = "+id";
+	const ORDER_BY_ID_DESC = "-id";
+
+	public $equalId;
+	public $greaterThanOrEqualId;
+	public $equalStatus;
+	public $likeName;
+	public $inProfileType;
+	public $equalEnabled;
+	public $equalType;
+	public $equalUseWithBulk;
+	public $orderBy;
+	public $limit;
+}
+
+class KalturaConversionProfile
+{
+	public $name;
+	public $profileType;
+	public $width;
+	public $height;
+	public $aspectRatio;
+	public $bypassFlv;
+	public $commercialTranscoder;
+	public $useWithBulk;
+}
+
+class KalturaBatchJobFilter
+{
+	const ORDER_BY_ID_ASC = "+id";
+	const ORDER_BY_ID_DESC = "-id";
+
+	public $equalId;
+	public $greaterThanOrEqualId;
+	public $equalStatus;
+	public $equalJobType;
+	public $inJobType;
+	public $orderBy;
+	public $limit;
+}
+
 class KalturaEntryFilter
 {
 	const ORDER_BY_CREATED_AT_ASC = "+created_at";
@@ -175,6 +241,7 @@ class KalturaEntryFilter
 	public $equalUserId;
 	public $equalKshowId;
 	public $equalStatus;
+	public $inStatus;
 	public $equalType;
 	public $inType;
 	public $equalMediaType;
@@ -198,6 +265,8 @@ class KalturaEntryFilter
 	public $greaterThanOrEqualViews;
 	public $greaterThanOrEqualCreatedAt;
 	public $lessThanOrEqualCreatedAt;
+	public $greaterThanOrEqualUpdatedAt;
+	public $lessThanOrEqualUpdatedAt;
 	public $inPartnerId;
 	public $equalPartnerId;
 	public $equalSourceLink;
@@ -206,6 +275,9 @@ class KalturaEntryFilter
 	public $equalModerationStatus;
 	public $inModerationStatus;
 	public $inDisplayInSearch;
+	public $multiLikeOrTagsOrName;
+	public $multiLikeOrTagsOrAdminTags;
+	public $multiLikeOrTagsOrAdminTagsOrName;
 	public $orderBy;
 	public $limit;
 }
@@ -244,6 +316,7 @@ class KalturaModerationFilter
 	public $equalId;
 	public $equalPuserId;
 	public $equalStatus;
+	public $inStatus;
 	public $likeComments;
 	public $equalObjectId;
 	public $equalObjectType;
@@ -272,7 +345,7 @@ class KalturaNotification
 	public $notificationResult;
 }
 
-class KalturauiConfFilter
+class KalturaUiConfFilter
 {
 	const ORDER_BY_ID_ASC = "+id";
 	const ORDER_BY_ID_DESC = "-id";
@@ -282,6 +355,7 @@ class KalturauiConfFilter
 	public $equalStatus;
 	public $equalObjType;
 	public $likeName;
+	public $multiLikeOrTags;
 	public $orderBy;
 	public $limit;
 }
@@ -313,6 +387,8 @@ class KalturaPartner
 	public $notificationsConfig;
 	public $notify;
 	public $allowMultiNotification;
+	public $contentCategories;
+	public $type;
 }
 
 class KalturaEntryMediaType
@@ -327,6 +403,10 @@ class KalturaEntryMediaType
 	const SHOW_XML = "7";
 	const BUBBLES = "9";
 	const XML = "10";
+	const GENERIC_1 = "101";
+	const GENERIC_2 = "102";
+	const GENERIC_3 = "103";
+	const GENERIC_4 = "104";
 
 }
 
@@ -375,20 +455,6 @@ class KalturaClient extends KalturaClientBase
 		parent::__constructor();
 	}
 
-	public function addConversionProfile(KalturaSessionUser $kalturaSessionUser, KalturaConversionProfile $conversionProfile)
-	{
-		$params = array();
-		$this->addOptionalParam($params, "conversionProfile_name", $conversionProfile->name);
-		$this->addOptionalParam($params, "conversionProfile_profileType", $conversionProfile->profileType);
-		$this->addOptionalParam($params, "conversionProfile_width", $conversionProfile->width);
-		$this->addOptionalParam($params, "conversionProfile_height", $conversionProfile->height);
-		$this->addOptionalParam($params, "conversionProfile_aspectRatio", $conversionProfile->aspectRatio);
-		$this->addOptionalParam($params, "conversionProfile_bypassFlv", $conversionProfile->bypassFlv);
-
-		$result = $this->hit("addconversionprofile", $kalturaSessionUser, $params);
-		return $result;
-	}
-
 	public function addDownload(KalturaSessionUser $kalturaSessionUser, $entryId, $fileFormat, $entryVersion = null)
 	{
 		$params = array();
@@ -429,6 +495,7 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "dvdEntry_siteUrl", $dvdEntry->siteUrl);
 		$this->addOptionalParam($params, "dvdEntry_description", $dvdEntry->description);
 		$this->addOptionalParam($params, "dvdEntry_mediaDate", $dvdEntry->mediaDate);
+		$this->addOptionalParam($params, "dvdEntry_adminTags", $dvdEntry->adminTags);
 
 		$result = $this->hit("adddvdentry", $kalturaSessionUser, $params);
 		return $result;
@@ -473,6 +540,7 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "entry_siteUrl", $entry->siteUrl);
 		$this->addOptionalParam($params, "entry_description", $entry->description);
 		$this->addOptionalParam($params, "entry_mediaDate", $entry->mediaDate);
+		$this->addOptionalParam($params, "entry_adminTags", $entry->adminTags);
 		$this->addOptionalParam($params, "uid", $uid);
 
 		$result = $this->hit("addentry", $kalturaSessionUser, $params);
@@ -504,6 +572,7 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "moderation_objectType", $moderation->objectType);
 		$this->addOptionalParam($params, "moderation_objectId", $moderation->objectId);
 		$this->addOptionalParam($params, "moderation_reportCode", $moderation->reportCode);
+		$this->addOptionalParam($params, "moderation_status", $moderation->status);
 
 		$result = $this->hit("addmoderation", $kalturaSessionUser, $params);
 		return $result;
@@ -539,41 +608,43 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "entry_siteUrl", $entry->siteUrl);
 		$this->addOptionalParam($params, "entry_description", $entry->description);
 		$this->addOptionalParam($params, "entry_mediaDate", $entry->mediaDate);
+		$this->addOptionalParam($params, "entry_adminTags", $entry->adminTags);
 		$this->addOptionalParam($params, "uid", $uid);
 
 		$result = $this->hit("addpartnerentry", $kalturaSessionUser, $params);
 		return $result;
 	}
 
-	public function addPlaylist(KalturaSessionUser $kalturaSessionUser, KalturaEntry $dvdEntry)
+	public function addPlaylist(KalturaSessionUser $kalturaSessionUser, KalturaEntry $playlist)
 	{
 		$params = array();
-		$this->addOptionalParam($params, "dvdEntry_name", $dvdEntry->name);
-		$this->addOptionalParam($params, "dvdEntry_tags", $dvdEntry->tags);
-		$this->addOptionalParam($params, "dvdEntry_type", $dvdEntry->type);
-		$this->addOptionalParam($params, "dvdEntry_mediaType", $dvdEntry->mediaType);
-		$this->addOptionalParam($params, "dvdEntry_source", $dvdEntry->source);
-		$this->addOptionalParam($params, "dvdEntry_sourceId", $dvdEntry->sourceId);
-		$this->addOptionalParam($params, "dvdEntry_sourceLink", $dvdEntry->sourceLink);
-		$this->addOptionalParam($params, "dvdEntry_licenseType", $dvdEntry->licenseType);
-		$this->addOptionalParam($params, "dvdEntry_credit", $dvdEntry->credit);
-		$this->addOptionalParam($params, "dvdEntry_groupId", $dvdEntry->groupId);
-		$this->addOptionalParam($params, "dvdEntry_partnerData", $dvdEntry->partnerData);
-		$this->addOptionalParam($params, "dvdEntry_conversionQuality", $dvdEntry->conversionQuality);
-		$this->addOptionalParam($params, "dvdEntry_permissions", $dvdEntry->permissions);
-		$this->addOptionalParam($params, "dvdEntry_dataContent", $dvdEntry->dataContent);
-		$this->addOptionalParam($params, "dvdEntry_desiredVersion", $dvdEntry->desiredVersion);
-		$this->addOptionalParam($params, "dvdEntry_url", $dvdEntry->url);
-		$this->addOptionalParam($params, "dvdEntry_thumbUrl", $dvdEntry->thumbUrl);
-		$this->addOptionalParam($params, "dvdEntry_filename", $dvdEntry->filename);
-		$this->addOptionalParam($params, "dvdEntry_realFilename", $dvdEntry->realFilename);
-		$this->addOptionalParam($params, "dvdEntry_indexedCustomData1", $dvdEntry->indexedCustomData1);
-		$this->addOptionalParam($params, "dvdEntry_thumbOffset", $dvdEntry->thumbOffset);
-		$this->addOptionalParam($params, "dvdEntry_mediaId", $dvdEntry->mediaId);
-		$this->addOptionalParam($params, "dvdEntry_screenName", $dvdEntry->screenName);
-		$this->addOptionalParam($params, "dvdEntry_siteUrl", $dvdEntry->siteUrl);
-		$this->addOptionalParam($params, "dvdEntry_description", $dvdEntry->description);
-		$this->addOptionalParam($params, "dvdEntry_mediaDate", $dvdEntry->mediaDate);
+		$this->addOptionalParam($params, "playlist_name", $playlist->name);
+		$this->addOptionalParam($params, "playlist_tags", $playlist->tags);
+		$this->addOptionalParam($params, "playlist_type", $playlist->type);
+		$this->addOptionalParam($params, "playlist_mediaType", $playlist->mediaType);
+		$this->addOptionalParam($params, "playlist_source", $playlist->source);
+		$this->addOptionalParam($params, "playlist_sourceId", $playlist->sourceId);
+		$this->addOptionalParam($params, "playlist_sourceLink", $playlist->sourceLink);
+		$this->addOptionalParam($params, "playlist_licenseType", $playlist->licenseType);
+		$this->addOptionalParam($params, "playlist_credit", $playlist->credit);
+		$this->addOptionalParam($params, "playlist_groupId", $playlist->groupId);
+		$this->addOptionalParam($params, "playlist_partnerData", $playlist->partnerData);
+		$this->addOptionalParam($params, "playlist_conversionQuality", $playlist->conversionQuality);
+		$this->addOptionalParam($params, "playlist_permissions", $playlist->permissions);
+		$this->addOptionalParam($params, "playlist_dataContent", $playlist->dataContent);
+		$this->addOptionalParam($params, "playlist_desiredVersion", $playlist->desiredVersion);
+		$this->addOptionalParam($params, "playlist_url", $playlist->url);
+		$this->addOptionalParam($params, "playlist_thumbUrl", $playlist->thumbUrl);
+		$this->addOptionalParam($params, "playlist_filename", $playlist->filename);
+		$this->addOptionalParam($params, "playlist_realFilename", $playlist->realFilename);
+		$this->addOptionalParam($params, "playlist_indexedCustomData1", $playlist->indexedCustomData1);
+		$this->addOptionalParam($params, "playlist_thumbOffset", $playlist->thumbOffset);
+		$this->addOptionalParam($params, "playlist_mediaId", $playlist->mediaId);
+		$this->addOptionalParam($params, "playlist_screenName", $playlist->screenName);
+		$this->addOptionalParam($params, "playlist_siteUrl", $playlist->siteUrl);
+		$this->addOptionalParam($params, "playlist_description", $playlist->description);
+		$this->addOptionalParam($params, "playlist_mediaDate", $playlist->mediaDate);
+		$this->addOptionalParam($params, "playlist_adminTags", $playlist->adminTags);
 
 		$result = $this->hit("addplaylist", $kalturaSessionUser, $params);
 		return $result;
@@ -609,6 +680,7 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "entry_siteUrl", $entry->siteUrl);
 		$this->addOptionalParam($params, "entry_description", $entry->description);
 		$this->addOptionalParam($params, "entry_mediaDate", $entry->mediaDate);
+		$this->addOptionalParam($params, "entry_adminTags", $entry->adminTags);
 
 		$result = $this->hit("addroughcutentry", $kalturaSessionUser, $params);
 		return $result;
@@ -623,6 +695,7 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "uiconf_height", $uiconf->height);
 		$this->addOptionalParam($params, "uiconf_htmlParams", $uiconf->htmlParams);
 		$this->addOptionalParam($params, "uiconf_swfUrl", $uiconf->swfUrl);
+		$this->addOptionalParam($params, "uiconf_swfUrlVersion", $uiconf->swfUrlVersion);
 		$this->addOptionalParam($params, "uiconf_confFile", $uiconf->confFile);
 		$this->addOptionalParam($params, "uiconf_confVars", $uiconf->confVars);
 		$this->addOptionalParam($params, "uiconf_useCdn", $uiconf->useCdn);
@@ -713,6 +786,16 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
+	public function cloneUiConf(KalturaSessionUser $kalturaSessionUser, $uiconfId, $detailed = null)
+	{
+		$params = array();
+		$params["uiconf_id"] = $uiconfId;
+		$this->addOptionalParam($params, "detailed", $detailed);
+
+		$result = $this->hit("cloneuiconf", $kalturaSessionUser, $params);
+		return $result;
+	}
+
 	public function deleteEntry(KalturaSessionUser $kalturaSessionUser, $entryId)
 	{
 		$params = array();
@@ -749,10 +832,11 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function executePlaylist(KalturaSessionUser $kalturaSessionUser, $playlistId, $filter1 = null, $filter2 = null, $filter3 = null, $filter4 = null, $detailed = null, $pageSize = 10, $page = 1, $useFilterPuserId = null)
+	public function executePlaylist(KalturaSessionUser $kalturaSessionUser, $playlistId, $fp = null, $filter1 = null, $filter2 = null, $filter3 = null, $filter4 = null, $detailed = null, $pageSize = 10, $page = 1, $useFilterPuserId = null)
 	{
 		$params = array();
 		$params["playlist_id"] = $playlistId;
+		$this->addOptionalParam($params, "fp", $fp);
 		$this->addOptionalParam($params, "filter1", $filter1);
 		$this->addOptionalParam($params, "filter2", $filter2);
 		$this->addOptionalParam($params, "filter3", $filter3);
@@ -825,6 +909,15 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "version", $version);
 
 		$result = $this->hit("getentry", $kalturaSessionUser, $params);
+		return $result;
+	}
+
+	public function getEntryRoughcuts(KalturaSessionUser $kalturaSessionUser, $entryId)
+	{
+		$params = array();
+		$params["entry_id"] = $entryId;
+
+		$result = $this->hit("getentryroughcuts", $kalturaSessionUser, $params);
 		return $result;
 	}
 
@@ -928,12 +1021,52 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
+	public function listConversionProfile(KalturaSessionUser $kalturaSessionUser, KalturaConvesionProfileFilter $filter, $detailed = null, $pageSize = 10, $page = 1)
+	{
+		$params = array();
+		$this->addOptionalParam($params, "filter__eq_id", $filter->equalId);
+		$this->addOptionalParam($params, "filter__gte_id", $filter->greaterThanOrEqualId);
+		$this->addOptionalParam($params, "filter__eq_status", $filter->equalStatus);
+		$this->addOptionalParam($params, "filter__like_name", $filter->likeName);
+		$this->addOptionalParam($params, "filter__in_profile_type", $filter->inProfileType);
+		$this->addOptionalParam($params, "filter__eq_enabled", $filter->equalEnabled);
+		$this->addOptionalParam($params, "filter__eq_type", $filter->equalType);
+		$this->addOptionalParam($params, "filter__eq_use_with_bulk", $filter->equalUseWithBulk);
+		$this->addOptionalParam($params, "filter__order_by", $filter->orderBy);
+		$this->addOptionalParam($params, "filter__limit", $filter->limit);
+		$this->addOptionalParam($params, "detailed", $detailed);
+		$this->addOptionalParam($params, "page_size", $pageSize);
+		$this->addOptionalParam($params, "page", $page);
+
+		$result = $this->hit("listconversionprofiles", $kalturaSessionUser, $params);
+		return $result;
+	}
+
+	public function listDownloads(KalturaSessionUser $kalturaSessionUser, KalturaBatchJobFilter $filter, $detailed = null, $pageSize = 10, $page = 1)
+	{
+		$params = array();
+		$this->addOptionalParam($params, "filter__eq_id", $filter->equalId);
+		$this->addOptionalParam($params, "filter__gte_id", $filter->greaterThanOrEqualId);
+		$this->addOptionalParam($params, "filter__eq_status", $filter->equalStatus);
+		$this->addOptionalParam($params, "filter__eq_job_type", $filter->equalJobType);
+		$this->addOptionalParam($params, "filter__in_job_type", $filter->inJobType);
+		$this->addOptionalParam($params, "filter__order_by", $filter->orderBy);
+		$this->addOptionalParam($params, "filter__limit", $filter->limit);
+		$this->addOptionalParam($params, "detailed", $detailed);
+		$this->addOptionalParam($params, "page_size", $pageSize);
+		$this->addOptionalParam($params, "page", $page);
+
+		$result = $this->hit("listdownloads", $kalturaSessionUser, $params);
+		return $result;
+	}
+
 	public function listDvdEntries(KalturaSessionUser $kalturaSessionUser, KalturaEntryFilter $filter, $detailed = null, $detailedFields = null, $pageSize = 10, $page = 1, $useFilterPuserId = null)
 	{
 		$params = array();
 		$this->addOptionalParam($params, "filter__eq_user_id", $filter->equalUserId);
 		$this->addOptionalParam($params, "filter__eq_kshow_id", $filter->equalKshowId);
 		$this->addOptionalParam($params, "filter__eq_status", $filter->equalStatus);
+		$this->addOptionalParam($params, "filter__in_status", $filter->inStatus);
 		$this->addOptionalParam($params, "filter__eq_type", $filter->equalType);
 		$this->addOptionalParam($params, "filter__in_type", $filter->inType);
 		$this->addOptionalParam($params, "filter__eq_media_type", $filter->equalMediaType);
@@ -957,6 +1090,8 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "filter__gte_views", $filter->greaterThanOrEqualViews);
 		$this->addOptionalParam($params, "filter__gte_created_at", $filter->greaterThanOrEqualCreatedAt);
 		$this->addOptionalParam($params, "filter__lte_created_at", $filter->lessThanOrEqualCreatedAt);
+		$this->addOptionalParam($params, "filter__gte_updated_at", $filter->greaterThanOrEqualUpdatedAt);
+		$this->addOptionalParam($params, "filter__lte_updated_at", $filter->lessThanOrEqualUpdatedAt);
 		$this->addOptionalParam($params, "filter__in_partner_id", $filter->inPartnerId);
 		$this->addOptionalParam($params, "filter__eq_partner_id", $filter->equalPartnerId);
 		$this->addOptionalParam($params, "filter__eq_source_link", $filter->equalSourceLink);
@@ -965,6 +1100,9 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "filter__eq_moderation_status", $filter->equalModerationStatus);
 		$this->addOptionalParam($params, "filter__in_moderation_status", $filter->inModerationStatus);
 		$this->addOptionalParam($params, "filter__in_display_in_search", $filter->inDisplayInSearch);
+		$this->addOptionalParam($params, "filter__mlikeor_tags-name", $filter->multiLikeOrTagsOrName);
+		$this->addOptionalParam($params, "filter__mlikeor_tags-admin_tags", $filter->multiLikeOrTagsOrAdminTags);
+		$this->addOptionalParam($params, "filter__mlikeor_tags-admin_tags-name", $filter->multiLikeOrTagsOrAdminTagsOrName);
 		$this->addOptionalParam($params, "filter__order_by", $filter->orderBy);
 		$this->addOptionalParam($params, "filter__limit", $filter->limit);
 		$this->addOptionalParam($params, "detailed", $detailed);
@@ -983,6 +1121,7 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "filter__eq_user_id", $filter->equalUserId);
 		$this->addOptionalParam($params, "filter__eq_kshow_id", $filter->equalKshowId);
 		$this->addOptionalParam($params, "filter__eq_status", $filter->equalStatus);
+		$this->addOptionalParam($params, "filter__in_status", $filter->inStatus);
 		$this->addOptionalParam($params, "filter__eq_type", $filter->equalType);
 		$this->addOptionalParam($params, "filter__in_type", $filter->inType);
 		$this->addOptionalParam($params, "filter__eq_media_type", $filter->equalMediaType);
@@ -1006,6 +1145,8 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "filter__gte_views", $filter->greaterThanOrEqualViews);
 		$this->addOptionalParam($params, "filter__gte_created_at", $filter->greaterThanOrEqualCreatedAt);
 		$this->addOptionalParam($params, "filter__lte_created_at", $filter->lessThanOrEqualCreatedAt);
+		$this->addOptionalParam($params, "filter__gte_updated_at", $filter->greaterThanOrEqualUpdatedAt);
+		$this->addOptionalParam($params, "filter__lte_updated_at", $filter->lessThanOrEqualUpdatedAt);
 		$this->addOptionalParam($params, "filter__in_partner_id", $filter->inPartnerId);
 		$this->addOptionalParam($params, "filter__eq_partner_id", $filter->equalPartnerId);
 		$this->addOptionalParam($params, "filter__eq_source_link", $filter->equalSourceLink);
@@ -1014,6 +1155,9 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "filter__eq_moderation_status", $filter->equalModerationStatus);
 		$this->addOptionalParam($params, "filter__in_moderation_status", $filter->inModerationStatus);
 		$this->addOptionalParam($params, "filter__in_display_in_search", $filter->inDisplayInSearch);
+		$this->addOptionalParam($params, "filter__mlikeor_tags-name", $filter->multiLikeOrTagsOrName);
+		$this->addOptionalParam($params, "filter__mlikeor_tags-admin_tags", $filter->multiLikeOrTagsOrAdminTags);
+		$this->addOptionalParam($params, "filter__mlikeor_tags-admin_tags-name", $filter->multiLikeOrTagsOrAdminTagsOrName);
 		$this->addOptionalParam($params, "filter__order_by", $filter->orderBy);
 		$this->addOptionalParam($params, "filter__limit", $filter->limit);
 		$this->addOptionalParam($params, "detailed", $detailed);
@@ -1057,6 +1201,7 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "filter__eq_id", $filter->equalId);
 		$this->addOptionalParam($params, "filter__eq_puser_id", $filter->equalPuserId);
 		$this->addOptionalParam($params, "filter__eq_status", $filter->equalStatus);
+		$this->addOptionalParam($params, "filter__in_status", $filter->inStatus);
 		$this->addOptionalParam($params, "filter__like_comments", $filter->likeComments);
 		$this->addOptionalParam($params, "filter__eq_object_id", $filter->equalObjectId);
 		$this->addOptionalParam($params, "filter__eq_object_type", $filter->equalObjectType);
@@ -1077,6 +1222,7 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "filter__eq_user_id", $filter->equalUserId);
 		$this->addOptionalParam($params, "filter__eq_kshow_id", $filter->equalKshowId);
 		$this->addOptionalParam($params, "filter__eq_status", $filter->equalStatus);
+		$this->addOptionalParam($params, "filter__in_status", $filter->inStatus);
 		$this->addOptionalParam($params, "filter__eq_type", $filter->equalType);
 		$this->addOptionalParam($params, "filter__in_type", $filter->inType);
 		$this->addOptionalParam($params, "filter__eq_media_type", $filter->equalMediaType);
@@ -1100,6 +1246,8 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "filter__gte_views", $filter->greaterThanOrEqualViews);
 		$this->addOptionalParam($params, "filter__gte_created_at", $filter->greaterThanOrEqualCreatedAt);
 		$this->addOptionalParam($params, "filter__lte_created_at", $filter->lessThanOrEqualCreatedAt);
+		$this->addOptionalParam($params, "filter__gte_updated_at", $filter->greaterThanOrEqualUpdatedAt);
+		$this->addOptionalParam($params, "filter__lte_updated_at", $filter->lessThanOrEqualUpdatedAt);
 		$this->addOptionalParam($params, "filter__in_partner_id", $filter->inPartnerId);
 		$this->addOptionalParam($params, "filter__eq_partner_id", $filter->equalPartnerId);
 		$this->addOptionalParam($params, "filter__eq_source_link", $filter->equalSourceLink);
@@ -1108,6 +1256,9 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "filter__eq_moderation_status", $filter->equalModerationStatus);
 		$this->addOptionalParam($params, "filter__in_moderation_status", $filter->inModerationStatus);
 		$this->addOptionalParam($params, "filter__in_display_in_search", $filter->inDisplayInSearch);
+		$this->addOptionalParam($params, "filter__mlikeor_tags-name", $filter->multiLikeOrTagsOrName);
+		$this->addOptionalParam($params, "filter__mlikeor_tags-admin_tags", $filter->multiLikeOrTagsOrAdminTags);
+		$this->addOptionalParam($params, "filter__mlikeor_tags-admin_tags-name", $filter->multiLikeOrTagsOrAdminTagsOrName);
 		$this->addOptionalParam($params, "filter__order_by", $filter->orderBy);
 		$this->addOptionalParam($params, "filter__limit", $filter->limit);
 		$this->addOptionalParam($params, "detailed", $detailed);
@@ -1125,6 +1276,7 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "filter__eq_user_id", $filter->equalUserId);
 		$this->addOptionalParam($params, "filter__eq_kshow_id", $filter->equalKshowId);
 		$this->addOptionalParam($params, "filter__eq_status", $filter->equalStatus);
+		$this->addOptionalParam($params, "filter__in_status", $filter->inStatus);
 		$this->addOptionalParam($params, "filter__eq_type", $filter->equalType);
 		$this->addOptionalParam($params, "filter__in_type", $filter->inType);
 		$this->addOptionalParam($params, "filter__eq_media_type", $filter->equalMediaType);
@@ -1148,6 +1300,8 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "filter__gte_views", $filter->greaterThanOrEqualViews);
 		$this->addOptionalParam($params, "filter__gte_created_at", $filter->greaterThanOrEqualCreatedAt);
 		$this->addOptionalParam($params, "filter__lte_created_at", $filter->lessThanOrEqualCreatedAt);
+		$this->addOptionalParam($params, "filter__gte_updated_at", $filter->greaterThanOrEqualUpdatedAt);
+		$this->addOptionalParam($params, "filter__lte_updated_at", $filter->lessThanOrEqualUpdatedAt);
 		$this->addOptionalParam($params, "filter__in_partner_id", $filter->inPartnerId);
 		$this->addOptionalParam($params, "filter__eq_partner_id", $filter->equalPartnerId);
 		$this->addOptionalParam($params, "filter__eq_source_link", $filter->equalSourceLink);
@@ -1156,6 +1310,9 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "filter__eq_moderation_status", $filter->equalModerationStatus);
 		$this->addOptionalParam($params, "filter__in_moderation_status", $filter->inModerationStatus);
 		$this->addOptionalParam($params, "filter__in_display_in_search", $filter->inDisplayInSearch);
+		$this->addOptionalParam($params, "filter__mlikeor_tags-name", $filter->multiLikeOrTagsOrName);
+		$this->addOptionalParam($params, "filter__mlikeor_tags-admin_tags", $filter->multiLikeOrTagsOrAdminTags);
+		$this->addOptionalParam($params, "filter__mlikeor_tags-admin_tags-name", $filter->multiLikeOrTagsOrAdminTagsOrName);
 		$this->addOptionalParam($params, "filter__order_by", $filter->orderBy);
 		$this->addOptionalParam($params, "filter__limit", $filter->limit);
 		$this->addOptionalParam($params, "detailed", $detailed);
@@ -1214,6 +1371,7 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "filter__eq_user_id", $filter->equalUserId);
 		$this->addOptionalParam($params, "filter__eq_kshow_id", $filter->equalKshowId);
 		$this->addOptionalParam($params, "filter__eq_status", $filter->equalStatus);
+		$this->addOptionalParam($params, "filter__in_status", $filter->inStatus);
 		$this->addOptionalParam($params, "filter__eq_type", $filter->equalType);
 		$this->addOptionalParam($params, "filter__in_type", $filter->inType);
 		$this->addOptionalParam($params, "filter__eq_media_type", $filter->equalMediaType);
@@ -1237,6 +1395,8 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "filter__gte_views", $filter->greaterThanOrEqualViews);
 		$this->addOptionalParam($params, "filter__gte_created_at", $filter->greaterThanOrEqualCreatedAt);
 		$this->addOptionalParam($params, "filter__lte_created_at", $filter->lessThanOrEqualCreatedAt);
+		$this->addOptionalParam($params, "filter__gte_updated_at", $filter->greaterThanOrEqualUpdatedAt);
+		$this->addOptionalParam($params, "filter__lte_updated_at", $filter->lessThanOrEqualUpdatedAt);
 		$this->addOptionalParam($params, "filter__in_partner_id", $filter->inPartnerId);
 		$this->addOptionalParam($params, "filter__eq_partner_id", $filter->equalPartnerId);
 		$this->addOptionalParam($params, "filter__eq_source_link", $filter->equalSourceLink);
@@ -1245,6 +1405,9 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "filter__eq_moderation_status", $filter->equalModerationStatus);
 		$this->addOptionalParam($params, "filter__in_moderation_status", $filter->inModerationStatus);
 		$this->addOptionalParam($params, "filter__in_display_in_search", $filter->inDisplayInSearch);
+		$this->addOptionalParam($params, "filter__mlikeor_tags-name", $filter->multiLikeOrTagsOrName);
+		$this->addOptionalParam($params, "filter__mlikeor_tags-admin_tags", $filter->multiLikeOrTagsOrAdminTags);
+		$this->addOptionalParam($params, "filter__mlikeor_tags-admin_tags-name", $filter->multiLikeOrTagsOrAdminTagsOrName);
 		$this->addOptionalParam($params, "filter__order_by", $filter->orderBy);
 		$this->addOptionalParam($params, "filter__limit", $filter->limit);
 		$this->addOptionalParam($params, "detailed", $detailed);
@@ -1262,6 +1425,7 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "filter__eq_user_id", $filter->equalUserId);
 		$this->addOptionalParam($params, "filter__eq_kshow_id", $filter->equalKshowId);
 		$this->addOptionalParam($params, "filter__eq_status", $filter->equalStatus);
+		$this->addOptionalParam($params, "filter__in_status", $filter->inStatus);
 		$this->addOptionalParam($params, "filter__eq_type", $filter->equalType);
 		$this->addOptionalParam($params, "filter__in_type", $filter->inType);
 		$this->addOptionalParam($params, "filter__eq_media_type", $filter->equalMediaType);
@@ -1285,6 +1449,8 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "filter__gte_views", $filter->greaterThanOrEqualViews);
 		$this->addOptionalParam($params, "filter__gte_created_at", $filter->greaterThanOrEqualCreatedAt);
 		$this->addOptionalParam($params, "filter__lte_created_at", $filter->lessThanOrEqualCreatedAt);
+		$this->addOptionalParam($params, "filter__gte_updated_at", $filter->greaterThanOrEqualUpdatedAt);
+		$this->addOptionalParam($params, "filter__lte_updated_at", $filter->lessThanOrEqualUpdatedAt);
 		$this->addOptionalParam($params, "filter__in_partner_id", $filter->inPartnerId);
 		$this->addOptionalParam($params, "filter__eq_partner_id", $filter->equalPartnerId);
 		$this->addOptionalParam($params, "filter__eq_source_link", $filter->equalSourceLink);
@@ -1293,6 +1459,9 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "filter__eq_moderation_status", $filter->equalModerationStatus);
 		$this->addOptionalParam($params, "filter__in_moderation_status", $filter->inModerationStatus);
 		$this->addOptionalParam($params, "filter__in_display_in_search", $filter->inDisplayInSearch);
+		$this->addOptionalParam($params, "filter__mlikeor_tags-name", $filter->multiLikeOrTagsOrName);
+		$this->addOptionalParam($params, "filter__mlikeor_tags-admin_tags", $filter->multiLikeOrTagsOrAdminTags);
+		$this->addOptionalParam($params, "filter__mlikeor_tags-admin_tags-name", $filter->multiLikeOrTagsOrAdminTagsOrName);
 		$this->addOptionalParam($params, "filter__order_by", $filter->orderBy);
 		$this->addOptionalParam($params, "filter__limit", $filter->limit);
 		$this->addOptionalParam($params, "detailed", $detailed);
@@ -1305,7 +1474,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function listUiconf(KalturaSessionUser $kalturaSessionUser, KalturauiConfFilter $filter, $detailed = null, $detailedFields = null, $pageSize = 10, $page = 1)
+	public function listUiconf(KalturaSessionUser $kalturaSessionUser, KalturaUiConfFilter $filter, $detailed = null, $detailedFields = null, $pageSize = 10, $page = 1)
 	{
 		$params = array();
 		$this->addOptionalParam($params, "filter__eq_id", $filter->equalId);
@@ -1313,6 +1482,7 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "filter__eq_status", $filter->equalStatus);
 		$this->addOptionalParam($params, "filter__eq_obj_type", $filter->equalObjType);
 		$this->addOptionalParam($params, "filter__like_name", $filter->likeName);
+		$this->addOptionalParam($params, "filter__mlikeor_tags", $filter->multiLikeOrTags);
 		$this->addOptionalParam($params, "filter__order_by", $filter->orderBy);
 		$this->addOptionalParam($params, "filter__limit", $filter->limit);
 		$this->addOptionalParam($params, "detailed", $detailed);
@@ -1332,12 +1502,14 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function queuePendingBatchJob(KalturaSessionUser $kalturaSessionUser, $jobType, $processorName, $processorTimeout)
+	public function queuePendingBatchJob(KalturaSessionUser $kalturaSessionUser, $jobType, $processorName, $processorTimeout, $overQuotaPartners = null, $deferedPartners = null)
 	{
 		$params = array();
 		$params["job_type"] = $jobType;
 		$params["processor_name"] = $processorName;
 		$params["processor_timeout"] = $processorTimeout;
+		$this->addOptionalParam($params, "over_quota_partners", $overQuotaPartners);
+		$this->addOptionalParam($params, "defered_partners", $deferedPartners);
 
 		$result = $this->hit("queuependingbatchjob", $kalturaSessionUser, $params);
 		return $result;
@@ -1369,6 +1541,8 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "partner_notificationsConfig", $partner->notificationsConfig);
 		$this->addOptionalParam($params, "partner_notify", $partner->notify);
 		$this->addOptionalParam($params, "partner_allowMultiNotification", $partner->allowMultiNotification);
+		$this->addOptionalParam($params, "partner_contentCategories", $partner->contentCategories);
+		$this->addOptionalParam($params, "partner_type", $partner->type);
 		$this->addOptionalParam($params, "cms_password", $cmsPassword);
 
 		$result = $this->hit("registerpartner", $kalturaSessionUser, $params);
@@ -1382,6 +1556,7 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "moderation_objectType", $moderation->objectType);
 		$this->addOptionalParam($params, "moderation_objectId", $moderation->objectId);
 		$this->addOptionalParam($params, "moderation_reportCode", $moderation->reportCode);
+		$this->addOptionalParam($params, "moderation_status", $moderation->status);
 
 		$result = $this->hit("reportentry", $kalturaSessionUser, $params);
 		return $result;
@@ -1405,8 +1580,22 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "moderation_objectType", $moderation->objectType);
 		$this->addOptionalParam($params, "moderation_objectId", $moderation->objectId);
 		$this->addOptionalParam($params, "moderation_reportCode", $moderation->reportCode);
+		$this->addOptionalParam($params, "moderation_status", $moderation->status);
 
 		$result = $this->hit("reportkshow", $kalturaSessionUser, $params);
+		return $result;
+	}
+
+	public function reportUser(KalturaSessionUser $kalturaSessionUser, KalturaModeration $moderation)
+	{
+		$params = array();
+		$this->addOptionalParam($params, "moderation_comments", $moderation->comments);
+		$this->addOptionalParam($params, "moderation_objectType", $moderation->objectType);
+		$this->addOptionalParam($params, "moderation_objectId", $moderation->objectId);
+		$this->addOptionalParam($params, "moderation_reportCode", $moderation->reportCode);
+		$this->addOptionalParam($params, "moderation_status", $moderation->status);
+
+		$result = $this->hit("reportuser", $kalturaSessionUser, $params);
 		return $result;
 	}
 
@@ -1420,13 +1609,13 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function search(KalturaSessionUser $kalturaSessionUser, $mediaType, $mediaSource, $search, $authData, $page = 1, $pageSize = 10)
+	public function search(KalturaSessionUser $kalturaSessionUser, $mediaType, $mediaSource, $search, $authData = null, $page = 1, $pageSize = 10)
 	{
 		$params = array();
 		$params["media_type"] = $mediaType;
 		$params["media_source"] = $mediaSource;
 		$params["search"] = $search;
-		$params["auth_data"] = $authData;
+		$this->addOptionalParam($params, "auth_data", $authData);
 		$this->addOptionalParam($params, "page", $page);
 		$this->addOptionalParam($params, "page_size", $pageSize);
 
@@ -1564,6 +1753,7 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "entry_siteUrl", $entry->siteUrl);
 		$this->addOptionalParam($params, "entry_description", $entry->description);
 		$this->addOptionalParam($params, "entry_mediaDate", $entry->mediaDate);
+		$this->addOptionalParam($params, "entry_adminTags", $entry->adminTags);
 
 		$result = $this->hit("updatedvdentry", $kalturaSessionUser, $params);
 		return $result;
@@ -1609,6 +1799,7 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "entry_siteUrl", $entry->siteUrl);
 		$this->addOptionalParam($params, "entry_description", $entry->description);
 		$this->addOptionalParam($params, "entry_mediaDate", $entry->mediaDate);
+		$this->addOptionalParam($params, "entry_adminTags", $entry->adminTags);
 
 		$result = $this->hit("updateentry", $kalturaSessionUser, $params);
 		return $result;
@@ -1700,6 +1891,8 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "partner_notificationsConfig", $partner->notificationsConfig);
 		$this->addOptionalParam($params, "partner_notify", $partner->notify);
 		$this->addOptionalParam($params, "partner_allowMultiNotification", $partner->allowMultiNotification);
+		$this->addOptionalParam($params, "partner_contentCategories", $partner->contentCategories);
+		$this->addOptionalParam($params, "partner_type", $partner->type);
 
 		$result = $this->hit("updatepartner", $kalturaSessionUser, $params);
 		return $result;
@@ -1735,8 +1928,29 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "entry_siteUrl", $entry->siteUrl);
 		$this->addOptionalParam($params, "entry_description", $entry->description);
 		$this->addOptionalParam($params, "entry_mediaDate", $entry->mediaDate);
+		$this->addOptionalParam($params, "entry_adminTags", $entry->adminTags);
 
 		$result = $this->hit("updateplaylist", $kalturaSessionUser, $params);
+		return $result;
+	}
+
+	public function updateUiconf(KalturaSessionUser $kalturaSessionUser, $uiconfId, KalturaUiConf $uiconf)
+	{
+		$params = array();
+		$params["uiconf_id"] = $uiconfId;
+		$this->addOptionalParam($params, "uiconf_name", $uiconf->name);
+		$this->addOptionalParam($params, "uiconf_objType", $uiconf->objType);
+		$this->addOptionalParam($params, "uiconf_width", $uiconf->width);
+		$this->addOptionalParam($params, "uiconf_height", $uiconf->height);
+		$this->addOptionalParam($params, "uiconf_htmlParams", $uiconf->htmlParams);
+		$this->addOptionalParam($params, "uiconf_swfUrl", $uiconf->swfUrl);
+		$this->addOptionalParam($params, "uiconf_swfUrlVersion", $uiconf->swfUrlVersion);
+		$this->addOptionalParam($params, "uiconf_confFile", $uiconf->confFile);
+		$this->addOptionalParam($params, "uiconf_confVars", $uiconf->confVars);
+		$this->addOptionalParam($params, "uiconf_useCdn", $uiconf->useCdn);
+		$this->addOptionalParam($params, "uiconf_tags", $uiconf->tags);
+
+		$result = $this->hit("updateuiconf", $kalturaSessionUser, $params);
 		return $result;
 	}
 

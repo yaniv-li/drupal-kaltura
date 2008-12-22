@@ -222,7 +222,9 @@ function kaltura_uninstall() {
   watchdog('kaltura', 'the following vars were deleted during uninstall: '. rtrim($vars_deleted, ','));
 }
 
-
+/*
+ * Implementation of hook_requirements().
+ */
 function kaltura_requirements($phase) {
   $reqs = array();
   if (!module_exists('kaltura')) {

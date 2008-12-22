@@ -25,6 +25,10 @@ function kaltura_views_api() {
  * The structure of the return value applies the views2 api
  */
 function kaltura_views_data() {
+  $media_id_help = '';
+  if (module_exists('kaltura_playlist')) {
+    $media_id_help = ' '. t('To have this view listed in Kaltura Playlist node, you must add this field to the default fields (can be excluded from display).');
+  }
   $data = array();
   $data['node_kaltura'] = array(
     'table' => array(
@@ -196,7 +200,13 @@ function kaltura_views_data() {
         'handler' => 'views_handler_field',
       ),
     ),
-    
+    'kaltura_entryId' => array(
+      'title' => t('kaltura media ID'),
+      'help' => t('') . $media_id_help,
+      'field' => array(
+        'handler' => 'views_handler_field',
+      ),
+    ),    
     'kaltura_video_comment' => array(
       'title' => t('was the Kaltura node created when adding a comment on another node'),
        'help' => t(''),
@@ -258,6 +268,9 @@ class views_handler_filter_is_comment extends views_handler_filter_in_operator {
  */
 class views_handler_field_kaltura_thumb extends views_handler_field {
   
+  /*
+   * return a themed HTML of a kaltura thumbnail field
+   */
   function theme($data) {
     $node = new stdClass;
     $node->kaltura_thumbnail_url = $data->node_kaltura_kaltura_thumbnail_url;
@@ -266,20 +279,52 @@ class views_handler_field_kaltura_thumb extends views_handler_field {
     list( $kaltura_type, $kaltura_media_type, $kstatus ) = self::_get_node_type($node->nid);
     $node->kaltura_media_type = $kaltura_media_type;
     $node->kstatus = $kstatus;
+    $size = array();
+    $size['width'] = $this->options['thumbnail_width'];
+    $size['height'] = $this->options['thumbnail_height'];
     if ($kaltura_type == 'kaltura_mix') {
-      return theme('node_kaltura_mix_thumbnail_url', $node, $teaser = TRUE);
+      return theme('node_kaltura_mix_thumbnail_url', $node, $teaser = TRUE, FALSE, $size);
     }
     else {
-      return theme('node_kaltura_entry_thumbnail_url', $node, $teaser = TRUE);
+      return theme('node_kaltura_entry_thumbnail_url', $node, $teaser = TRUE, FALSE, $size);
     }
   }
   
+  /*
+   * helper function that gets some info about node with id $nid
+   */
   function _get_node_type($nid) {
     $sql = 'SELECT type, kaltura_media_type, kstatus FROM {node} node LEFT JOIN {node_kaltura} knode ON node.nid = knode.nid WHERE node.nid = %d';
     $result = db_fetch_object(db_query($sql, $nid));
     return array( $result->type, $result->kaltura_media_type, $result->kstatus );
   }
 
+  function has_extra_options() { return TRUE; }
+  
+  function option_definition() {
+    $options = parent::option_definition();
+
+    $options['thumbnail_width'] = array('default' => 100);
+    $options['thumbnail_height'] = array('default' => 100);
+
+    return $options;
+  }
+
+  function extra_options_form(&$form, &$form_state) {
+    $form['thumbnail_width'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Thumbnail Width'),
+        '#size' => 5,
+        '#default_value' => $this->options['thumbnail_width'],
+    );
+    $form['thumbnail_height'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Thumbnail Height'),
+        '#size' => 5,
+        '#default_value' => $this->options['thumbnail_height'],
+    );
+    return $form;
+  }
 }
 
 /**
@@ -306,6 +351,15 @@ function kaltura_views_default_views() {
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
   $handler = $view->new_display('default', 'Most Popular Videos', 'default');
   $handler->override_option('fields', array(
+    'title' => array(
+      'label' => '',
+      'link_to_node' => 1,
+      'exclude' => 0,
+      'id' => 'title',
+      'table' => 'node',
+      'field' => 'title',
+      'relationship' => 'none',
+    ),
     'kaltura_thumbnail_url' => array(
       'label' => '',
       'exclude' => 0,
@@ -314,13 +368,12 @@ function kaltura_views_default_views() {
       'field' => 'kaltura_thumbnail_url',
       'relationship' => 'none',
     ),
-    'title' => array(
+    'kaltura_entryId' => array(
       'label' => '',
-      'link_to_node' => 1,
-      'exclude' => 0,
-      'id' => 'title',
-      'table' => 'node',
-      'field' => 'title',
+      'exclude' => 1,
+      'id' => 'kaltura_entryId',
+      'table' => 'node_kaltura',
+      'field' => 'kaltura_entryId',
       'relationship' => 'none',
     ),
     'kaltura_plays' => array(
@@ -555,8 +608,8 @@ function kaltura_views_default_views() {
   $views[$view->name] = $view;
 
   $view = new view;
-  $view->name = 'kaltura_recenlty_added_videos';
-  $view->description = 'kaltura_recenlty_added_videos';
+  $view->name = 'kaltura_recently_added_videos';
+  $view->description = 'kaltura_recently_added_videos';
   $view->tag = 'kaltura';
   $view->view_php = '';
   $view->base_table = 'node';
@@ -564,15 +617,8 @@ function kaltura_views_default_views() {
   $view->api_version = 2;
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
   $handler = $view->new_display('default', 'Most Recently Uploaded Videos', 'default');
+
   $handler->override_option('fields', array(
-    'kaltura_thumbnail_url' => array(
-      'label' => '',
-      'exclude' => 0,
-      'id' => 'kaltura_thumbnail_url',
-      'table' => 'node_kaltura',
-      'field' => 'kaltura_thumbnail_url',
-      'relationship' => 'none',
-    ),
     'title' => array(
       'label' => '',
       'link_to_node' => 1,
@@ -582,13 +628,34 @@ function kaltura_views_default_views() {
       'field' => 'title',
       'relationship' => 'none',
     ),
-    'name' => array(
+    'kaltura_thumbnail_url' => array(
       'label' => '',
-      'link_to_user' => 0,
       'exclude' => 0,
-      'id' => 'name',
-      'table' => 'users',
-      'field' => 'name',
+      'id' => 'kaltura_thumbnail_url',
+      'table' => 'node_kaltura',
+      'field' => 'kaltura_thumbnail_url',
+      'relationship' => 'none',
+    ),
+    'kaltura_duration' => array(
+      'label' => 'kaltura item duration',
+      'set_precision' => FALSE,
+      'precision' => 0,
+      'decimal' => '.',
+      'separator' => ',',
+      'prefix' => '',
+      'suffix' => '',
+      'exclude' => 0,
+      'id' => 'kaltura_duration',
+      'table' => 'node_kaltura',
+      'field' => 'kaltura_duration',
+      'relationship' => 'none',
+    ),
+    'kaltura_entryId' => array(
+      'label' => '',
+      'exclude' => 1,
+      'id' => 'kaltura_entryId',
+      'table' => 'node_kaltura',
+      'field' => 'kaltura_entryId',
       'relationship' => 'none',
     ),
   ));
@@ -721,15 +788,8 @@ function kaltura_views_default_views() {
   $view->api_version = 2;
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
   $handler = $view->new_display('default', 'My Kaltura Items', 'default');
+
   $handler->override_option('fields', array(
-    'kaltura_thumbnail_url' => array(
-      'label' => '',
-      'exclude' => 0,
-      'id' => 'kaltura_thumbnail_url',
-      'table' => 'node_kaltura',
-      'field' => 'kaltura_thumbnail_url',
-      'relationship' => 'none',
-    ),
     'title' => array(
       'label' => '',
       'link_to_node' => 1,
@@ -739,13 +799,20 @@ function kaltura_views_default_views() {
       'field' => 'title',
       'relationship' => 'none',
     ),
-    'name' => array(
+    'kaltura_thumbnail_url' => array(
       'label' => '',
-      'link_to_user' => 1,
       'exclude' => 0,
-      'id' => 'name',
-      'table' => 'users',
-      'field' => 'name',
+      'id' => 'kaltura_thumbnail_url',
+      'table' => 'node_kaltura',
+      'field' => 'kaltura_thumbnail_url',
+      'relationship' => 'none',
+    ),
+    'kaltura_entryId' => array(
+      'label' => '',
+      'exclude' => 1,
+      'id' => 'kaltura_entryId',
+      'table' => 'node_kaltura',
+      'field' => 'kaltura_entryId',
       'relationship' => 'none',
     ),
   ));
@@ -840,8 +907,8 @@ function kaltura_views_default_views() {
   $views[$view->name] = $view;
 
   $view = new view;
-  $view->name = 'kaltura_recenlty_added_photos';
-  $view->description = 'kaltura recenlty added photos';
+  $view->name = 'kaltura_recently_added_photos';
+  $view->description = 'kaltura recently added photos';
   $view->tag = 'kaltura';
   $view->view_php = '';
   $view->base_table = 'node';

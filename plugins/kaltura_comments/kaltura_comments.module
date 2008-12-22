@@ -16,6 +16,9 @@ function kaltura_comments_comment(&$a1, $op) {
   }
 }
 
+/*
+ * Implementation of hook_form_alter().
+ */
 function kaltura_comments_form_alter(&$form, &$form_state, $form_id) {
   if ($form_id == 'comment_form') {
     $form['video_comment'] = array(
@@ -26,6 +29,9 @@ function kaltura_comments_form_alter(&$form, &$form_state, $form_id) {
   }
 }
 
+/*
+ * Implementation of hook_menu().
+ */
 function kaltura_comments_menu() {
   $items = array();
   $items['admin/settings/kaltura/kaltura_comments_settings'] = array(
@@ -40,6 +46,9 @@ function kaltura_comments_menu() {
   return $items;
 }
 
+/*
+ * kaltura video comments module settings form
+ */
 function kaltura_vc_settings_form() {
   $form['kaltura_comment_display'] = array(
     '#type' => 'fieldset',
@@ -61,13 +70,13 @@ function kaltura_vc_settings_form() {
     '#type' => 'textfield',
     '#size' => 5,
     '#title' => t('Width (in pixels)'),
-    '#default_value' => variable_get('kaltura_comment_width', '410'),
+    '#default_value' => variable_get('kaltura_comment_width', '250'),
   );
   $form['kaltura_comment_display']['kaltura_comment_height'] = array(
     '#type' => 'textfield',
     '#size' => 5,
     '#title' => t('Height (in pixels)'),
-    '#default_value' => variable_get('kaltura_comment_height', '364'),
+    '#default_value' => variable_get('kaltura_comment_height', '244'),
   );
   
   return system_settings_form($form);
