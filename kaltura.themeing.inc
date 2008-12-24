@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura.themeing.inc,v 1.2 2008/12/22 09:11:26 kaltura Exp $
+// $Id: kaltura.themeing.inc,v 1.2.2.1 2008/12/24 16:12:59 kaltura Exp $
 
 /*
  * @file
@@ -58,15 +58,8 @@ function _kaltura_replace_tags($content, $is_comment = FALSE, $replace_to_thumb 
     $kaltura_server = (variable_get('kaltura_server_url', ''))? variable_get('kaltura_server_url', ''): KalturaSettings::SERVER_URL;
 
     $kaltura_poweredby = '<div style="width: '. $width .'px;" class="poweredByKaltura"><div><a target="_blank" href="http://drupal.kaltura.org">Video Module</a> by <a target="_blank" href="http://corp.kaltura.com">Kaltura</a></div></div>';
-    $hidden_links = '<a href="http://corp.kaltura.com/technology/application_gallery">video platform</a>
-      <a href="http://corp.kaltura.com/about">open source video</a>
-      <a href="http://corp.kaltura.com/">video tools</a>
-      <a href="http://corp.kaltura.com/technology/video_publishing">open source player</a>
-      <a href="http://corp.kaltura.com/technology/editing_and_annotation">free video editor</a>
-      <a href="http://corp.kaltura.com/solutions/overview">online video platform</a>
-      <a href="http://corp.kaltura.com/solutions/overview">free video player</a>';
-    
-    
+    $links = '<a href="http://corp.kaltura.com/">open source video</a>';
+   
     if ($replace_to_thumb === TRUE) {
       $html = '<img src="'. $kaltura_server .'/p/'. $partner_config->partnerId .'/sp/'. $partner_config->subPartnerId .'/thumbnail/entry_id/'. $embed_options["media_id"] .'" />';
       $content = str_replace($kaltura_tag, $html, $content);
@@ -87,7 +80,7 @@ function _kaltura_replace_tags($content, $is_comment = FALSE, $replace_to_thumb 
       $comment_div = '';
     }
     $html = $comment_div .'
-      <div id="'. $div_id .'" class="kaltura_wrapper" style="'. (($comment_div != '')? 'display:none;':'') . $align . $embed_options['custom_style'] .'"'. $embed_options['js_events'] .'>'. $hidden_links .'</div>'. $kaltura_poweredby .'
+      <div id="'. $div_id .'" class="kaltura_wrapper" style="'. (($comment_div != '')? 'display:none;':'') . $align . $embed_options['custom_style'] .'"'. $embed_options['js_events'] .'>'. $links .'</div>'. $kaltura_poweredby .'
       <script type="text/javascript">
               var kaltura_swf = new SWFObject("'. $embed_options["swfUrl"] .'", "'. $player_id .'", "'. $embed_options["width"] .'", "'. $embed_options["height"] .'", "9", "#000000");
               kaltura_swf.addParam("wmode", "opaque");
