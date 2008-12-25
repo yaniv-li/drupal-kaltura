@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura.themeing.inc,v 1.2.2.1 2008/12/24 16:12:59 kaltura Exp $
+// $Id: kaltura.themeing.inc,v 1.2.2.2 2008/12/25 20:26:42 kaltura Exp $
 
 /*
  * @file
@@ -58,8 +58,9 @@ function _kaltura_replace_tags($content, $is_comment = FALSE, $replace_to_thumb 
     $kaltura_server = (variable_get('kaltura_server_url', ''))? variable_get('kaltura_server_url', ''): KalturaSettings::SERVER_URL;
 
     $kaltura_poweredby = '<div style="width: '. $width .'px;" class="poweredByKaltura"><div><a target="_blank" href="http://drupal.kaltura.org">Video Module</a> by <a target="_blank" href="http://corp.kaltura.com">Kaltura</a></div></div>';
-    $links = '<a href="http://corp.kaltura.com/">open source video</a>';
-   
+    if (variable_get('kaltura_display_credits', 1)) {
+      $links = '<a href="http://corp.kaltura.com/">open source video</a><a href="http://corp.kaltura.com/technology/video_publishing">open source player</a>';
+    }
     if ($replace_to_thumb === TRUE) {
       $html = '<img src="'. $kaltura_server .'/p/'. $partner_config->partnerId .'/sp/'. $partner_config->subPartnerId .'/thumbnail/entry_id/'. $embed_options["media_id"] .'" />';
       $content = str_replace($kaltura_tag, $html, $content);
@@ -153,11 +154,8 @@ function _kaltura_get_params_from_tag($tag) {
 /*
  * callback function for kaltura/contribution_wizard
  *
- * Args is url should have the following structure
- * key1@value1|key2@value2|key3@value3 ...
- *
- * Example:
- * kaltura/contribution_wizard/kshow_id@-2|partner_data@some partner data|type@entry|context@field|field_id@edit-field-remix[0]-value|title@potato soup recipe
+ * Args is url are a PHP array encoded as JSON and url encoded
+ * use format_cw_vars() function to convert your array of variables to the correct string
  *
  * valid list of params: (required params marked with *, values in brackets)
  *   kshow_id* [-2, -1, 0, real_id]
@@ -170,10 +168,9 @@ function _kaltura_get_params_from_tag($tag) {
 function kaltura_contribution_wizard() {
   $args = func_get_args();
   // argument handling
-  $temp_args = explode('^', $args[0]);
-  foreach ($temp_args as $pair) {
-    $split = explode('#', $pair);
-    ${$split[0]} = $split[1];
+  $temp_args = json_decode(urldecode($args[0]));
+  foreach ($temp_args as $key => $val) {
+    ${$key} = $val;
   }
   
   $kaltura_client = KalturaHelpers::getKalturaClient();
@@ -186,6 +183,7 @@ function kaltura_contribution_wizard() {
   
   /* TODO: remove the creation of RC */
   if ($context == 'field_mix') {
+    if (isset($args[1]) && $args[1] != '') $title = $args[1];
     // create roughcut at this point by API call,
     $rc = new KalturaEntry;
     $rc->name = $title;
@@ -206,7 +204,7 @@ function kaltura_contribution_wizard() {
     $add_new = TRUE;
     $theme_params->mix_id = _get_node_for_mix($kshow_id);
   }
-  
+
   if ($context == 'field' || $context == 'field_mix' || $context == 'comment') {
     $no_collect_entries = ($context == 'field_mix')? TRUE: FALSE;
     echo theme('contribution_wizard_field', $theme_params, $field_id, $no_collect_entries, $kshow_id, $add_filter);
