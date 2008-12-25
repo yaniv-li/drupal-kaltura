@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura.module,v 1.2 2008/12/22 09:11:26 kaltura Exp $
+// $Id: kaltura.module,v 1.2.2.1 2008/12/25 20:57:28 kaltura Exp $
 
 /**
  * @file
@@ -63,6 +63,18 @@ function kaltura_menu() {
     'weight' => -10,
   );
 
+  $items['admin/settings/kaltura/kaltura_credits_settings'] = array(
+    'title' => t('Kaltura Credits Settings'),
+    'file' => 'kaltura.admin.inc',
+    'file path' => drupal_get_path('module', 'kaltura'),
+    'description' => t('Kaltura Credits Settings'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('kaltura_credits_settings_form'),
+    'access arguments' => array('administer kaltura'),
+    'type' => MENU_NORMAL_ITEM,
+    'weight' => 10,
+  );
+  
   $items['admin/settings/kaltura/import'] = array(
     'title' => t('Importing Entries from Kaltura to Drupal'),
     'file' => 'kaltura.admin.inc',
@@ -272,14 +284,14 @@ function kaltura_nodeapi(&$node, $op, $teaser) {
 /*
  * This function determines in which playedr widget we need to use
  *
- * The function exposes a hook "hook_use_widget" so other modules can change the widget if they wish to.
+ * The function exposes a hook "hook_use_uiconf" so other modules can change the widget if they wish to.
  *
  * The hook has higher priority over theme, so if a theme widget was specified and a hook returned a widget, the hook
  * wins and the theme widget is ignored
  */
 function kaltura_use_uiconf($default_uicid, $node_type, $theme_uicid, $media_type = 'roughcut') {
   // invoke hook use_widget
-  $new_uicid = kaltura_invoke('use_widget', array( $node_type, $media_type ));
+  $new_uicid = kaltura_invoke('use_uiconf', array( $node_type, $media_type ));
   
   // if returned $wid from hooks, use it
   if ($new_uicid) return $new_uicid[0];
@@ -597,13 +609,15 @@ function kaltura_block($op = 'list', $delta = 0, $edit = array()) {
  * returns the upload block content
  */
 function kaltura_upload_block() {
-  return '<input type="button" onclick="kalturaInitModalBox(\''. url("kaltura/contribution_wizard/kshow_id#-2^navigate_back#0") .'\');" value="Click to Upload Media" />';
+  $cw_vars = array(
+    'kshow_id' => -2,
+    'navigate_back' => 0,
+  );
+  $vars = format_cw_vars($cw_vars);
+  return '<input type="button" onclick="kalturaInitModalBox(\''. url("kaltura/contribution_wizard/". $vars) .'\');" value="Click to Upload Media" />';
 }
 
 function format_cw_vars($vars = array()) {
-  $str = '';
-  foreach ($vars as $key => $val) {
-    $str .= $key .'#'. $val .'^';
-  }
+  $str = urlencode(json_encode($vars));
   return $str;
 }
