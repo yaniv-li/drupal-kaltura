@@ -1,5 +1,5 @@
 <?php
-// $Id: field_kaltura.module,v 1.2 2008/12/22 09:12:41 kaltura Exp $
+// $Id: field_kaltura.module,v 1.2.2.1 2008/12/26 05:18:53 kaltura Exp $
 
 /**
  * @file
@@ -476,8 +476,8 @@ function field_kaltura_textfield_process($element, $edit, $form_state, $form) {
   $delta = $element['#delta'];
   $custom_name = 'edit-'. str_replace('_', '-', $element['#field_name']) .'-'. $delta .'-'. $field_key;
   $element['data'] = array('#tree' => 'true');
-  $action_buttons = '<input type="button" value="Add Kaltura Media" onclick="kalturaInitModalBox(\''. url('kaltura/contribution_wizard/kshow_id#0^partner_data#^type#entry^context#field^field_id#'.
-    $custom_name .'') .'\', {width:680, height:380} );" />';
+  $cw_vars = format_cw_vars(array( 'kshow_id' => 0, 'partner_data' => '', 'type' => 'entry', 'context' => 'field', 'field_id'=> $custom_name ));
+  $action_buttons = '<input type="button" value="Add Kaltura Media" onclick="kalturaInitModalBox(\''. url('kaltura/contribution_wizard/'. $cw_vars) .'\', {width:680, height:380} );" />';
   $field_thumbs = get_field_thumbs($element['#value'][$field_key], $custom_name, 'Media');
   $element['data'][$custom_name .'_thumbs'] = array(
     '#type' => 'item',
@@ -550,7 +550,7 @@ function field_kaltura_remix_textfield_process($element, $edit, $form_state, $fo
     'field_id' => $custom_name,
     'add_filter' => 6,
   ));
-  $action_buttons = '<input type="button" value="Add Kaltura Remix" onclick="kalturaInitModalBox(\''. url('kaltura/contribution_wizard/'. $cw_vars) .'title#\'+ get_title(), {width:680, height:380});" /><input type="button" value="Clear" onclick="remove_items_from_field(\''. $custom_name .'\');" />';
+  $action_buttons = '<input type="button" value="Add Kaltura Remix" onclick="kalturaInitModalBox(\''. url('kaltura/contribution_wizard/'. $cw_vars) .'/\'+ get_title(), {width:680, height:380});" /><input type="button" value="Clear" onclick="remove_items_from_field(\''. $custom_name .'\');" />';
   $action_buttons .= '<input type="button" value="Edit Mix" onclick="if(document.getElementById(\''. $custom_name .'\').value) { kalturaInitModalBox(\''. url('kaltura/simple_editor/') .
     '\' + document.getElementById(\''. $custom_name .'\').value +\'/entry/empty_partner_data/no_refresh\', { width: 890, height: 546 }); }" />';
   $field_thumbs = get_field_thumbs($element['#value'][$field_key], $custom_name, 'Remix');

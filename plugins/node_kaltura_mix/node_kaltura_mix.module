@@ -1,5 +1,5 @@
 <?php
-// $Id: node_kaltura_mix.module,v 1.2 2008/12/22 09:16:45 kaltura Exp $
+// $Id: node_kaltura_mix.module,v 1.2.2.1 2008/12/26 05:16:02 kaltura Exp $
 
 /*
  * @file
@@ -311,14 +311,16 @@ function node_kaltura_mix_form(&$node, $form_state) {
         $result = _kaltura_add_kshow($session_user, $kaltura_client, $partner_data);
         $partner_data .= "|kshow_exist@yes";
         $show_entry_id = $result['result']['kshow']['id'];
-        $prefix = "<div class=\"add_video_to_node\"><script>jQuery(document).ready(function(){ kalturaInitModalBox('". url("kaltura/contribution_wizard/kshow_id#". $show_entry_id ."^partner_data#". $partner_data) ."'); });</script>";
+        $cw_vars = format_cw_vars(array( 'kshow_id' => $show_entry_id, 'partner_data' => $partner_data ));
+        $prefix = "<div class=\"add_video_to_node\"><script>jQuery(document).ready(function(){ kalturaInitModalBox('". url("kaltura/contribution_wizard/". $cw_vars) ."'); });</script>";
         _create_node_from_kshow($result['result']);
       }
       else {
         $result = _kaltura_add_roughcut($session_user, $kaltura_client, $partner_data);
         $partner_data .= "|kshow_exist@yes";
         $show_entry_id = $result['result']['entry']['id'];
-        $prefix = "<div class=\"add_video_to_node\"><script>jQuery(document).ready(function(){ kalturaInitModalBox('". url("kaltura/contribution_wizard/kshow_id#". $show_entry_id ."^partner_data#". $partner_data .'^type#entry') ."'); });</script>";
+        $cw_vars = format_cw_vars(array( 'kshow_id' => $show_entry_id, 'partner_data' => $partner_data, 'type' => 'entry' ));
+        $prefix = "<div class=\"add_video_to_node\"><script>jQuery(document).ready(function(){ kalturaInitModalBox('". url("kaltura/contribution_wizard/". $cw_vars) ."'); });</script>";
         _create_node_from_roughcut($result['result']);
       }
       

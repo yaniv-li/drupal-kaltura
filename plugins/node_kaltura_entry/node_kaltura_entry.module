@@ -1,5 +1,5 @@
 <?php
-// $Id: node_kaltura_entry.module,v 1.2 2008/12/22 09:15:20 kaltura Exp $
+// $Id: node_kaltura_entry.module,v 1.2.2.1 2008/12/26 05:16:25 kaltura Exp $
 
 /*
  * @file
@@ -364,8 +364,9 @@ function node_kaltura_entry_form(&$node, &$param) {
   }
   else {    
     $partner_data = "user_id@". $user->uid;
+    $cw_vars = format_cw_vars(array( 'kshow_id' => -2, 'partner_data' => $partner_data ));
     $form["add_kaltura"] = array(
-      "#prefix" => "<div class=\"add_video_to_node\"><script>jQuery(document).ready(function(){ kalturaInitModalBox('" . url("kaltura/contribution_wizard/kshow_id#-2^partner_data#". $partner_data) ."'); });</script>",
+      "#prefix" => "<div class=\"add_video_to_node\"><script>jQuery(document).ready(function(){ kalturaInitModalBox('" . url("kaltura/contribution_wizard/". $cw_vars) ."'); });</script>",
       "#type" => "item",
       "#value" => "",
       "#suffix" => "</div>"
@@ -468,7 +469,7 @@ function node_kaltura_entry_update($node) {
     $first = '';
     watchdog('node', print_r($node, TRUE));
     foreach ($fields['node_kaltura']['fields'] as $field => $structure) {
-      if ($field == 'vid' || $field == 'nid' || $field == 'kaltura_entryId' || $field == 'kaltura_entry_data') continue;
+      if ($field == 'vid' || $field == 'nid' || $field == 'kaltura_entryId' || $field == 'kaltura_video_comment' || $field == 'kaltura_entry_data') continue;
       $update_str .= $first . $field .' = '. (($structure['type'] == 'int')? "%d": "'%s'");
       $first = ', ';
     }
