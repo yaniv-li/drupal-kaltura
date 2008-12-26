@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura_playlist.module,v 1.1 2008/12/22 09:25:11 kaltura Exp $
+// $Id: kaltura_playlist.module,v 1.1.2.1 2008/12/26 05:18:03 kaltura Exp $
 
 /**
  * @file
@@ -132,6 +132,7 @@ function _get_relevant_views() {
   $views = views_get_all_views();
 //var_dump($views);
   $relevant_views = array();
+  if (!is_array($views) || !count($views)) return $relevant_views;
   foreach ($views as $view_name => $view) {
     if ($view->disabled) continue;
     foreach ($view->display as $display) {

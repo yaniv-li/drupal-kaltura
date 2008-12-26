@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura_playlist.install,v 1.1 2008/12/22 09:25:11 kaltura Exp $
+// $Id: kaltura_playlist.install,v 1.1.2.1 2008/12/26 05:18:03 kaltura Exp $
 
 /*
  * @file
@@ -51,11 +51,12 @@ function kaltura_playlist_schema() {
  */
 function kaltura_playlist_install() {
   drupal_install_schema('kaltura_playlist');
-  _populate_nodes();
+  if (module_exists('views')) _populate_nodes();
 }
 
 function _populate_nodes() {
-  // include .module file (?)
+  if (!module_exists('views')) return;
+  
   include('kaltura_playlist.module');
   // get views with _get_relevant_views()
   $views = _get_relevant_views();
