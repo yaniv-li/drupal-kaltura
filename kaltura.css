@@ -104,12 +104,12 @@ div.kaltura_field_thumb { padding:4px; float:left; height:130px; }
 div.kaltura_field_thumb img { height:100px; }
 
  
-div.playlist-item { border:1px outset #CCCCCC; cursor:pointer; height:167px; margin:0px; padding:0px;}
+div.playlist-item { border:1px outset #CCCCCC; cursor:pointer; height:167px; margin:0px; padding:0px; width:290px; }
 div.playlist-item.playing { background:#E5E5E5;}
-.kaltura_playlist .play-list { float:left; width:300px; text-align:center; }
+.kaltura_playlist .play-list { float:left; width:300px; margin-right:10px;  }
 .kaltura_playlist .play-list a.up { cursor:pointer; display:block; background:url('plugins/kaltura_playlist/up.png') no-repeat 50% top; width:18px; height:18px; margin:0px 0px 5px 141px; }
 .kaltura_playlist .play-list a.down { cursor:pointer; display:block; background:url('plugins/kaltura_playlist/down.png') no-repeat 50% top;  width:18px; height:18px; margin:5px 0px 0px 141px; }
 .kaltura_playlist .play-list a.down:hover,
 .kaltura_playlist .play-list a.up:hover { background-position:0 -18px; }
 
-.kaltura_playlist .playlist-player { float:right; }
+.kaltura_playlist .playlist-player { float:left; }

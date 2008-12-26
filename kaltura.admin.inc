@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura.admin.inc,v 1.2 2008/12/22 09:11:26 kaltura Exp $
+// $Id: kaltura.admin.inc,v 1.2.2.1 2008/12/26 05:14:47 kaltura Exp $
 
 /*
  * @file
@@ -24,10 +24,33 @@ function kaltura_settings_main() {
     $items[] = l('Video Comments Settings', 'admin/settings/kaltura/kaltura_comments_settings');
   if (module_exists('kaltura_playlist'))
     $items[] = l('Kaltura Playlist Settings', 'admin/settings/kaltura/kaltura_playlist_settings');
+
+  $items[] = l('Kaltura Credits Settings', 'admin/settings/kaltura/kaltura_credits_settings');
   
   $items[] = l('List of Kaltura Items', 'kaltura/entries');
   
   return theme_item_list($items);
+}
+
+function kaltura_credits_settings_form() {
+  $form = array();
+  $text = '<b>Open Source Video Links</b>'. PHP_EOL;
+  $text .= 'Kaltura invests a great deal of effort in the open source community, and specifically in the open source video movement.';
+  $text .= 'The following two links will be included within the video player in order to further promote Kaltura and its efforts in the open video space. ';
+  $text .= 'We hope that you will join us by including these links in the player.'. PHP_EOL;
+  $text .= l('open source video', 'http://corp.kaltura.com/') . PHP_EOL . l('open source player', 'http://corp.kaltura.com/technology/video_publishing');
+  
+  $form['kaltura_credits_text'] = array(
+    '#type' => 'item',
+    '#value' => nl2br($text),
+  );
+  $form['kaltura_display_credits'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Include links in player'),
+    '#option' => t('Include links in player'),
+    '#default_value' => variable_get('kaltura_display_credits', 1),
+  );
+  return system_settings_form($form);
 }
 
 /*
@@ -46,6 +69,7 @@ function register_kaltura_partner() {
   $partner->adminName =         $_REQUEST['partner_adminName'];
   $partner->adminEmail =        $_REQUEST['partner_adminEmail'];
   $partner->description =       $_REQUEST['partner_description'];
+  $partner->type =              102;
   $partner->appearInSearch =    '1';
   // update relevant field with $_REQUEST['kaltura_adult_content']
   $content_categories = new KalturaContentCategories;
