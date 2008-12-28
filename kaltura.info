@@ -1,0 +1,6 @@
+; $Id: kaltura
+name = Kaltura
+package = Kaltura Media Management
+project = Kaltura
+description = Infrastructure for managing video, audio and photos - allows to upload and import media files, manage them, and even allow users to collaboratively add and remix media 
+
