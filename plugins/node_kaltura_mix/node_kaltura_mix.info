@@ -1,0 +1,5 @@
+; $Id: node_kaltura_mix
+name = Kaltura Media Remix Node
+package = Kaltura Media Management
+dependencies = kaltura node_kaltura_entry
+description = Edit videos, music and photos on a web based editor. Create collaborative video mixes

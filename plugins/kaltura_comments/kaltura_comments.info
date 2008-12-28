@@ -1,0 +1,5 @@
+; $Id: kaltura_comments
+name = Kaltura Media Comments
+package = Kaltura Media Management
+dependencies = kaltura
+description =

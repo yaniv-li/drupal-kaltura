@@ -1,0 +1,5 @@
+; $Id: field_kaltura
+name = kaltura as CCK field
+package = Kaltura Media Management
+dependencies = kaltura content
+description = 

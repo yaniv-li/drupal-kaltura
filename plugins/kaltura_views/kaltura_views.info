@@ -1,0 +1,5 @@
+; $Id: kaltura_views
+name = Kaltura Media Views
+package = Kaltura Media Management
+dependencies = kaltura views
+description = View your top videos, most viewed, users videos, etc'.
