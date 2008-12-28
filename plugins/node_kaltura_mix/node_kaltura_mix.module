@@ -1,5 +1,5 @@
 <?php
-// $Id: node_kaltura_mix.module,v 1.2.2.1 2008/12/26 05:16:02 kaltura Exp $
+// $Id: node_kaltura_mix.module,v 1.2.2.2 2008/12/28 11:34:28 kaltura Exp $
 
 /*
  * @file
@@ -41,12 +41,13 @@ function node_kaltura_mix_access($op, $node, $account) {
  */
 function node_kaltura_mix_menu() {
   $items = array();
-  $items['admin/settings/kaltura/kaltura_mix_settings'] = array(
+  $items[] = array(
+    'path' => 'admin/settings/kaltura/kaltura_mix_settings',
     'title' => 'Kaltura Media Mix Settings',
     'description' => 'Administer the kaltura mix module.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array( 'kaltura_mix_settings_form' ),
-    'access arguments' => array('administer kaltura'),
+    'callback' => 'drupal_get_form',
+    'callback arguments' => array( 'kaltura_mix_settings_form' ),
+    'access' => user_access('administer kaltura'),
     'type' => MENU_NORMAL_ITEM,
     'weight' => -6,
   );
@@ -303,7 +304,7 @@ function node_kaltura_mix_form(&$node, $form_state) {
     );
     // if form state have a continue attribute, it means we are on the second step of the form
     // so we create the mix using kaltura API client, and then we start the contribution wizard to add media
-    if ($_REQUEST['title'] && $form_state['storage']['continue']) { 
+    if ($_REQUEST['title'] && $_REQUEST['op'] == 'Continue') { 
       $partner_data = "user_id@". $user->uid;
       $kaltura_client = KalturaHelpers::getKalturaClient();
       $session_user = KalturaHelpers::getSessionUser();
@@ -463,11 +464,11 @@ function _kaltura_add_roughcut($session_user, $kaltura_client) {
  *
  * In edit mode we do not change the form
  */
-function node_kaltura_mix_form_alter(&$form, &$form_state, $form_id) {
+function node_kaltura_mix_form_alter($form_id, &$form) {
   if ($form_id == 'kaltura_mix_node_form' && !$form['nid']['#value']) {
     if (isset($form["type"]) && $form["type"]["#value"] ."_node_form" == $form_id) {
-      unset($form['buttons']['submit']);
-      unset($form['buttons']['preview']);
+      unset($form['submit']);
+      unset($form['preview']);
       unset($form['menu']);
       unset($form["log"]);
       unset($form["author"]);
@@ -542,7 +543,7 @@ function update_mix_node_taxonomy(&$node) {
       $terms['tags'][$admin_voc_id] = $node->kaltura_admin_tags;
   }
   $node->taxonomy = $terms;
-  taxonomy_node_save($node, $terms);
+  taxonomy_node_save($node->nid, $terms);
 }
 
 /**
@@ -719,7 +720,7 @@ function _kaltura_update_mix_tags($eid, $name, $tags, $admin_tags) {
     // update entry
     $entry = new KalturaEntry;
     $entry->tags = $tags;
-    $entry->admin_tags = $admin_tags;
+    $entry->adminTags = $admin_tags;
     $entry->name = $name;
     $result = $kaltura_client->updateEntry($session_user, $eid, $entry);
   }

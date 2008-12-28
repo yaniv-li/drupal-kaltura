@@ -1,14 +1,5 @@
-CHANGELOG for Kaltura Module for Drupal 6
+CHANGELOG for Kaltura Module for Drupal 5
 
-Kaltura 1.0.1
- Internal Bug Fixes:
-   o function kaltura_use_uiconf invoked a wrong hook "use_widget" - updated to "use_uiconf"
-   o playlist CSS fix for IE
-   o added partner type (102) to partner registration
-   o playlist creation on installation - now verifies that 'views' exists (can't rely on dependencies only)
-   o contribution wizard variables are passed as URL encodeed JSON string
- Features
-   o SEO links in player can be removed from module's settings
-   
+
 Kaltura 1.0
  o Initial release

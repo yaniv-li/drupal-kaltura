@@ -1,5 +1,5 @@
 <?php
-// $Id: node_kaltura_entry.module,v 1.2.2.1 2008/12/26 05:16:25 kaltura Exp $
+// $Id: node_kaltura_entry.module,v 1.2.2.2 2008/12/28 11:34:28 kaltura Exp $
 
 /*
  * @file
@@ -39,12 +39,13 @@ function node_kaltura_entry_access($op, $node, $account) {
  */
 function node_kaltura_entry_menu() {
   $items = array();
-  $items['admin/settings/kaltura/kaltura_entry_settings'] = array(
+  $items[] = array(
+    'path' => 'admin/settings/kaltura/kaltura_entry_settings',
     'title' => 'Kaltura Media Node Settings',
     'description' => 'Administer the kaltura entry module.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array( 'kaltura_entry_settings_form' ),
-    'access arguments' => array( 'administer kaltura' ),
+    'callback' => 'drupal_get_form',
+    'callback arguments' => array( 'kaltura_entry_settings_form' ),
+    'access' => user_access( 'administer kaltura' ),
     'type' => MENU_NORMAL_ITEM,
     'weight' => -7,
   );
@@ -402,7 +403,7 @@ function node_kaltura_entry_theme() {
  *
  * in add mode, we want to hide fields and settings that are not relevant
  */
-function node_kaltura_entry_form_alter(&$form, &$form_state, $form_id) {
+function node_kaltura_entry_form_alter($form_id, &$form) {
   if ($form_id == 'kaltura_entry_node_form' && !$form['nid']['#value']) {
     if (isset($form["type"]) && $form["type"]["#value"] ."_node_form" == $form_id) {
       unset($form["author"]);
@@ -432,7 +433,7 @@ function update_entry_node_taxonomy(&$node) {
       $terms['tags'][$avoc_id] = $node->kaltura_admin_tags;
   }
   $node->taxonomy = $terms;
-  taxonomy_node_save($node, $terms);
+  taxonomy_node_save($node->nid, $terms);
 }
 
 

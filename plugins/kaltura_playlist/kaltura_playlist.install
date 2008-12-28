@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura_playlist.install,v 1.1.2.1 2008/12/26 05:18:03 kaltura Exp $
+// $Id: kaltura_playlist.install,v 1.1.2.2 2008/12/28 11:34:28 kaltura Exp $
 
 /*
  * @file
@@ -46,17 +46,28 @@ function kaltura_playlist_schema() {
   return $schema;
 }
 
+function kaltura_playlist_tables() {
+  $tables['node_kaltura_playlist'] = "CREATE TABLE `{node_kaltura_playlist}` (
+    `vid` smallint(5) unsigned NOT NULL default '0',
+    `nid` smallint(5) unsigned NOT NULL,
+    `playlist_view` varchar(255) NOT NULL default '',
+    PRIMARY KEY  (`vid`)
+   )";
+   return $tables;
+}
 /**
  * Implementation of hook_install().
  */
 function kaltura_playlist_install() {
-  drupal_install_schema('kaltura_playlist');
+  $tables = kaltura_playlist_tables();
+  foreach ($tables as $table_name => $create_sql) {
+    db_query($create_sql);
+  }
   if (module_exists('views')) _populate_nodes();
 }
 
 function _populate_nodes() {
   if (!module_exists('views')) return;
-  
   include('kaltura_playlist.module');
   // get views with _get_relevant_views()
   $views = _get_relevant_views();
@@ -86,5 +97,8 @@ function _populate_nodes() {
  */
 function kaltura_playlist_uninstall() {
   // Remove tables.
-  drupal_uninstall_schema('kaltura_playlist');
+  $tables = kaltura_playlist_tables();
+  foreach ($tables as $table_name => $create_sql) {
+    db_query('DROP TABLE {'. $table_name .'}');
+  }
 }

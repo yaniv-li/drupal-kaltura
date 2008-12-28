@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura_playlist.module,v 1.1.2.1 2008/12/26 05:18:03 kaltura Exp $
+// $Id: kaltura_playlist.module,v 1.1.2.2 2008/12/28 11:34:28 kaltura Exp $
 
 /**
  * @file
@@ -11,7 +11,7 @@
  * 
  */
 
-drupal_add_js(drupal_get_path('module', 'kaltura') .'/kaltura_player_controller.js');
+drupal_add_js(drupal_get_path('module', 'kaltura') .'/js/kaltura_player_controller.js');
 drupal_add_js(drupal_get_path('module', 'kaltura_playlist') .'/jquery.mousewheel.js');
 drupal_add_js(drupal_get_path('module', 'kaltura_playlist') .'/jquery.scrollable-0.13.js');
 
@@ -45,12 +45,13 @@ function kaltura_playlist_acess($op, $node, $account) {
  */
 function kaltura_playlist_menu() {
   $items = array();
-  $items['admin/settings/kaltura/kaltura_playlist_settings'] = array(
+  $items[] = array(
+    'path' => 'admin/settings/kaltura/kaltura_playlist_settings',
     'title' => 'Kaltura Playlist Node Settings',
     'description' => 'Administer the kaltura playlist module.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array( 'kaltura_playlist_settings_form' ),
-    'access arguments' => array( 'administer kaltura' ),
+    'callback' => 'drupal_get_form',
+    'callback arguments' => array( 'kaltura_playlist_settings_form' ),
+    'access' => user_access( 'administer kaltura' ),
     'type' => MENU_NORMAL_ITEM,
     'weight' => -5,
   );
@@ -120,7 +121,7 @@ function kaltura_playlist_form(&$node, &$param) {
   $form['playlist_view'] = array(
     '#type' => 'select',
     '#title' => t('View'),
-    '#description' => t('The list includes only views that selects the "Kaltura media ID" field in the default display.'),
+    '#description' => t('The list includes only views that has a feed display'),
     '#options' => $available_views,
     '#required' => TRUE,
     '#default_value' => $node->playlist_view,    
@@ -128,18 +129,30 @@ function kaltura_playlist_form(&$node, &$param) {
   return $form;
 }
 
+function _views_get_all_views() {
+  $result = db_query("SELECT vid FROM {view_view} ORDER BY name");
+  while ($view = db_fetch_object($result)) {
+    $views[$view->vid] = _views_load_view($view->vid);
+  }
+  return $views;
+}
 function _get_relevant_views() {
-  $views = views_get_all_views();
-//var_dump($views);
+  $views = _views_get_all_views();
+  if (module_exists('views')) {
+    require_once(drupal_get_path('module', 'views') .'/views_cache.inc');
+    $default_views = _views_get_default_views();
+    if (is_array($views) && count($views))
+      $views = array_merge($views,$default_views);
+    else
+      $views = $default_views;
+  }
   $relevant_views = array();
   if (!is_array($views) || !count($views)) return $relevant_views;
-  foreach ($views as $view_name => $view) {
-    if ($view->disabled) continue;
-    foreach ($view->display as $display) {
-      if ($display->display_plugin == 'default') {
-        // has a feed output, let's see if entryId is a field
-        if(isset($display->display_options['fields']['kaltura_entryId']))
-          $relevant_views[$view->name .'|'. $display->id] = $view_name;
+  foreach ($views as $view_id => $view) {
+    foreach ($view->field as $field) {
+      if ($field['field'] == 'kaltura_entryId') {
+        $relevant_views[$view->name .'|'. $view->vid] = $view->name;
+        break;
       }
     }
   }
@@ -218,9 +231,8 @@ function theme_kaltura_playlist_view($node) {
   $autonext = variable_get('kaltura_viewplaylist_autonext', 1);
   $playlist_js = _prepare_js_code('kaltura_playlist_'. $view_name, $first_entry, $autonext);
   $kdp = _get_kaltura_kdp($first_entry);
-  return '<div class="kaltura_playlist"><div id="kaltura_playlist_'. $view_name .'" class="play-list">'.
-    '<a class="go up"></a>'. $view_html .'<a class="go down"></a></div><div class="playlist-player">'. $kdp .
-    '</div><div class="clear-block"></div></div>'. $playlist_js;
+  return '<div class="kaltura_playlist"><div class="playlist-player">'. $kdp .'</div><div id="kaltura_playlist_'. $view_name .'" class="play-list">'.
+    '<a class="go up"></a>'. $view_html .'<a class="go down"></a></div><div class="clear-block"></div></div>'. $playlist_js;
 }
 
 function _get_kaltura_kdp($first_entry) {
@@ -239,9 +251,9 @@ function _get_view_details($view_details) {
 }
 
 function _extract_fields_from_view($view) {
-  $all_fields = $view->display['default']->display_options['fields'];
-  foreach ($all_fields as $field_name => $data) {
-    if ($data['exclude'] == 0) $fields[$data['table'] .'_'. $field_name] = $data['table'] .'_'. $field_name;
+  $all_fields = $view->field;
+  foreach ($all_fields as $field_key => $data) {
+    $fields[$data['queryname']] = $data['queryname'];
   }
   return $fields;
 }
@@ -251,52 +263,19 @@ function _get_view_raw_data($view_details) {
   list($view_name, $view_display) = _get_view_details($view_details);
   $view = views_get_view($view_name);
   if ($view) {
-    $view->display['default']->display_options['fields']['kaltura_media_type'] = array(
-      'label' => 'Kaltura Media Type',
-      'link_to_node' => 0,
-      'exclude' => 1,
-      'id' => 'kaltura_media_type',
-      'table' => 'node_kaltura',
-      'field' => 'kaltura_media_type',
-      'relationship' => 'none',
-    );
-    if (!key_exists('kaltura_entryId', $view->display['default']->display_options['fields'])) {
-      $view->display['default']->display_options['fields']['kaltura_entryId'] = array(
-        'label' => '',
-        'exclude' => 1,
-        'id' => 'kaltura_entryId',
-        'table' => 'node_kaltura',
-        'field' => 'kaltura_entryId',
-        'relationship' => 'none',
-      );
+    foreach ($view->filter as $field_key => $filter_field) {
+      if ($filter_field['field'] == 'node_kaltura.kaltura_media_type') {
+        // remove media_type(2) - images
+        foreach ($filter_field['value'] as $key => $value) if ($value == 2) unset($filter_field['value'][$key]);
+      }
     }
-    $view->display['default']->display_options['filters']['kaltura_media_type_1'] = array(
-      'operator' => 'not in',
-      'value' => array(
-        '2' => '2',
-      ),
-      'group' => '0',
-      'exposed' => FALSE,
-      'expose' => array(
-        'operator' => FALSE,
-        'label' => '',
-      ),
-      'id' => 'kaltura_media_type_1',
-      'table' => 'node_kaltura',
-      'field' => 'kaltura_media_type',
-      'relationship' => 'none',
-    );
-
     $view_fields = _extract_fields_from_view($view);
-    require_once(drupal_get_path('module', 'views') .'/includes/admin.inc');
-    @$view->preview('default', $args);
-    $query = db_prefix_tables($view->build_info['query']);
+
+//    require_once(drupal_get_path('module', 'views') .'/includes/admin.inc');
+    $result = views_build_view('result', $view);
+    $query = $result['query'];
     $query = str_replace('***CURRENT_USER***', $user->uid, $query);
     $query = str_replace('***ADMINISTER_NODES***', intval(user_access('administer nodes')), $query);
-    if ($view->build_info['query_args']) {
-      _db_query_callback($view->build_info['query_args'], TRUE);
-      $query = preg_replace_callback(DB_QUERY_REGEXP, '_db_query_callback', $query);
-    }
     $results = db_query($query);
     while ($node = db_fetch_object($results)) {
       $nodes[] = $node;
@@ -313,7 +292,7 @@ function _wrap_value($attr, $val) {
 function _format_known_fields($attr, $value) {
   switch ($attr) {
     case 'node_kaltura_kaltura_thumbnail_url':
-      $return = '<img src="'. $value .'" />';
+      $return = '<img src="'. $value .'/width/74/height/55" />';
       break;
     case 'node_kaltura_kaltura_entryId':
       return FALSE;
@@ -397,7 +376,7 @@ function _prepare_js_code($div_id, $first_entry, $autonext) {
   $("div#'.$div_id.'").scrollable({ 
     items:\'div.clips\', 
     vertical:true, 
-    size:3, 
+    size:4, 
     next:\'a.down\', 
     prev:\'a.up\' 
   });

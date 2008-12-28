@@ -1,12 +1,12 @@
 <?php
-// $Id: kaltura.install,v 1.2 2008/12/22 09:11:26 kaltura Exp $
+// $Id: kaltura.install,v 1.2.2.1 2008/12/28 11:34:28 kaltura Exp $
 
 /*
  * @file
  * Installation process for kaltura core module
  *
  */
-
+$GLOBALS['kaltura_client_folder'] = drupal_get_path('module', 'kaltura') .'/kaltura_client/';
 
 /**
  * Implementation of hook_schema().
@@ -189,12 +189,52 @@ function kaltura_schema() {
   return $schema;
 }
 
+function kaltura_tables() {
+  $tables['node_kaltura'] = "CREATE TABLE `{node_kaltura}` (
+    `vid` smallint(5) unsigned NOT NULL default '0',
+    `nid` smallint(5) unsigned NOT NULL,
+    `kaltura_entryId` varchar(10) NOT NULL default '',
+    `kaltura_tags` text,
+    `kaltura_admin_tags` text,
+    `kstatus` smallint(6) NOT NULL default '0',
+    `kaltura_media_type` smallint(6) default NULL,
+    `kaltura_duration` int(11) default NULL,
+    `kaltura_thumbnail_url` varchar(255) default NULL,
+    `kaltura_partner_data` varchar(4096) default NULL,
+    `kaltura_source` smallint(6) default NULL,
+    `kaltura_source_id` int(11) default '0',
+    `kaltura_source_link` varchar(1024) default NULL,
+    `kaltura_width` int(11) default '0',
+    `kaltura_height` int(11) default '0',
+    `kaltura_download_url` varchar(1024) default NULL,
+    `kaltura_media_date` datetime default NULL,
+    `kaltura_views` int(11) default '0',
+    `kaltura_plays` int(11) default '0',
+    `kaltura_votes` int(11) default '0',
+    `kaltura_rank` int(11) default '0',
+    `kaltura_total_rank` int(11) default '0',
+    `kaltura_entry_data` text,
+    `kaltura_video_comment` tinyint(4) default '0',
+    PRIMARY KEY  (`vid`)
+   )";
+  $tables['kaltura_notifications'] = "CREATE TABLE `{kaltura_notifications}` (
+    `notification_id` int(10) unsigned NOT NULL,
+    `data` text,
+    `received_at` datetime default NULL,
+    PRIMARY KEY  (`notification_id`)
+   )";
+   return $tables;
+}
 /**
  * Implementation of hook_install().
  */
 function kaltura_install() {
-  require_once('kaltura_settings.php');
-  drupal_install_schema('kaltura');
+  global $kaltura_client_folder;
+  require_once($kaltura_client_folder .'kaltura_settings.php');
+  $tables = kaltura_tables();
+  foreach ($tables as $table_name => $create_sql) {
+    db_query($create_sql);
+  }
   $stats_url = (KalturaSettings::DRUPAL_STATS_URL) .'install';
   $install_stats = '<iframe src="'. $stats_url .'" width="1" height="1" border="0" style="border: 0;"></iframe>';
   drupal_set_message('<b>To '. l('complete installation', 'admin/settings/kaltura/general') .' of the Kaltura All in One Video Module installation, '.
@@ -206,8 +246,12 @@ function kaltura_install() {
  */
 function kaltura_uninstall() {
   // Remove tables.
-  require_once('kaltura_settings.php');
-  drupal_uninstall_schema('kaltura');
+  global $kaltura_client_folder;
+  require_once($kaltura_client_folder .'kaltura_settings.php');
+  $tables = kaltura_tables();
+  foreach ($tables as $table_name => $create_sql) {
+    db_query('DROP TABLE {'. $table_name .'}');
+  }
   $stats_url = (KalturaSettings::DRUPAL_STATS_URL) .'uninstall/p/'. variable_get('kaltura_partner_id', '');
   $uninstall_stats = '<iframe src="'. $stats_url .'" width="1" height="1" border="0" style="border: 0;"></iframe>';
   drupal_set_message('Kaltura module was uninstalled.'. $uninstall_stats);

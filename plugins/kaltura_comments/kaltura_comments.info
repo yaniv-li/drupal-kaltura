@@ -1,6 +1,5 @@
 ; $Id: kaltura_comments
 name = Kaltura Media Comments
 package = Kaltura Media Management
-core = 6.x
-dependencies[] = kaltura
+dependencies = kaltura
 description =
