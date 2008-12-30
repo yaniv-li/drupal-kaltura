@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura.module,v 1.2.4.2 2008/12/28 11:42:22 kaltura Exp $
+// $Id: kaltura.module,v 1.2.4.3 2008/12/30 14:52:26 kaltura Exp $
 
 /**
  * @file
@@ -28,7 +28,7 @@ include('includes/kaltura.admin.inc');
 include('includes/kaltura.notification.inc');
 
 if (variable_get('kaltura_partner_id', '') != '') {
-  $server_url = (variable_get('kaltura_server_url', '') != '')? variable_get('kaltura_server_url', ''): KalturaSettings::SERVER_URL;
+  $server_url = (variable_get('kaltura_server_url', '') != '')? variable_get('kaltura_server_url', ''): KalturaSettings_SERVER_URL;
   $GLOBALS['thumbnail_base_url'] = $server_url .'/p/'. variable_get('kaltura_partner_id', '') .'/sp/'. variable_get('kaltura_subp_id', '') .'/thumbnail';
 }
 /* 
@@ -329,11 +329,11 @@ function kaltura_use_uiconf($default_uicid, $node_type, $theme_uicid, $media_typ
  */
 function _default_uiconf_by_type($media_type) {
   switch ($media_type) {
-    case 'audio': $default = KalturaSettings::DEFAULT_AUDIO_PLAYER_UICONF; break;
-    case 'viewplaylist': $default = KalturaSettings::DEFAULT_VIEWPLAYLIST_PLAYER_UICONF; break;
-    case 'video': $default = KalturaSettings::DEFAULT_VIDEO_PLAYER_UICONF; break;
-    case 'roughcut': $default = KalturaSettings::DEFAULT_RC_PLAYER_UICONF; break;
-    case 'comment': $default = KalturaSettings::DEFAULT_COMMENT_PLAYER_UICONF; break;
+    case 'audio': $default = KalturaSettings_DEFAULT_AUDIO_PLAYER_UICONF; break;
+    case 'viewplaylist': $default = KalturaSettings_DEFAULT_VIEWPLAYLIST_PLAYER_UICONF; break;
+    case 'video': $default = KalturaSettings_DEFAULT_VIDEO_PLAYER_UICONF; break;
+    case 'roughcut': $default = KalturaSettings_DEFAULT_RC_PLAYER_UICONF; break;
+    case 'comment': $default = KalturaSettings_DEFAULT_COMMENT_PLAYER_UICONF; break;
   }
   return $default;
 }
@@ -618,6 +618,11 @@ function kaltura_upload_block() {
 }
 
 function format_cw_vars($vars = array()) {
+  global $kaltura_client_folder;
+  // for PHP4 support - if JSON support doesn't exists - require 3rd-party JSON support
+  if (!function_exists('json_encode')) {
+    require($kaltura_client_folder. 'Services_JSON.class.php');
+  }  
   $str = urlencode(json_encode($vars));
   return $str;
 }
