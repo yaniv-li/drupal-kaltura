@@ -1,5 +1,5 @@
 <?php
-// $Id: node_kaltura_entry.module,v 1.2.4.2 2008/12/28 11:49:55 kaltura Exp $
+// $Id: node_kaltura_entry.module,v 1.2.4.3 2008/12/30 14:51:05 kaltura Exp $
 
 /*
  * @file
@@ -98,7 +98,7 @@ function kaltura_entry_settings_form() {
     '#weight' => -3,
   );
   $players = kaltura_choose_player(0, 'video', 'entry');
-  $saved_player = variable_get('kaltura_video_entry_widget', KalturaSettings::DEFAULT_VIDEO_PLAYER_UICONF);
+  $saved_player = variable_get('kaltura_video_entry_widget', KalturaSettings_DEFAULT_VIDEO_PLAYER_UICONF);
   $form['kaltura_entry_video_display']['kaltura_video_entry_widget'] = $players['default_widget'];
   $form['kaltura_entry_video_display']['kaltura_video_entry_widget']['#default_value'] = $saved_player;
   $form['kaltura_entry_video_display']['clear_block_item'] = array(
@@ -212,7 +212,7 @@ function kaltura_entry_settings_form() {
     '#weight' => -1,
   );
   $players = kaltura_choose_player(0, 'audio', 'entry');
-  $saved_player = variable_get('kaltura_audio_entry_widget', KalturaSettings::DEFAULT_AUDIO_PLAYER_UICONF);
+  $saved_player = variable_get('kaltura_audio_entry_widget', KalturaSettings_DEFAULT_AUDIO_PLAYER_UICONF);
   $form['kaltura_entry_audio_display']['kaltura_audio_entry_widget'] = $players['default_widget'];
   $form['kaltura_entry_audio_display']['kaltura_audio_entry_widget']['#default_value'] = $saved_player;
   $form['kaltura_entry_audio_display']['clear_block_item'] = array(

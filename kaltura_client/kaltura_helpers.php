@@ -1,7 +1,7 @@
 <?php
 class KalturaHelpers
 {
-	static function getContributionWizardFlashVars($ks, $kshowId, $partner_data, $type, $comment)
+	function getContributionWizardFlashVars($ks, $kshowId, $partner_data, $type, $comment)
 	{
 		$sessionUser = KalturaHelpers::getSessionUser();
 		$config = KalturaHelpers::getServiceConfiguration();
@@ -11,7 +11,7 @@ class KalturaHelpers
 		$flashVars["userId"] = $sessionUser->userId;
 		$flashVars["sessionId"] = $ks;
 	
-		if ($sessionUserId == KalturaSettings::ANONYMOUS_USER_ID) {
+		if ($sessionUserId == KalturaSettings_ANONYMOUS_USER_ID) {
 			 $flashVars["isAnonymous"] = true;
 		}
 			
@@ -28,16 +28,16 @@ class KalturaHelpers
 		$flashVars["partnerData"] 	= $partner_data;
 		
 		if (!$comment)
-			$flashVars["uiConfId"] 		= KalturaSettings::CW_UICONF_ID;
+			$flashVars["uiConfId"] 		= KalturaSettings_CW_UICONF_ID;
 		else
-			$flashVars["uiConfId"] 		= KalturaSettings::CW_COMMENTS_UICONF_ID;
+			$flashVars["uiConfId"] 		= KalturaSettings_CW_COMMENTS_UICONF_ID;
 			
 		$flashVars["terms_of_use"] 	= "http://corp.kaltura.com/tandc" ;
 		
 		return $flashVars;
 	}
 	
-	static function getSimpleEditorFlashVars($ks, $kshowId, $type, $partner_data)
+	function getSimpleEditorFlashVars($ks, $kshowId, $type, $partner_data)
 	{
 		$sessionUser = KalturaHelpers::getSessionUser();
 		$config = KalturaHelpers::getServiceConfiguration();
@@ -60,12 +60,12 @@ class KalturaHelpers
 		$flashVars["ks"] 			= $ks;
 		$flashVars["backF"] 		= "onSimpleEditorBackClick";
 		$flashVars["saveF"] 		= "onSimpleEditorSaveClick";
-		$flashVars["uiConfId"] 		= KalturaSettings::SE_UICONF_ID;
+		$flashVars["uiConfId"] 		= KalturaSettings_SE_UICONF_ID;
 		
 		return $flashVars;
 	}
 	
-	static function getKalturaPlayerFlashVars($ks, $kshowId = -1, $entryId = -1)
+	function getKalturaPlayerFlashVars($ks, $kshowId = -1, $entryId = -1)
 	{
 		$sessionUser = KalturaHelpers::getSessionUser();
 		$config = KalturaHelpers::getServiceConfiguration();
@@ -82,7 +82,7 @@ class KalturaHelpers
 		return $flashVars;
 	}
 	
-	static function flashVarsToString($flashVars)
+	function flashVarsToString($flashVars)
 	{
 		$flashVarsStr = "";
 		foreach($flashVars as $key => $value)
@@ -92,33 +92,33 @@ class KalturaHelpers
 		return substr($flashVarsStr, 0, strlen($flashVarsStr) - 1);
 	}
 	
-	static function getSwfUrlForBaseWidget() 
+	function getSwfUrlForBaseWidget() 
 	{
-		return KalturaHelpers::getSwfUrlForWidget(KalturaSettings::BASE_WIDGET_ID);
+		return KalturaHelpers::getSwfUrlForWidget(KalturaSettings_BASE_WIDGET_ID);
 	}
 	
-	static function getSwfUrlForWidget($widgetId)
+	function getSwfUrlForWidget($widgetId)
 	{
 		return KalturaHelpers::getKalturaServerUrl() . "/kwidget/wid/" . $widgetId;
 	}
 	
-	static function getContributionWizardUrl($uiConfId = null)
+	function getContributionWizardUrl($uiConfId = null)
 	{
 		if ($uiConfId)
 			return KalturaHelpers::getKalturaServerUrl() . "/kcw/ui_conf_id/" . $uiConfId;
 		else
-			return KalturaHelpers::getKalturaServerUrl() . "/kcw/ui_conf_id/" . KalturaSettings::CW_UICONF_ID;
+			return KalturaHelpers::getKalturaServerUrl() . "/kcw/ui_conf_id/" . KalturaSettings_CW_UICONF_ID;
 	}
 	
-	static function getSimpleEditorUrl($uiConfId = null)
+	function getSimpleEditorUrl($uiConfId = null)
 	{
 		if ($uiConfId)
 			return KalturaHelpers::getKalturaServerUrl() . "/kse/ui_conf_id/" . $uiConfId;
 		else
-			return KalturaHelpers::getKalturaServerUrl() . "/kse/ui_conf_id/" . KalturaSettings::SE_UICONF_ID;
+			return KalturaHelpers::getKalturaServerUrl() . "/kse/ui_conf_id/" . KalturaSettings_SE_UICONF_ID;
 	}
 	
-	static function getThumbnailUrl($widgetId = null, $entryId = null, $width = 240, $height= 180)
+	function getThumbnailUrl($widgetId = null, $entryId = null, $width = 240, $height= 180)
 	{
 		$config = KalturaHelpers::getServiceConfiguration();
 		$url = KalturaHelpers::getKalturaServerUrl();
@@ -136,7 +136,7 @@ class KalturaHelpers
 		return $url;
 	}
 	
-	static function getServiceConfiguration() {
+	function getServiceConfiguration() {
 		$partnerId = variable_get('kaltura_partner_id', 0);
 		if($partnerId == '') $partnerId = 0;
 		
@@ -150,8 +150,8 @@ class KalturaHelpers
 	}
 	
 	function getKalturaServerUrl() {
-		$url = variable_get('kaltura_server_url', KalturaSettings::SERVER_URL);
-		if($url == '') $url = KalturaSettings::SERVER_URL;
+		$url = variable_get('kaltura_server_url', KalturaSettings_SERVER_URL);
+		if($url == '') $url = KalturaSettings_SERVER_URL;
 		
 		// remove the last slash from the url
 		if (substr($url, strlen($url) - 1, 1) == '/')
@@ -170,7 +170,7 @@ class KalturaHelpers
 		}
 		else
 		{
-			$kalturaUser->userId = KalturaSettings::ANONYMOUS_USER_ID; 
+			$kalturaUser->userId = KalturaSettings_ANONYMOUS_USER_ID; 
 		}
 
 		return $kalturaUser;

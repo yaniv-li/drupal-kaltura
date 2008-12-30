@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura_comments.module,v 1.2.4.2 2008/12/28 11:48:05 kaltura Exp $
+// $Id: kaltura_comments.module,v 1.2.4.3 2008/12/30 14:47:49 kaltura Exp $
 
 /*
  * @file
@@ -61,7 +61,7 @@ function kaltura_vc_settings_form() {
   );
   
   $players = kaltura_choose_player(0, 'comment', 'mix');
-  $saved_player = variable_get('kaltura_comment_entry_widget', KalturaSettings::DEFAULT_COMMENT_PLAYER_UICONF);
+  $saved_player = variable_get('kaltura_comment_entry_widget', KalturaSettings_DEFAULT_COMMENT_PLAYER_UICONF);
   $form['kaltura_comment_display']['kaltura_comment_entry_widget'] = $players['default_widget'];
   $form['kaltura_comment_display']['kaltura_comment_entry_widget']['#default_value'] = $saved_player;
   $form['kaltura_comment_display']['clear_block_item'] = array(

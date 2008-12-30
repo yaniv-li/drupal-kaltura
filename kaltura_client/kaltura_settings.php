@@ -12,23 +12,23 @@
 define('ENTRY_TYPE_ROUGHCUT', 2);
 define('WORK_WITH_KSHOW', FALSE);
 
+  define('KalturaSettings_SERVER_URL', "http://www.kaltura.com");
+  define('KalturaSettings_UICONF_ID', 600);
+  define('KalturaSettings_BASE_WIDGET_ID', 600);
+  define('KalturaSettings_ANONYMOUS_USER_ID', "Anonymous");
+  define('KalturaSettings_CW_UICONF_ID', 601);
+  define('KalturaSettings_SE_UICONF_ID', 603);
+  define('KalturaSettings_CW_COMMENTS_UICONF_ID', 610);
+  define('KalturaSettings_DRUPAL_STATS_URL', "http://corp.kaltura.com/stats/drupal/");
+  define('KalturaSettings_DEFAULT_VIDEO_PLAYER_UICONF', 'dark');
+  define('KalturaSettings_DEFAULT_AUDIO_PLAYER_UICONF', 'dark');
+  define('KalturaSettings_DEFAULT_VIEWPLAYLIST_PLAYER_UICONF', 'dark');
+  define('KalturaSettings_DEFAULT_RC_PLAYER_UICONF', 'dark');
+  define('KalturaSettings_DEFAULT_COMMENT_PLAYER_UICONF', 'dark');
+
 class KalturaSettings
 {
-  const SERVER_URL = "http://www.kaltura.com";
-  const UICONF_ID = 600;
-  const BASE_WIDGET_ID = 600;
-  const ANONYMOUS_USER_ID = "Anonymous";
-  const CW_UICONF_ID = 601;
-  const SE_UICONF_ID = 603;
-  const CW_COMMENTS_UICONF_ID = 610;
-  const DRUPAL_STATS_URL = "http://corp.kaltura.com/stats/drupal/";
-  const DEFAULT_VIDEO_PLAYER_UICONF = 'dark';
-  const DEFAULT_AUDIO_PLAYER_UICONF = 'dark';
-  const DEFAULT_VIEWPLAYLIST_PLAYER_UICONF = 'dark';
-  const DEFAULT_RC_PLAYER_UICONF = 'dark';
-  const DEFAULT_COMMENT_PLAYER_UICONF = 'dark';
-  
-  public $kdp_widgets = array(
+  var $kdp_widgets = array(
       'audio' => array(
         'dark' => array( 'view_uiconf' => '605', 'remix_uiconf' => '604', 'preview_image' => 'dark-player.jpg' ),
         'gray' => array( 'view_uiconf' => '607', 'remix_uiconf' => '606', 'preview_image' => 'gray-player.jpg' ),
@@ -56,7 +56,7 @@ class KalturaSettings
       ),
   );
   
-  public $media_types_map = array(
+  var $media_types_map = array(
     1 => 'Video',
     2 => 'Photo',
     5 => 'Audio',

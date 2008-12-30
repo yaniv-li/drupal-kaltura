@@ -20,94 +20,104 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+define("KALTURA_API_VERSION", "0.7");
+define("KALTURA_SERVICE_FORMAT_JSON", "1");
+define("KALTURA_SERVICE_FORMAT_XML", "2");
+define("KALTURA_SERVICE_FORMAT_PHP", "3");
+
 class KalturaClientBase 
 {
-	const KALTURA_API_VERSION = "0.7";
-	const KALTURA_SERVICE_FORMAT_JSON = 1;
-	const KALTURA_SERVICE_FORMAT_XML  = 2;
-	const KALTURA_SERVICE_FORMAT_PHP  = 3;
 
 	/**
 	 * @var KalturaConfiguration
 	 */
-	private $config;
+	var $config;
 	
 	/**
 	 * @var string
 	 */
-	private $ks;
+	var $ks;
 	
 	/**
 	 * @var boolean
 	 */
-	private $shouldLog = false;
+	var $shouldLog = true;
 	
 	/**
 	 * Kaltura client constuctor, expecting configuration object 
 	 *
 	 * @param KalturaConfiguration $config
 	 */
-	public function __construct(KalturaConfiguration $config)
+	function KalturaClientBase($config)
 	{
 		$this->config = $config;
 		
 		$logger = $this->config->getLogger();
-		if ($logger instanceof IKalturaLogger)
+		if ($logger)
 		{
 			$this->shouldLog = true;	
 		}
 	}
-
-	function do_http ( $url, $params ,  $optional_headers = null)
+	
+	function http_parse_query($array = null, $convention = "%s")
 	{
-		if ( function_exists('curl_init') )
-			return self::do_curl ( $url, $params ,  $optional_headers  );
-		else
-			return self::do_post_request ( $url, $params ,  $optional_headers  );
+		if( !$array || count( $array ) == 0 )
+	        return ''; 
+	        
+		$query = ''; 
+     
+		foreach( $array as $key => $value )
+		{
+		    if( is_array( $value ) )
+		    { 
+				$new_convention = sprintf( $convention, $key ) . '[%s]'; 
+			    $query .= http_parse_query( $value, $new_convention ); 
+			} else { 
+			    $key = urlencode( $key ); 
+			    $value = urlencode( $value ); 
+         
+			    $query .= sprintf( $convention, $key ) . "=$value&"; 
+            } 
+		} 
+ 
+		return $query; 
 	}
-
-	function do_curl ( $url, $params ,  $optional_headers = null )
-	{
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, $url );
-		curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_USERAGENT, '');
-		curl_setopt($ch, CURLOPT_TIMEOUT, 10 );
-
-		$result = curl_exec($ch);
-		$curl_error = curl_error($ch);
-		curl_close($ch);
-		return array( $result, $curl_error );
-	}
-
-	// TODO- make sure the $data is infact an array object
+		
 	function do_post_request($url, $data, $optional_headers = null)
 	{
-		$formatted_data = http_build_query($data , "", "&");
-		$params = array('http' => array(
-		             'method' => 'POST',
-		             "Accept-language: en\r\n".
-      					"Content-type: application/x-www-form-urlencoded\r\n",
-		             'content' => $formatted_data
-		          ));
-		if ($optional_headers !== null) {
-		   $params['http']['header'] = $optional_headers;
+		if (!function_exists('fsockopen'))
+			return null;
+		$start = strpos($url,'//')+2;
+		$end = strpos($url,'/',$start);
+		$host = substr($url, $start, $end-$start);
+		$domain = substr($url,$end);
+		$fp = fsockopen($host, 80);
+		if(!$fp) return null;
+		fputs ($fp,"POST $domain HTTP/1.1\n");
+		fputs ($fp,"Host: $host\n");
+		if ($optional_headers) {
+			fputs($fp, $optional_headers);
 		}
-		$ctx = stream_context_create($params);
-		$fp = @fopen($url, 'rb', false, $ctx);
-		if (!$fp) {
-			$php_errormsg = "";
-		   throw new Exception("Problem with $url, $php_errormsg");
+		fputs ($fp,"Content-type: application/x-www-form-urlencoded\n");
+		fputs ($fp,"Content-length: ".strlen($data)."\n\n");
+		fputs ($fp,"$data\n\n");
+		
+		$response = "";
+		while(!feof($fp)) {
+			$response .= fread($fp, 32768);
 		}
-		$response = @stream_get_contents($fp);
-		if ($response === false) {
-		   throw new Exception("Problem reading data from $url, $php_errormsg");
-		}
-		return array( $response, '' );
+	
+		$pos = strpos($response, "\r\n\r\n");
+		if ($pos)
+			$response = substr($response, $pos + 4);
+		else
+			$response = "";
+			
+		fclose ($fp);
+		return $response;
 	}
 	
-	public function hit($method, KalturaSessionUser $session_user, $params)
+	function hit($method, $session_user, $params)
 	{
 		$start_time = microtime(true);
 		
@@ -115,7 +125,7 @@ class KalturaClientBase
 		$this->log("trying to call method: [" . $method . "] for user id: [" . $session_user->userId . "] using session: [" .$this->ks . "]");
 		
 		// append the basic params
-		$params["kaltura_api_version"] 	= self::KALTURA_API_VERSION;
+		$params["kaltura_api_version"] 	= KALTURA_API_VERSION;
 		$params["partner_id"] 			= $this->config->partnerId;
 		$params["subp_id"] 				= $this->config->subPartnerId;
 		$params["format"] 				= $this->config->format;
@@ -125,36 +135,57 @@ class KalturaClientBase
 		
 		$url = $this->config->serviceUrl . "/index.php/partnerservices2/" . $method;
 		$this->log("full reqeust url: [" . $url . "]");
-
-		$signature = $this->signature($params);
-		$params["kalsig"] = $signature;
-
-		list( $post_result, $error ) = self::do_http($url, $params);
-
-		if ($error)
+		
+		if (function_exists("curl_init"))
 		{
-			// TODO: add error code?
-			$result["error"] = array($error);
+			$this->log("using curl");
+			$ch = curl_init();
+			curl_setopt($ch, CURLOPT_URL, $url);
+			curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($ch, CURLOPT_USERAGENT, "Kaltura PHP4 Client (API version ".KALTURA_API_VERSION."; curl; PHP ".phpversion().")");
+			curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+			
+			$signature = $this->signature($params);
+			$params["kalsig"] = $signature;
+			
+			$http_result = curl_exec($ch);
+			
+			$curl_error = curl_error($ch);
+		}
+		else
+		{
+			$this->log("not using curl");
+			$curl_error = "";
+			$params_string = $this->http_parse_query($params);
+
+			$http_result = $this->do_post_request($url, $params_string);
+		}
+		
+		if ($curl_error)
+		{
+			$result["error"] = array(array("code" => "CURL_ERROR", "desc" => $curl_error));
 		}
 		else 
 		{
-			$this->log("result (serialized): " . $post_result);
+			$this->log("result (serialized): [" . $http_result . "]");
 			
-			if ($this->config->format == self::KALTURA_SERVICE_FORMAT_PHP)
+			if ($this->config->format == KALTURA_SERVICE_FORMAT_PHP)
 			{
-				$result = @unserialize($post_result);
-
+				$result = @unserialize($http_result);
+				
 				if (!$result) {
 					$result["result"] = null;
-					 // TODO: add error code?
-					$result["error"] = array("failed to serialize server result");
+					
+					$result["error"] = array(array("code" => "SERIALIZE_ERROR", "desc"=>"failed to serialize server result"));
 				}
-				$dump = print_r($result, true);
-				$this->log("result (object dump): " . $dump);
+				
+				//$dump = print_r($result, true);
+				//$this->log("result (object dump): " . $dump);
 			}
 			else
 			{
-				throw new Exception("unsupported format");
+				$result["error"] = array(array("code" => "UNSUPPORTED_FORMAT", "desc"=>"unsuppoted format [". $this->config->format . "]"));
 			}
 		}
 		
@@ -165,7 +196,7 @@ class KalturaClientBase
 		return $result;
 	}
 
-	public function start(KalturaSessionUser $session_user, $secret, $admin = null, $privileges = null, $expiry = 86400)
+	function start($session_user, $secret, $admin = null, $privileges = null, $expiry = 86400)
 	{
 		$result = $this->startsession($session_user, $secret, $admin, $privileges, $expiry);
 
@@ -173,7 +204,7 @@ class KalturaClientBase
 		return $result;
 	}
 	
-	private function signature($params)
+	function signature($params)
 	{
 		ksort($params);
 		$str = "";
@@ -184,17 +215,17 @@ class KalturaClientBase
 		return md5($str);
 	}
 		
-	public function getKs()
+	function getKs()
 	{
 		return $this->ks;
 	}
 	
-	public function setKs($ks)
+	function setKs($ks)
 	{
 		$this->ks = $ks;
 	}
 	
-	protected function addOptionalParam(&$params, $paramName, $paramValue)
+	function addOptionalParam(&$params, $paramName, $paramValue)
 	{
 		if ($paramValue !== null)
 		{
@@ -202,10 +233,13 @@ class KalturaClientBase
 		}
 	}
 	
-	protected function log($msg)
+	function log($msg)
 	{
 		if ($this->shouldLog)
-			$this->config->getLogger()->log($msg);
+		{
+			$logger = $this->config->getLogger();
+			$logger->log($msg);
+		}
 	}
 }
 
@@ -217,12 +251,12 @@ class KalturaSessionUser
 
 class KalturaConfiguration
 {
-	private $logger;
+	var $logger;
 
-	public $serviceUrl    = "http://www.kaltura.com";
-	public $format        = KalturaClient::KALTURA_SERVICE_FORMAT_PHP;
-	public $partnerId     = null;
-	public $subPartnerId  = null;
+	var $serviceUrl    = "http://www.kaltura.com";
+	var $format        = KALTURA_SERVICE_FORMAT_PHP;
+	var $partnerId     = null;
+	var $subPartnerId  = null;
 	
 	/**
 	 * Constructs new kaltura configuration object, expecting partner id & sub partner id
@@ -230,7 +264,7 @@ class KalturaConfiguration
 	 * @param int $partnerId
 	 * @param int $subPartnerId
 	 */
-	public function __construct($partnerId, $subPartnerId)
+	function KalturaConfiguration($partnerId, $subPartnerId)
 	{
 		$this->partnerId 	= $partnerId;
 		$this->subPartnerId = $subPartnerId;
@@ -241,7 +275,7 @@ class KalturaConfiguration
 	 *
 	 * @param IKalturaLogger $log
 	 */
-	public function setLogger(IKalturaLogger $log)
+	function setLogger($log)
 	{
 		$this->logger = $log;
 	}
@@ -251,7 +285,7 @@ class KalturaConfiguration
 	 *
 	 * @return unknown
 	 */
-	public function getLogger()
+	function getLogger()
 	{
 		return $this->logger;
 	}
@@ -261,9 +295,9 @@ class KalturaConfiguration
  * Implement to get kaltura client logs
  *
  */
-interface IKalturaLogger 
+class IKalturaLogger 
 {
-	function log($msg); 
+	function log($msg) {}
 }
 
 

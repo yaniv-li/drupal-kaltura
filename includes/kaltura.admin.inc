@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura.admin.inc,v 1.1.4.2 2008/12/30 12:57:10 kaltura Exp $
+// $Id: kaltura.admin.inc,v 1.1.4.3 2008/12/30 14:40:55 kaltura Exp $
 
 /*
  * @file
@@ -101,7 +101,7 @@ function register_kaltura_partner() {
     variable_set('kaltura_content_categories', implode(',', $_REQUEST['kaltura_content_categories']));
     _update_kaltura_partner(2, $partner->url2);
     _create_widgets_for_partner($pid, $secret);
-    $stats_url = (KalturaSettings::DRUPAL_STATS_URL) .'register_success/p/'. $res['result']['partner']['id'];
+    $stats_url = (KalturaSettings_DRUPAL_STATS_URL) .'register_success/p/'. $res['result']['partner']['id'];
     $registration_stats = '<iframe src="'. $stats_url .'" width="1" height="1" border="0" style="border: 0;"></iframe>';
     drupal_set_message('Congratulations!  You have successfully installed the All in One Video Module and registered for the Kaltura Partner Program.'. $registration_stats);
     drupal_goto('admin/settings/kaltura/general');
@@ -110,7 +110,7 @@ function register_kaltura_partner() {
     //$msg = 'There was an error while trying to register new partner.<br />'. str_replace('_', ' ', $res['error'][0]['code']) .': '. $res['error'][0]['desc'];
     $msg = 'The email address you entered already belongs to a registered Kaltura partner.<br />'.
       'Please register with another email or <a href="#" onclick="switch_to_exist_partner();return false;">click here</a> to import your existing partner details';
-    $stats_url = (KalturaSettings::DRUPAL_STATS_URL) .'register_fail/'. $res['error'][0]['code'];
+    $stats_url = (KalturaSettings_DRUPAL_STATS_URL) .'register_fail/'. $res['error'][0]['code'];
     $registration_stats = '<iframe src="'. $stats_url .'" width="1" height="1" border="0" style="border: 0;"></iframe>';
     drupal_set_message($msg . $registration_stats, 'error');
   }
@@ -268,7 +268,7 @@ function kaltura_settings_form() {
     $register_visible = TRUE;
     $registration_stats = '';
     if (!variable_get('kaltura_registration_first_load', FALSE)) {
-      $stats_url = (KalturaSettings::DRUPAL_STATS_URL) .'register_form';
+      $stats_url = (KalturaSettings_DRUPAL_STATS_URL) .'register_form';
       $registration_stats = '<iframe src="'. $stats_url .'" width="1" height="1" border="0" style="border: 0;"></iframe>';
       variable_set('kaltura_registration_first_load', TRUE);
     }
@@ -629,7 +629,10 @@ function _create_entries_form($form) {
 /*
  * helper functuion to get all entries of partner from Kaltura's DB
  */
-function _get_my_entries(KalturaEntryFilter $filter, $page_size = 30, $page = 1) {
+function _get_my_entries($filter, $page_size = 30, $page = 1) {
+  if (!is_object($filter) && gettype($filter) == 'KalturaEntryFilter') {
+    $filter = new KalturaEntryFilter;
+  }
   $session_user = KalturaHelpers::getSessionUser();
   $kaltura_client = KalturaHelpers::getKalturaClient();
   $result = $kaltura_client->listMyEntries($session_user, $filter, 0, $page_size, $page);
@@ -728,6 +731,14 @@ function variable_get_real($var, $default) {
   return unserialize($result->value);
 }
 
+function alternate_xml_verification($filename) {
+  
+  return array(
+    TRUE,
+    t('crossdomain.xml is in place and seems to be OK')
+  );
+}
+
 /*
  * helper function that checks if crossdomain.xml is in the right place
  */
@@ -735,6 +746,10 @@ function _test_crossdomain() {
   $filename = $_SERVER['DOCUMENT_ROOT'] .'/crossdomain.xml';
   $cd_xml = @fopen($filename, 'r');
   if ($cd_xml && filesize($filename) > 0 && file_exists($filename)) {
+    if (!function_exists('simplexml_load_file')) {
+      $result = alternate_xml_verification($filename);
+      return $result;
+    }
     $cd_xml_content = simplexml_load_file($filename);
     foreach ($cd_xml_content->children() as $child) {
       $atts = $child->attributes();

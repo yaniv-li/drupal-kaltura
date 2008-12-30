@@ -1,15 +1,15 @@
 <?php
 class KalturaNotificationClient
 {
-  public $id;
-  public $type;
-  public $puser;
-  public $partner;
-  public $data;
-  public $multi = false;
-  public $valid_signature = null;
+  var $id;
+  var $type;
+  var $puser;
+  var $partner;
+  var $data;
+  var $multi = false;
+  var $valid_signature = null;
   
-  public function __construct($notification_params = array(), $admin_secret = null, $validate_sig = true){
+  function KalturaNotificationClient($notification_params = array(), $admin_secret = null, $validate_sig = true){
     if(!count($notification_params)){
       return $this;
     }
@@ -44,7 +44,7 @@ class KalturaNotificationClient
     return $this;
   }
 
-  private function splitMultiNotifications($data){
+  function splitMultiNotifications($data){
     $not_data = array();
     foreach($data as $name => $value){
       $match = preg_match ( "/^(not[^_]*)_(.*)$/" , $name , $parts );
@@ -57,7 +57,7 @@ class KalturaNotificationClient
     return $not_data;
   }
   
-  public function validate_signature($notification_params, $admin_secret){
+  function validate_signature($notification_params, $admin_secret){
     ksort($notification_params);
     $str = "";
     $valid_params = array();

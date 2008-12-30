@@ -1,5 +1,5 @@
 <?php
-// $Id: node_kaltura_mix.module,v 1.2.4.2 2008/12/28 11:50:18 kaltura Exp $
+// $Id: node_kaltura_mix.module,v 1.2.4.3 2008/12/30 14:51:34 kaltura Exp $
 
 /*
  * @file
@@ -98,7 +98,7 @@ function kaltura_mix_settings_form() {
     '#weight' => -1
   );
   $players = kaltura_choose_player(0, 'roughcut', 'mix');
-  $saved_player = variable_get('kaltura_roughcut_mix_widget', KalturaSettings::DEFAULT_RC_PLAYER_UICONF);
+  $saved_player = variable_get('kaltura_roughcut_mix_widget', KalturaSettings_DEFAULT_RC_PLAYER_UICONF);
   $form['kaltura_mix_display']['kaltura_roughcut_mix_widget'] = $players['default_widget'];
   $form['kaltura_mix_display']['kaltura_roughcut_mix_widget']['#default_value'] = $saved_player;
   $form['kaltura_mix_display']['clear_block_item'] = array(
@@ -352,7 +352,7 @@ function _create_node_from_kshow($result) {
   $node->changed = time();
   $node->promote = 0;
   $node->sticky = 0;
-  _push_mix_extra_fields($node, $result);
+  _push_mix_extra_fields(&$node, $result);
   $node->kstatus = $result['kshow']['status'];
   $node->kaltura_tags = str_replace('a generated show\'', '', $result['kshow']['tags']);
   $node->kaltura_entryId = $result['kshow']['id'];
@@ -381,7 +381,7 @@ function _create_node_from_roughcut($result) {
   $node->changed = time();
   $node->promote = $_REQUEST['promote'];
   $node->sticky = $_REQUEST['sticky'];
-  _push_mix_extra_fields($node, $result);
+  _push_mix_extra_fields(&$node, $result);
   $node->kstatus = $result['entry']['status'];
   $node->kaltura_tags = str_replace('a generated show\'', '', $result['entry']['tags']);
   $node->kaltura_entryId = $result['entry']['id'];

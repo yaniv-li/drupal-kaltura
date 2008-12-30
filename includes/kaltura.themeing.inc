@@ -1,11 +1,12 @@
 <?php
-// $Id: kaltura.themeing.inc,v 1.1.4.2 2008/12/30 12:57:10 kaltura Exp $
+// $Id: kaltura.themeing.inc,v 1.1.4.3 2008/12/30 14:42:18 kaltura Exp $
 
 /*
  * @file
  * defines all themeing functions for kaltura core module
  *
  */
+$GLOBALS['kaltura_client_folder'] = drupal_get_path('module', 'kaltura') .'/kaltura_client/';
 
 /*
  * helper function that is called in nodeAPI:alter
@@ -55,7 +56,7 @@ function _kaltura_replace_tags($content, $is_comment = FALSE, $replace_to_thumb 
     $thumbnail_div_id = "kaltura_thumbnail_". $wid;
     $player_id = "kaltura_player_". $wid;
     $partner_config = KalturaHelpers::getServiceConfiguration();
-    $kaltura_server = (variable_get('kaltura_server_url', ''))? variable_get('kaltura_server_url', ''): KalturaSettings::SERVER_URL;
+    $kaltura_server = (variable_get('kaltura_server_url', ''))? variable_get('kaltura_server_url', ''): KalturaSettings_SERVER_URL;
 
     $kaltura_poweredby = '<div style="width: '. $width .'px;" class="poweredByKaltura"><div><a target="_blank" href="http://drupal.kaltura.org">Video Module</a> by <a target="_blank" href="http://corp.kaltura.com">Kaltura</a></div></div>';
     if (variable_get('kaltura_display_credits', 1)) {
@@ -171,6 +172,12 @@ function _kaltura_get_params_from_tag($tag) {
  *   title
  */
 function kaltura_contribution_wizard() {
+  global $kaltura_client_folder;
+  // for PHP4 support - if JSON support doesn't exists - require 3rd-party JSON support
+  if (!function_exists('json_encode')) {
+    require($kaltura_client_folder. 'Services_JSON.class.php');
+  }
+  
   $args = func_get_args();
   // argument handling
   $temp_args = json_decode(urldecode($args[0]));
@@ -323,7 +330,7 @@ function theme_contribution_wizard_field($theme_params, $field_id, $no_collect_e
         str += obj[i]["entryId"] + ",";
       }
       '.
-      (($no_collect_entries === TRUE)? '': 'entry_list = str;') .'
+      (($no_collect_entries === TRUE)? '': 'if (entry_list == "-1") entry_list = str; else entry_list += str;') .'
     }
     
     function onContributionWizardClose(modified) {
