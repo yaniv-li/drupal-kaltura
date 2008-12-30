@@ -1,5 +1,5 @@
 <?php
-// $Id: node_kaltura_mix.module,v 1.2.2.2 2008/12/28 11:34:28 kaltura Exp $
+// $Id: node_kaltura_mix.module,v 1.2.2.3 2008/12/30 16:24:22 kaltura Exp $
 
 /*
  * @file
@@ -41,13 +41,12 @@ function node_kaltura_mix_access($op, $node, $account) {
  */
 function node_kaltura_mix_menu() {
   $items = array();
-  $items[] = array(
-    'path' => 'admin/settings/kaltura/kaltura_mix_settings',
+  $items['admin/settings/kaltura/kaltura_mix_settings'] = array(
     'title' => 'Kaltura Media Mix Settings',
     'description' => 'Administer the kaltura mix module.',
-    'callback' => 'drupal_get_form',
-    'callback arguments' => array( 'kaltura_mix_settings_form' ),
-    'access' => user_access('administer kaltura'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array( 'kaltura_mix_settings_form' ),
+    'access arguments' => array('administer kaltura'),
     'type' => MENU_NORMAL_ITEM,
     'weight' => -6,
   );
@@ -98,7 +97,7 @@ function kaltura_mix_settings_form() {
     '#weight' => -1
   );
   $players = kaltura_choose_player(0, 'roughcut', 'mix');
-  $saved_player = variable_get('kaltura_roughcut_mix_widget', KalturaSettings::DEFAULT_RC_PLAYER_UICONF);
+  $saved_player = variable_get('kaltura_roughcut_mix_widget', KalturaSettings_DEFAULT_RC_PLAYER_UICONF);
   $form['kaltura_mix_display']['kaltura_roughcut_mix_widget'] = $players['default_widget'];
   $form['kaltura_mix_display']['kaltura_roughcut_mix_widget']['#default_value'] = $saved_player;
   $form['kaltura_mix_display']['clear_block_item'] = array(
@@ -304,7 +303,7 @@ function node_kaltura_mix_form(&$node, $form_state) {
     );
     // if form state have a continue attribute, it means we are on the second step of the form
     // so we create the mix using kaltura API client, and then we start the contribution wizard to add media
-    if ($_REQUEST['title'] && $_REQUEST['op'] == 'Continue') { 
+    if ($_REQUEST['title'] && $form_state['storage']['continue']) { 
       $partner_data = "user_id@". $user->uid;
       $kaltura_client = KalturaHelpers::getKalturaClient();
       $session_user = KalturaHelpers::getSessionUser();
@@ -381,7 +380,7 @@ function _create_node_from_roughcut($result) {
   $node->changed = time();
   $node->promote = $_REQUEST['promote'];
   $node->sticky = $_REQUEST['sticky'];
-  _push_mix_extra_fields($node, $result);
+  _push_mix_extra_fields(&$node, $result);
   $node->kstatus = $result['entry']['status'];
   $node->kaltura_tags = str_replace('a generated show\'', '', $result['entry']['tags']);
   $node->kaltura_entryId = $result['entry']['id'];
@@ -464,11 +463,11 @@ function _kaltura_add_roughcut($session_user, $kaltura_client) {
  *
  * In edit mode we do not change the form
  */
-function node_kaltura_mix_form_alter($form_id, &$form) {
+function node_kaltura_mix_form_alter(&$form, &$form_state, $form_id) {
   if ($form_id == 'kaltura_mix_node_form' && !$form['nid']['#value']) {
     if (isset($form["type"]) && $form["type"]["#value"] ."_node_form" == $form_id) {
-      unset($form['submit']);
-      unset($form['preview']);
+      unset($form['buttons']['submit']);
+      unset($form['buttons']['preview']);
       unset($form['menu']);
       unset($form["log"]);
       unset($form["author"]);
@@ -543,7 +542,7 @@ function update_mix_node_taxonomy(&$node) {
       $terms['tags'][$admin_voc_id] = $node->kaltura_admin_tags;
   }
   $node->taxonomy = $terms;
-  taxonomy_node_save($node->nid, $terms);
+  taxonomy_node_save($node, $terms);
 }
 
 /**
@@ -720,7 +719,7 @@ function _kaltura_update_mix_tags($eid, $name, $tags, $admin_tags) {
     // update entry
     $entry = new KalturaEntry;
     $entry->tags = $tags;
-    $entry->adminTags = $admin_tags;
+    $entry->admin_tags = $admin_tags;
     $entry->name = $name;
     $result = $kaltura_client->updateEntry($session_user, $eid, $entry);
   }
