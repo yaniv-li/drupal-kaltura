@@ -1,11 +1,12 @@
 <?php
-// $Id: kaltura.themeing.inc,v 1.1.2.1 2008/12/28 11:45:31 kaltura Exp $
+// $Id: kaltura.themeing.inc,v 1.1.2.2 2008/12/30 15:04:19 kaltura Exp $
 
 /*
  * @file
  * defines all themeing functions for kaltura core module
  *
  */
+$GLOBALS['kaltura_client_folder'] = drupal_get_path('module', 'kaltura') .'/kaltura_client/';
 
 /*
  * helper function that is called in nodeAPI:alter
@@ -55,14 +56,12 @@ function _kaltura_replace_tags($content, $is_comment = FALSE, $replace_to_thumb 
     $thumbnail_div_id = "kaltura_thumbnail_". $wid;
     $player_id = "kaltura_player_". $wid;
     $partner_config = KalturaHelpers::getServiceConfiguration();
-    $kaltura_server = (variable_get('kaltura_server_url', ''))? variable_get('kaltura_server_url', ''): KalturaSettings::SERVER_URL;
+    $kaltura_server = (variable_get('kaltura_server_url', ''))? variable_get('kaltura_server_url', ''): KalturaSettings_SERVER_URL;
 
     $kaltura_poweredby = '<div style="width: '. $width .'px;" class="poweredByKaltura"><div><a target="_blank" href="http://drupal.kaltura.org">Video Module</a> by <a target="_blank" href="http://corp.kaltura.com">Kaltura</a></div></div>';
     if (variable_get('kaltura_display_credits', 1)) {
       $links = '<a href="http://corp.kaltura.com/">open source video</a><a href="http://corp.kaltura.com/technology/video_publishing">open source player</a>';
-    };
-    
-    
+    }
     if ($replace_to_thumb === TRUE) {
       $html = '<img src="'. $kaltura_server .'/p/'. $partner_config->partnerId .'/sp/'. $partner_config->subPartnerId .'/thumbnail/entry_id/'. $embed_options["media_id"] .'" />';
       $content = str_replace($kaltura_tag, $html, $content);
@@ -156,11 +155,8 @@ function _kaltura_get_params_from_tag($tag) {
 /*
  * callback function for kaltura/contribution_wizard
  *
- * Args is url should have the following structure
- * key1@value1|key2@value2|key3@value3 ...
- *
- * Example:
- * kaltura/contribution_wizard/kshow_id@-2|partner_data@some partner data|type@entry|context@field|field_id@edit-field-remix[0]-value|title@potato soup recipe
+ * Args is url are a PHP array encoded as JSON and url encoded
+ * use format_cw_vars() function to convert your array of variables to the correct string
  *
  * valid list of params: (required params marked with *, values in brackets)
  *   kshow_id* [-2, -1, 0, real_id]
@@ -171,6 +167,12 @@ function _kaltura_get_params_from_tag($tag) {
  *   title
  */
 function kaltura_contribution_wizard() {
+  global $kaltura_client_folder;
+  // for PHP4 support - if JSON support doesn't exists - require 3rd-party JSON support
+  if (!function_exists('json_encode')) {
+    require($kaltura_client_folder. 'Services_JSON.class.php');
+  }  
+  
   $args = func_get_args();
   // argument handling
   $temp_args = json_decode(urldecode($args[0]));
@@ -209,7 +211,7 @@ function kaltura_contribution_wizard() {
     $add_new = TRUE;
     $theme_params->mix_id = _get_node_for_mix($kshow_id);
   }
-  
+
   if ($context == 'field' || $context == 'field_mix' || $context == 'comment') {
     $no_collect_entries = ($context == 'field_mix')? TRUE: FALSE;
     echo theme('contribution_wizard_field', $theme_params, $field_id, $no_collect_entries, $kshow_id, $add_filter);
@@ -323,7 +325,7 @@ function theme_contribution_wizard_field($theme_params, $field_id, $no_collect_e
         str += obj[i]["entryId"] + ",";
       }
       '.
-      (($no_collect_entries === TRUE)? '': 'entry_list = str;') .'
+      (($no_collect_entries === TRUE)? '': 'if (entry_list == "-1") entry_list = str; else entry_list += str;') .'
     }
     
     function onContributionWizardClose(modified) {
@@ -344,7 +346,7 @@ function theme_contribution_wizard_field($theme_params, $field_id, $no_collect_e
     $add_existing = '<div id="media-upload-header">
           <ul id="sidemenu">
           <li id="tab-kaltura"><a class="current" href="'. url($_GET['q']) .'">Add Interactive Video</a></li>
-          <li id="tab-kaltura_browse"><a href="'. url('kaltura/entries/allow-insert/'. $field_id, 'filter='. $add_filter .'&cwurl='. urlencode(url($_GET['q']))) .'">Browse Interactive Videos</a></li>
+          <li id="tab-kaltura_browse"><a href="'. url('kaltura/entries/allow-insert/'. $field_id, array( 'query' => array( 'filter' => $add_filter, 'cwurl' => url($_GET['q']) ) )) .'">Browse Interactive Videos</a></li>
           <li><a href="#" onclick="window.top.kalturaCloseModalBox();return false;">Close</a></li>
           </ul>
       </div>';

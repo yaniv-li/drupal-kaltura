@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura.notification.inc,v 1.1.2.1 2008/12/28 11:45:31 kaltura Exp $
+// $Id: kaltura.notification.inc,v 1.1.2.2 2008/12/30 15:04:19 kaltura Exp $
 
 /*
  * @file

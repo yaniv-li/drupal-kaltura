@@ -21,14 +21,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 /**
-Generated at 16/12 13:12:11
+Generated at 24/12 13:29:20
 **/
 
 require_once("kaltura_client_base.php");
 
 class KalturaContentCategories
 {
-	public $categories = array(
+	var $categories = array(
 		'Arts & Literature',
 		'Automotive',
 		'Business',
@@ -54,408 +54,412 @@ class KalturaContentCategories
 
 class KalturaEntry
 {
-	public $name;
-	public $tags;
-	public $type;
-	public $mediaType;
-	public $source;
-	public $sourceId;
-	public $sourceLink;
-	public $licenseType;
-	public $credit;
-	public $groupId;
-	public $partnerData;
-	public $conversionQuality;
-	public $permissions;
-	public $dataContent;
-	public $desiredVersion;
-	public $url;
-	public $thumbUrl;
-	public $filename;
-	public $realFilename;
-	public $indexedCustomData1;
-	public $thumbOffset;
-	public $mediaId;
-	public $screenName;
-	public $siteUrl;
-	public $description;
-	public $mediaDate;
-	public $adminTags;
+	var $name;
+	var $tags;
+	var $type;
+	var $mediaType;
+	var $source;
+	var $sourceId;
+	var $sourceLink;
+	var $licenseType;
+	var $credit;
+	var $groupId;
+	var $partnerData;
+	var $conversionQuality;
+	var $permissions;
+	var $dataContent;
+	var $desiredVersion;
+	var $url;
+	var $thumbUrl;
+	var $filename;
+	var $realFilename;
+	var $indexedCustomData1;
+	var $thumbOffset;
+	var $mediaId;
+	var $screenName;
+	var $siteUrl;
+	var $description;
+	var $mediaDate;
+	var $adminTags;
 }
 
 class KalturaBatchJob
 {
-	public $data;
-	public $status;
-	public $abort;
-	public $checkAgainTimeout;
-	public $progress;
-	public $message;
-	public $description;
-	public $updatesCount;
-	public $processorExpiration;
+	var $data;
+	var $status;
+	var $abort;
+	var $checkAgainTimeout;
+	var $progress;
+	var $message;
+	var $description;
+	var $updatesCount;
+	var $processorExpiration;
 }
 
 class KalturaKShow
 {
-	public $name;
-	public $description;
-	public $tags;
-	public $indexedCustomData3;
-	public $groupId;
-	public $permissions;
-	public $partnerData;
-	public $allowQuickEdit;
+	var $name;
+	var $description;
+	var $tags;
+	var $indexedCustomData3;
+	var $groupId;
+	var $permissions;
+	var $partnerData;
+	var $allowQuickEdit;
 }
 
 class KalturaModeration
 {
-	public $comments;
-	public $objectType;
-	public $objectId;
-	public $reportCode;
-	public $status;
+	var $comments;
+	var $objectType;
+	var $objectId;
+	var $reportCode;
+	var $status;
 }
 
 class KalturaUiConf
 {
-	public $name;
-	public $objType;
-	public $width;
-	public $height;
-	public $htmlParams;
-	public $swfUrl;
-	public $swfUrlVersion;
-	public $confFile;
-	public $confVars;
-	public $useCdn;
-	public $tags;
+	var $name;
+	var $objType;
+	var $width;
+	var $height;
+	var $htmlParams;
+	var $swfUrl;
+	var $swfUrlVersion;
+	var $confFile;
+	var $confVars;
+	var $useCdn;
+	var $tags;
 }
 
 class KalturaUser
 {
-	public $screenName;
-	public $fullName;
-	public $email;
-	public $dateOfBirth;
-	public $aboutMe;
-	public $tags;
-	public $gender;
-	public $country;
-	public $state;
-	public $city;
-	public $zip;
-	public $urlList;
-	public $networkHighschool;
-	public $networkCollege;
-	public $partnerData;
+	var $screenName;
+	var $fullName;
+	var $email;
+	var $dateOfBirth;
+	var $aboutMe;
+	var $tags;
+	var $gender;
+	var $country;
+	var $state;
+	var $city;
+	var $zip;
+	var $urlList;
+	var $networkHighschool;
+	var $networkCollege;
+	var $partnerData;
 }
 
 class KalturaWidget
 {
-	public $kshowId;
-	public $entryId;
-	public $sourceWidgetId;
-	public $uiConfId;
-	public $customData;
-	public $partnerData;
-	public $securityType;
+	var $kshowId;
+	var $entryId;
+	var $sourceWidgetId;
+	var $uiConfId;
+	var $customData;
+	var $partnerData;
+	var $securityType;
 }
 
 class KalturaPuserKuser
 {
 }
 
+define("KalturaConvesionProfileFilter_ORDER_BY_CREATED_AT_ASC","+created_at");
+define("KalturaConvesionProfileFilter_ORDER_BY_CREATED_AT_DESC","-created_at");
+define("KalturaConvesionProfileFilter_ORDER_BY_PROFILE_TYPE_ASC","+profile_type");
+define("KalturaConvesionProfileFilter_ORDER_BY_PROFILE_TYPE_DESC","-profile_type");
+define("KalturaConvesionProfileFilter_ORDER_BY_ID_ASC","+id");
+define("KalturaConvesionProfileFilter_ORDER_BY_ID_DESC","-id");
+
 class KalturaConvesionProfileFilter
 {
-	const ORDER_BY_CREATED_AT_ASC = "+created_at";
-	const ORDER_BY_CREATED_AT_DESC = "-created_at";
-	const ORDER_BY_PROFILE_TYPE_ASC = "+profile_type";
-	const ORDER_BY_PROFILE_TYPE_DESC = "-profile_type";
-	const ORDER_BY_ID_ASC = "+id";
-	const ORDER_BY_ID_DESC = "-id";
-
-	public $equalId;
-	public $greaterThanOrEqualId;
-	public $equalStatus;
-	public $likeName;
-	public $inProfileType;
-	public $equalEnabled;
-	public $equalType;
-	public $equalUseWithBulk;
-	public $orderBy;
-	public $limit;
+	var $equalId;
+	var $greaterThanOrEqualId;
+	var $equalStatus;
+	var $likeName;
+	var $inProfileType;
+	var $equalEnabled;
+	var $equalType;
+	var $equalUseWithBulk;
+	var $orderBy;
+	var $limit;
 }
 
 class KalturaConversionProfile
 {
-	public $name;
-	public $profileType;
-	public $width;
-	public $height;
-	public $aspectRatio;
-	public $bypassFlv;
-	public $commercialTranscoder;
-	public $useWithBulk;
+	var $name;
+	var $profileType;
+	var $width;
+	var $height;
+	var $aspectRatio;
+	var $bypassFlv;
+	var $commercialTranscoder;
+	var $useWithBulk;
 }
+
+define("KalturaBatchJobFilter_ORDER_BY_ID_ASC","+id");
+define("KalturaBatchJobFilter_ORDER_BY_ID_DESC","-id");
 
 class KalturaBatchJobFilter
 {
-	const ORDER_BY_ID_ASC = "+id";
-	const ORDER_BY_ID_DESC = "-id";
-
-	public $equalId;
-	public $greaterThanOrEqualId;
-	public $equalStatus;
-	public $equalJobType;
-	public $inJobType;
-	public $orderBy;
-	public $limit;
+	var $equalId;
+	var $greaterThanOrEqualId;
+	var $equalStatus;
+	var $equalJobType;
+	var $inJobType;
+	var $orderBy;
+	var $limit;
 }
+
+define("KalturaEntryFilter_ORDER_BY_CREATED_AT_ASC","+created_at");
+define("KalturaEntryFilter_ORDER_BY_CREATED_AT_DESC","-created_at");
+define("KalturaEntryFilter_ORDER_BY_VIEWS_ASC","+views");
+define("KalturaEntryFilter_ORDER_BY_VIEWS_DESC","-views");
+define("KalturaEntryFilter_ORDER_BY_NAME_ASC","+name");
+define("KalturaEntryFilter_ORDER_BY_NAME_DESC","-name");
+define("KalturaEntryFilter_ORDER_BY_MEDIA_DATE_ASC","+media_date");
+define("KalturaEntryFilter_ORDER_BY_MEDIA_DATE_DESC","-media_date");
+define("KalturaEntryFilter_ORDER_BY_TYPE_ASC","+type");
+define("KalturaEntryFilter_ORDER_BY_TYPE_DESC","-type");
+define("KalturaEntryFilter_ORDER_BY_MEDIA_TYPE_ASC","+media_type");
+define("KalturaEntryFilter_ORDER_BY_MEDIA_TYPE_DESC","-media_type");
+define("KalturaEntryFilter_ORDER_BY_PLAYS_ASC","+plays");
+define("KalturaEntryFilter_ORDER_BY_PLAYS_DESC","-plays");
+define("KalturaEntryFilter_ORDER_BY_RANK_ASC","+rank");
+define("KalturaEntryFilter_ORDER_BY_RANK_DESC","-rank");
+define("KalturaEntryFilter_ORDER_BY_MODERATION_COUNT_ASC","+moderation_count");
+define("KalturaEntryFilter_ORDER_BY_MODERATION_COUNT_DESC","-moderation_count");
+define("KalturaEntryFilter_ORDER_BY_MODERATION_STATUS_ASC","+moderation_status");
+define("KalturaEntryFilter_ORDER_BY_MODERATION_STATUS_DESC","-moderation_status");
+define("KalturaEntryFilter_ORDER_BY_MODIFIED_AT_ASC","+modified_at");
+define("KalturaEntryFilter_ORDER_BY_MODIFIED_AT_DESC","-modified_at");
+define("KalturaEntryFilter_ORDER_BY_ID_ASC","+id");
+define("KalturaEntryFilter_ORDER_BY_ID_DESC","-id");
 
 class KalturaEntryFilter
 {
-	const ORDER_BY_CREATED_AT_ASC = "+created_at";
-	const ORDER_BY_CREATED_AT_DESC = "-created_at";
-	const ORDER_BY_VIEWS_ASC = "+views";
-	const ORDER_BY_VIEWS_DESC = "-views";
-	const ORDER_BY_NAME_ASC = "+name";
-	const ORDER_BY_NAME_DESC = "-name";
-	const ORDER_BY_MEDIA_DATE_ASC = "+media_date";
-	const ORDER_BY_MEDIA_DATE_DESC = "-media_date";
-	const ORDER_BY_TYPE_ASC = "+type";
-	const ORDER_BY_TYPE_DESC = "-type";
-	const ORDER_BY_MEDIA_TYPE_ASC = "+media_type";
-	const ORDER_BY_MEDIA_TYPE_DESC = "-media_type";
-	const ORDER_BY_PLAYS_ASC = "+plays";
-	const ORDER_BY_PLAYS_DESC = "-plays";
-	const ORDER_BY_RANK_ASC = "+rank";
-	const ORDER_BY_RANK_DESC = "-rank";
-	const ORDER_BY_MODERATION_COUNT_ASC = "+moderation_count";
-	const ORDER_BY_MODERATION_COUNT_DESC = "-moderation_count";
-	const ORDER_BY_MODERATION_STATUS_ASC = "+moderation_status";
-	const ORDER_BY_MODERATION_STATUS_DESC = "-moderation_status";
-	const ORDER_BY_ID_ASC = "+id";
-	const ORDER_BY_ID_DESC = "-id";
-
-	public $equalUserId;
-	public $equalKshowId;
-	public $equalStatus;
-	public $inStatus;
-	public $equalType;
-	public $inType;
-	public $equalMediaType;
-	public $inMediaType;
-	public $equalIndexedCustomData1;
-	public $inIndexedCustomData1;
-	public $likeName;
-	public $equalName;
-	public $equalTags;
-	public $likeTags;
-	public $multiLikeOrTags;
-	public $multiLikeAndTags;
-	public $multiLikeOrAdminTags;
-	public $multiLikeAndAdminTags;
-	public $likeAdminTags;
-	public $multiLikeOrName;
-	public $multiLikeAndName;
-	public $multiLikeOrSearchText;
-	public $multiLikeAndSearchText;
-	public $equalGroupId;
-	public $greaterThanOrEqualViews;
-	public $greaterThanOrEqualCreatedAt;
-	public $lessThanOrEqualCreatedAt;
-	public $greaterThanOrEqualUpdatedAt;
-	public $lessThanOrEqualUpdatedAt;
-	public $inPartnerId;
-	public $equalPartnerId;
-	public $equalSourceLink;
-	public $greaterThanOrEqualMediaDate;
-	public $lessThanOrEqualMediaDate;
-	public $equalModerationStatus;
-	public $inModerationStatus;
-	public $inDisplayInSearch;
-	public $multiLikeOrTagsOrName;
-	public $multiLikeOrTagsOrAdminTags;
-	public $multiLikeOrTagsOrAdminTagsOrName;
-	public $orderBy;
-	public $limit;
+	var $equalUserId;
+	var $equalKshowId;
+	var $equalStatus;
+	var $inStatus;
+	var $equalType;
+	var $inType;
+	var $equalMediaType;
+	var $inMediaType;
+	var $equalIndexedCustomData1;
+	var $inIndexedCustomData1;
+	var $likeName;
+	var $equalName;
+	var $equalTags;
+	var $likeTags;
+	var $multiLikeOrTags;
+	var $multiLikeAndTags;
+	var $multiLikeOrAdminTags;
+	var $multiLikeAndAdminTags;
+	var $likeAdminTags;
+	var $multiLikeOrName;
+	var $multiLikeAndName;
+	var $multiLikeOrSearchText;
+	var $multiLikeAndSearchText;
+	var $equalGroupId;
+	var $greaterThanOrEqualViews;
+	var $greaterThanOrEqualCreatedAt;
+	var $lessThanOrEqualCreatedAt;
+	var $greaterThanOrEqualUpdatedAt;
+	var $lessThanOrEqualUpdatedAt;
+	var $greaterThanOrEqualModifiedAt;
+	var $lessThanOrEqualModifiedAt;
+	var $inPartnerId;
+	var $equalPartnerId;
+	var $equalSourceLink;
+	var $greaterThanOrEqualMediaDate;
+	var $lessThanOrEqualMediaDate;
+	var $equalModerationStatus;
+	var $inModerationStatus;
+	var $inDisplayInSearch;
+	var $multiLikeOrTagsOrName;
+	var $multiLikeOrTagsOrAdminTags;
+	var $multiLikeOrTagsOrAdminTagsOrName;
+	var $orderBy;
+	var $limit;
 }
+
+define("KalturaKShowFilter_ORDER_BY_CREATED_AT_ASC","+created_at");
+define("KalturaKShowFilter_ORDER_BY_CREATED_AT_DESC","-created_at");
+define("KalturaKShowFilter_ORDER_BY_VIEWS_ASC","+views");
+define("KalturaKShowFilter_ORDER_BY_VIEWS_DESC","-views");
+define("KalturaKShowFilter_ORDER_BY_RANK_ASC","+rank");
+define("KalturaKShowFilter_ORDER_BY_RANK_DESC","-rank");
+define("KalturaKShowFilter_ORDER_BY_ID_ASC","+id");
+define("KalturaKShowFilter_ORDER_BY_ID_DESC","-id");
 
 class KalturaKShowFilter
 {
-	const ORDER_BY_CREATED_AT_ASC = "+created_at";
-	const ORDER_BY_CREATED_AT_DESC = "-created_at";
-	const ORDER_BY_VIEWS_ASC = "+views";
-	const ORDER_BY_VIEWS_DESC = "-views";
-	const ORDER_BY_RANK_ASC = "+rank";
-	const ORDER_BY_RANK_DESC = "-rank";
-	const ORDER_BY_ID_ASC = "+id";
-	const ORDER_BY_ID_DESC = "-id";
-
-	public $likeName;
-	public $likeTags;
-	public $multiLikeOrTags;
-	public $multiLikeAndTags;
-	public $greaterThanOrEqualViews;
-	public $equalType;
-	public $equalProducerId;
-	public $greaterThanOrEqualCreatedAt;
-	public $lessThanOrEqualCreatedAt;
-	public $bitAndStatus;
-	public $equalIndexedCustomData3;
-	public $orderBy;
-	public $limit;
+	var $likeName;
+	var $likeTags;
+	var $multiLikeOrTags;
+	var $multiLikeAndTags;
+	var $greaterThanOrEqualViews;
+	var $equalType;
+	var $equalProducerId;
+	var $greaterThanOrEqualCreatedAt;
+	var $lessThanOrEqualCreatedAt;
+	var $bitAndStatus;
+	var $equalIndexedCustomData3;
+	var $orderBy;
+	var $limit;
 }
+
+define("KalturaModerationFilter_ORDER_BY_ID_ASC","+id");
+define("KalturaModerationFilter_ORDER_BY_ID_DESC","-id");
 
 class KalturaModerationFilter
 {
-	const ORDER_BY_ID_ASC = "+id";
-	const ORDER_BY_ID_DESC = "-id";
-
-	public $equalId;
-	public $equalPuserId;
-	public $equalStatus;
-	public $inStatus;
-	public $likeComments;
-	public $equalObjectId;
-	public $equalObjectType;
-	public $equalGroupId;
-	public $orderBy;
-	public $limit;
+	var $equalId;
+	var $equalPuserId;
+	var $equalStatus;
+	var $inStatus;
+	var $likeComments;
+	var $equalObjectId;
+	var $equalObjectType;
+	var $equalGroupId;
+	var $orderBy;
+	var $limit;
 }
+
+define("KalturaNotificationFilter_ORDER_BY_ID_ASC","+id");
+define("KalturaNotificationFilter_ORDER_BY_ID_DESC","-id");
 
 class KalturaNotificationFilter
 {
-	const ORDER_BY_ID_ASC = "+id";
-	const ORDER_BY_ID_DESC = "-id";
-
-	public $equalId;
-	public $greaterThanOrEqualId;
-	public $equalStatus;
-	public $equalType;
-	public $orderBy;
-	public $limit;
+	var $equalId;
+	var $greaterThanOrEqualId;
+	var $equalStatus;
+	var $equalType;
+	var $orderBy;
+	var $limit;
 }
 
 class KalturaNotification
 {
-	public $id;
-	public $status;
-	public $notificationResult;
+	var $id;
+	var $status;
+	var $notificationResult;
 }
+
+define("KalturaUiConfFilter_ORDER_BY_ID_ASC","+id");
+define("KalturaUiConfFilter_ORDER_BY_ID_DESC","-id");
 
 class KalturaUiConfFilter
 {
-	const ORDER_BY_ID_ASC = "+id";
-	const ORDER_BY_ID_DESC = "-id";
-
-	public $equalId;
-	public $greaterThanOrEqualId;
-	public $equalStatus;
-	public $equalObjType;
-	public $likeName;
-	public $multiLikeOrTags;
-	public $orderBy;
-	public $limit;
+	var $equalId;
+	var $greaterThanOrEqualId;
+	var $equalStatus;
+	var $equalObjType;
+	var $likeName;
+	var $multiLikeOrTags;
+	var $orderBy;
+	var $limit;
 }
+
+define("KalturaBatchjobType_CONVERT","0");
+define("KalturaBatchjobType_IMPORT","1");
+define("KalturaBatchjobType_DELETE","2");
+define("KalturaBatchjobType_FLATTEN","3");
+define("KalturaBatchjobType_BULKUPLOAD","4");
+define("KalturaBatchjobType_DVDCREATOR","5");
+define("KalturaBatchjobType_DOWNLOAD","6");
 
 class KalturaBatchjobType
 {
-	const CONVERT = "0";
-	const IMPORT = "1";
-	const DELETE = "2";
-	const FLATTEN = "3";
-	const BULKUPLOAD = "4";
-	const DVDCREATOR = "5";
-	const DOWNLOAD = "6";
-
 }
 
 class KalturaPartner
 {
-	public $name;
-	public $url1;
-	public $url2;
-	public $appearInSearch;
-	public $adminName;
-	public $adminEmail;
-	public $description;
-	public $commercialUse;
-	public $landingPage;
-	public $userLandingPage;
-	public $notificationsConfig;
-	public $notify;
-	public $allowMultiNotification;
-	public $contentCategories;
-	public $type;
+	var $name;
+	var $url1;
+	var $url2;
+	var $appearInSearch;
+	var $adminName;
+	var $adminEmail;
+	var $description;
+	var $commercialUse;
+	var $landingPage;
+	var $userLandingPage;
+	var $notificationsConfig;
+	var $notify;
+	var $allowMultiNotification;
+	var $contentCategories;
+	var $type;
 }
+
+define("KalturaEntryMediaType_ANY","0");
+define("KalturaEntryMediaType_VIDEO","1");
+define("KalturaEntryMediaType_IMAGE","2");
+define("KalturaEntryMediaType_TEXT","3");
+define("KalturaEntryMediaType_HTML","4");
+define("KalturaEntryMediaType_AUDIO","5");
+define("KalturaEntryMediaType_SHOW","6");
+define("KalturaEntryMediaType_SHOW_XML","7");
+define("KalturaEntryMediaType_BUBBLES","9");
+define("KalturaEntryMediaType_XML","10");
+define("KalturaEntryMediaType_GENERIC_1","101");
+define("KalturaEntryMediaType_GENERIC_2","102");
+define("KalturaEntryMediaType_GENERIC_3","103");
+define("KalturaEntryMediaType_GENERIC_4","104");
 
 class KalturaEntryMediaType
 {
-	const ANY = "0";
-	const VIDEO = "1";
-	const IMAGE = "2";
-	const TEXT = "3";
-	const HTML = "4";
-	const AUDIO = "5";
-	const SHOW = "6";
-	const SHOW_XML = "7";
-	const BUBBLES = "9";
-	const XML = "10";
-	const GENERIC_1 = "101";
-	const GENERIC_2 = "102";
-	const GENERIC_3 = "103";
-	const GENERIC_4 = "104";
-
 }
+
+define("KalturaEntryMediaSource_FILE","1");
+define("KalturaEntryMediaSource_WEBCAM","2");
+define("KalturaEntryMediaSource_FLICKR","3");
+define("KalturaEntryMediaSource_YOUTUBE","4");
+define("KalturaEntryMediaSource_URL","5");
+define("KalturaEntryMediaSource_TEXT","6");
+define("KalturaEntryMediaSource_MYSPACE","7");
+define("KalturaEntryMediaSource_PHOTOBUCKET","8");
+define("KalturaEntryMediaSource_JAMENDO","9");
+define("KalturaEntryMediaSource_CCMIXTER","10");
+define("KalturaEntryMediaSource_NYPL","11");
+define("KalturaEntryMediaSource_CURRENT","12");
+define("KalturaEntryMediaSource_MEDIA_COMMONS","13");
+define("KalturaEntryMediaSource_KALTURA","20");
+define("KalturaEntryMediaSource_KALTURA_USER_CLIPS","21");
+define("KalturaEntryMediaSource_ARCHIVE_ORG","22");
+define("KalturaEntryMediaSource_KALTURA_PARTNER","23");
+define("KalturaEntryMediaSource_METACAFE","24");
+define("KalturaEntryMediaSource_KALTURA_QA","25");
+define("KalturaEntryMediaSource_KALTURA_KSHOW","26");
+define("KalturaEntryMediaSource_KALTURA_PARTNER_KSHOW","27");
+define("KalturaEntryMediaSource_SEARCH_PROXY","28");
 
 class KalturaEntryMediaSource
 {
-	const FILE = "1";
-	const WEBCAM = "2";
-	const FLICKR = "3";
-	const YOUTUBE = "4";
-	const URL = "5";
-	const TEXT = "6";
-	const MYSPACE = "7";
-	const PHOTOBUCKET = "8";
-	const JAMENDO = "9";
-	const CCMIXTER = "10";
-	const NYPL = "11";
-	const CURRENT = "12";
-	const MEDIA_COMMONS = "13";
-	const KALTURA = "20";
-	const KALTURA_USER_CLIPS = "21";
-	const ARCHIVE_ORG = "22";
-	const KALTURA_PARTNER = "23";
-	const METACAFE = "24";
-	const KALTURA_QA = "25";
-	const KALTURA_KSHOW = "26";
-	const KALTURA_PARTNER_KSHOW = "27";
-	const SEARCH_PROXY = "28";
-
 }
+
+define("KalturaEntryType_BACKGROUND","0");
+define("KalturaEntryType_MEDIACLIP","1");
+define("KalturaEntryType_SHOW","2");
+define("KalturaEntryType_BUBBLES","4");
+define("KalturaEntryType_PLAYLIST","5");
+define("KalturaEntryType_DVD","300");
 
 class KalturaEntryType
 {
-	const BACKGROUND = "0";
-	const MEDIACLIP = "1";
-	const SHOW = "2";
-	const BUBBLES = "4";
-	const PLAYLIST = "5";
-	const DVD = "300";
-
 }
 
 class KalturaClient extends KalturaClientBase
 {
-	public function __constructor()
+	function KalturaClient($conf)
 	{
-		parent::__constructor();
+		KalturaClientBase::KalturaClientBase($conf);
 	}
 
-	public function addDownload(KalturaSessionUser $kalturaSessionUser, $entryId, $fileFormat, $entryVersion = null)
+	function addDownload($kalturaSessionUser, $entryId, $fileFormat, $entryVersion = null)
 	{
 		$params = array();
 		$params["entry_id"] = $entryId;
@@ -466,7 +470,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function addDvdEntry(KalturaSessionUser $kalturaSessionUser, KalturaEntry $dvdEntry)
+	function addDvdEntry($kalturaSessionUser, $dvdEntry)
 	{
 		$params = array();
 		$this->addOptionalParam($params, "dvdEntry_name", $dvdEntry->name);
@@ -501,7 +505,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function addDvdJob(KalturaSessionUser $kalturaSessionUser, $entryId)
+	function addDvdJob($kalturaSessionUser, $entryId)
 	{
 		$params = array();
 		$params["entry_id"] = $entryId;
@@ -510,7 +514,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function addEntry(KalturaSessionUser $kalturaSessionUser, $kshowId, KalturaEntry $entry, $uid = null)
+	function addEntry($kalturaSessionUser, $kshowId, $entry, $uid = null)
 	{
 		$params = array();
 		$params["kshow_id"] = $kshowId;
@@ -547,7 +551,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function addKShow(KalturaSessionUser $kalturaSessionUser, KalturaKShow $kshow, $detailed = null, $allowDuplicateNames = null)
+	function addKShow($kalturaSessionUser, $kshow, $detailed = null, $allowDuplicateNames = null)
 	{
 		$params = array();
 		$this->addOptionalParam($params, "kshow_name", $kshow->name);
@@ -565,7 +569,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function addModeration(KalturaSessionUser $kalturaSessionUser, KalturaModeration $moderation)
+	function addModeration($kalturaSessionUser, $moderation)
 	{
 		$params = array();
 		$this->addOptionalParam($params, "moderation_comments", $moderation->comments);
@@ -578,7 +582,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function addPartnerEntry(KalturaSessionUser $kalturaSessionUser, $kshowId, KalturaEntry $entry, $uid = null)
+	function addPartnerEntry($kalturaSessionUser, $kshowId, $entry, $uid = null)
 	{
 		$params = array();
 		$params["kshow_id"] = $kshowId;
@@ -615,7 +619,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function addPlaylist(KalturaSessionUser $kalturaSessionUser, KalturaEntry $playlist)
+	function addPlaylist($kalturaSessionUser, $playlist)
 	{
 		$params = array();
 		$this->addOptionalParam($params, "playlist_name", $playlist->name);
@@ -650,7 +654,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function addRoughcutEntry(KalturaSessionUser $kalturaSessionUser, $kshowId, KalturaEntry $entry)
+	function addRoughcutEntry($kalturaSessionUser, $kshowId, $entry)
 	{
 		$params = array();
 		$params["kshow_id"] = $kshowId;
@@ -686,7 +690,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function addUiConf(KalturaSessionUser $kalturaSessionUser, KalturaUiConf $uiconf)
+	function addUiConf($kalturaSessionUser, $uiconf)
 	{
 		$params = array();
 		$this->addOptionalParam($params, "uiconf_name", $uiconf->name);
@@ -705,7 +709,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function addUser(KalturaSessionUser $kalturaSessionUser, $userId, KalturaUser $user)
+	function addUser($kalturaSessionUser, $userId, $user)
 	{
 		$params = array();
 		$params["user_id"] = $userId;
@@ -729,7 +733,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function addWidget(KalturaSessionUser $kalturaSessionUser, KalturaWidget $widget)
+	function addWidget($kalturaSessionUser, $widget)
 	{
 		$params = array();
 		$this->addOptionalParam($params, "widget_kshowId", $widget->kshowId);
@@ -744,7 +748,17 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function appendEntryToRoughcut(KalturaSessionUser $kalturaSessionUser, $entryId, $kshowId, $showEntryId = null)
+	function adminLogin($kalturaSessionUser, $email, $password)
+	{
+		$params = array();
+		$params["email"] = $email;
+		$params["password"] = $password;
+
+		$result = $this->hit("adminlogin", $kalturaSessionUser, $params);
+		return $result;
+	}
+
+	function appendEntryToRoughcut($kalturaSessionUser, $entryId, $kshowId, $showEntryId = null)
 	{
 		$params = array();
 		$params["entry_id"] = $entryId;
@@ -755,7 +769,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function checkNotifications(KalturaSessionUser $kalturaSessionUser, $notificationIds, $separator = ",", $detailed = null)
+	function checkNotifications($kalturaSessionUser, $notificationIds, $separator = ",", $detailed = null)
 	{
 		$params = array();
 		$params["notification_ids"] = $notificationIds;
@@ -766,7 +780,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function cloneKShow(KalturaSessionUser $kalturaSessionUser, $kshowId, $detailed = null)
+	function cloneKShow($kalturaSessionUser, $kshowId, $detailed = null)
 	{
 		$params = array();
 		$params["kshow_id"] = $kshowId;
@@ -776,7 +790,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function cloneRoughcut(KalturaSessionUser $kalturaSessionUser, $entryId, $detailed = null)
+	function cloneRoughcut($kalturaSessionUser, $entryId, $detailed = null)
 	{
 		$params = array();
 		$params["entry_id"] = $entryId;
@@ -786,7 +800,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function cloneUiConf(KalturaSessionUser $kalturaSessionUser, $uiconfId, $detailed = null)
+	function cloneUiConf($kalturaSessionUser, $uiconfId, $detailed = null)
 	{
 		$params = array();
 		$params["uiconf_id"] = $uiconfId;
@@ -796,7 +810,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function deleteEntry(KalturaSessionUser $kalturaSessionUser, $entryId)
+	function deleteEntry($kalturaSessionUser, $entryId)
 	{
 		$params = array();
 		$params["entry_id"] = $entryId;
@@ -805,7 +819,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function deleteKShow(KalturaSessionUser $kalturaSessionUser, $kshowId)
+	function deleteKShow($kalturaSessionUser, $kshowId)
 	{
 		$params = array();
 		$params["kshow_id"] = $kshowId;
@@ -814,7 +828,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function deletePlaylist(KalturaSessionUser $kalturaSessionUser, $entryId)
+	function deletePlaylist($kalturaSessionUser, $entryId)
 	{
 		$params = array();
 		$params["entry_id"] = $entryId;
@@ -823,7 +837,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function deleteUser(KalturaSessionUser $kalturaSessionUser, $userId)
+	function deleteUser($kalturaSessionUser, $userId)
 	{
 		$params = array();
 		$params["user_id"] = $userId;
@@ -832,7 +846,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function executePlaylist(KalturaSessionUser $kalturaSessionUser, $playlistId, $fp = null, $filter1 = null, $filter2 = null, $filter3 = null, $filter4 = null, $detailed = null, $pageSize = 10, $page = 1, $useFilterPuserId = null)
+	function executePlaylist($kalturaSessionUser, $playlistId, $fp = null, $filter1 = null, $filter2 = null, $filter3 = null, $filter4 = null, $detailed = null, $pageSize = 10, $page = 1, $useFilterPuserId = null)
 	{
 		$params = array();
 		$params["playlist_id"] = $playlistId;
@@ -850,7 +864,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function getAdminTags(KalturaSessionUser $kalturaSessionUser)
+	function getAdminTags($kalturaSessionUser)
 	{
 		$params = array();
 
@@ -858,7 +872,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function getAllEntries(KalturaSessionUser $kalturaSessionUser, $entryId, $kshowId, $listType = null, $version = null, $disableRoughcutEntryData = null)
+	function getAllEntries($kalturaSessionUser, $entryId, $kshowId, $listType = null, $version = null, $disableRoughcutEntryData = null)
 	{
 		$params = array();
 		$params["entry_id"] = $entryId;
@@ -871,7 +885,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function getDefaultWidget(KalturaSessionUser $kalturaSessionUser, $uiConfId = null)
+	function getDefaultWidget($kalturaSessionUser, $uiConfId = null)
 	{
 		$params = array();
 		$this->addOptionalParam($params, "ui_conf_id", $uiConfId);
@@ -880,7 +894,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function getDvdEntry(KalturaSessionUser $kalturaSessionUser, $dvdEntryId, $detailed = null)
+	function getDvdEntry($kalturaSessionUser, $dvdEntryId, $detailed = null)
 	{
 		$params = array();
 		$params["dvdEntry_id"] = $dvdEntryId;
@@ -890,7 +904,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function getEntries(KalturaSessionUser $kalturaSessionUser, $entryIds, $separator = ",", $detailed = null)
+	function getEntries($kalturaSessionUser, $entryIds, $separator = ",", $detailed = null)
 	{
 		$params = array();
 		$params["entry_ids"] = $entryIds;
@@ -901,7 +915,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function getEntry(KalturaSessionUser $kalturaSessionUser, $entryId, $detailed = null, $version = null)
+	function getEntry($kalturaSessionUser, $entryId, $detailed = null, $version = null)
 	{
 		$params = array();
 		$params["entry_id"] = $entryId;
@@ -912,7 +926,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function getEntryRoughcuts(KalturaSessionUser $kalturaSessionUser, $entryId)
+	function getEntryRoughcuts($kalturaSessionUser, $entryId)
 	{
 		$params = array();
 		$params["entry_id"] = $entryId;
@@ -921,7 +935,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function getKShow(KalturaSessionUser $kalturaSessionUser, $kshowId, $detailed = null)
+	function getKShow($kalturaSessionUser, $kshowId, $detailed = null)
 	{
 		$params = array();
 		$params["kshow_id"] = $kshowId;
@@ -931,7 +945,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function getLastVersionsInfo(KalturaSessionUser $kalturaSessionUser, $kshowId)
+	function getLastVersionsInfo($kalturaSessionUser, $kshowId)
 	{
 		$params = array();
 		$params["kshow_id"] = $kshowId;
@@ -940,7 +954,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function getMetaDataAction(KalturaSessionUser $kalturaSessionUser, $entryId, $kshowId, $version)
+	function getMetaDataAction($kalturaSessionUser, $entryId, $kshowId, $version)
 	{
 		$params = array();
 		$params["entry_id"] = $entryId;
@@ -951,7 +965,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function getPartner(KalturaSessionUser $kalturaSessionUser, $partnerAdminEmail, $cmsPassword, $partnerId)
+	function getPartner($kalturaSessionUser, $partnerAdminEmail, $cmsPassword, $partnerId)
 	{
 		$params = array();
 		$params["partner_adminEmail"] = $partnerAdminEmail;
@@ -962,7 +976,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function getPlaylist(KalturaSessionUser $kalturaSessionUser, $playlistId, $detailed = null)
+	function getPlaylist($kalturaSessionUser, $playlistId, $detailed = null)
 	{
 		$params = array();
 		$params["playlist_id"] = $playlistId;
@@ -972,7 +986,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function getThumbnail(KalturaSessionUser $kalturaSessionUser, $filename)
+	function getThumbnail($kalturaSessionUser, $filename)
 	{
 		$params = array();
 		$params["filename"] = $filename;
@@ -981,7 +995,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function getUIConf(KalturaSessionUser $kalturaSessionUser, $uiConfId, $detailed = null)
+	function getUIConf($kalturaSessionUser, $uiConfId, $detailed = null)
 	{
 		$params = array();
 		$params["ui_conf_id"] = $uiConfId;
@@ -991,7 +1005,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function getUser(KalturaSessionUser $kalturaSessionUser, $userId, $detailed = null)
+	function getUser($kalturaSessionUser, $userId, $detailed = null)
 	{
 		$params = array();
 		$params["user_id"] = $userId;
@@ -1001,7 +1015,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function getWidget(KalturaSessionUser $kalturaSessionUser, $widgetId, $detailed = null)
+	function getWidget($kalturaSessionUser, $widgetId, $detailed = null)
 	{
 		$params = array();
 		$params["widget_id"] = $widgetId;
@@ -1011,7 +1025,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function handleModeration(KalturaSessionUser $kalturaSessionUser, $moderationId, $moderationStatus)
+	function handleModeration($kalturaSessionUser, $moderationId, $moderationStatus)
 	{
 		$params = array();
 		$params["moderation_id"] = $moderationId;
@@ -1021,7 +1035,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function listConversionProfile(KalturaSessionUser $kalturaSessionUser, KalturaConvesionProfileFilter $filter, $detailed = null, $pageSize = 10, $page = 1)
+	function listConversionProfile($kalturaSessionUser, $filter, $detailed = null, $pageSize = 10, $page = 1)
 	{
 		$params = array();
 		$this->addOptionalParam($params, "filter__eq_id", $filter->equalId);
@@ -1042,7 +1056,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function listDownloads(KalturaSessionUser $kalturaSessionUser, KalturaBatchJobFilter $filter, $detailed = null, $pageSize = 10, $page = 1)
+	function listDownloads($kalturaSessionUser, $filter, $detailed = null, $pageSize = 10, $page = 1)
 	{
 		$params = array();
 		$this->addOptionalParam($params, "filter__eq_id", $filter->equalId);
@@ -1060,7 +1074,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function listDvdEntries(KalturaSessionUser $kalturaSessionUser, KalturaEntryFilter $filter, $detailed = null, $detailedFields = null, $pageSize = 10, $page = 1, $useFilterPuserId = null)
+	function listDvdEntries($kalturaSessionUser, $filter, $detailed = null, $detailedFields = null, $pageSize = 10, $page = 1, $useFilterPuserId = null)
 	{
 		$params = array();
 		$this->addOptionalParam($params, "filter__eq_user_id", $filter->equalUserId);
@@ -1092,6 +1106,8 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "filter__lte_created_at", $filter->lessThanOrEqualCreatedAt);
 		$this->addOptionalParam($params, "filter__gte_updated_at", $filter->greaterThanOrEqualUpdatedAt);
 		$this->addOptionalParam($params, "filter__lte_updated_at", $filter->lessThanOrEqualUpdatedAt);
+		$this->addOptionalParam($params, "filter__gte_modified_at", $filter->greaterThanOrEqualModifiedAt);
+		$this->addOptionalParam($params, "filter__lte_modified_at", $filter->lessThanOrEqualModifiedAt);
 		$this->addOptionalParam($params, "filter__in_partner_id", $filter->inPartnerId);
 		$this->addOptionalParam($params, "filter__eq_partner_id", $filter->equalPartnerId);
 		$this->addOptionalParam($params, "filter__eq_source_link", $filter->equalSourceLink);
@@ -1115,7 +1131,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function listEntries(KalturaSessionUser $kalturaSessionUser, KalturaEntryFilter $filter, $detailed = null, $detailedFields = null, $pageSize = 10, $page = 1, $useFilterPuserId = null)
+	function listEntries($kalturaSessionUser, $filter, $detailed = null, $detailedFields = null, $pageSize = 10, $page = 1, $useFilterPuserId = null)
 	{
 		$params = array();
 		$this->addOptionalParam($params, "filter__eq_user_id", $filter->equalUserId);
@@ -1147,6 +1163,8 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "filter__lte_created_at", $filter->lessThanOrEqualCreatedAt);
 		$this->addOptionalParam($params, "filter__gte_updated_at", $filter->greaterThanOrEqualUpdatedAt);
 		$this->addOptionalParam($params, "filter__lte_updated_at", $filter->lessThanOrEqualUpdatedAt);
+		$this->addOptionalParam($params, "filter__gte_modified_at", $filter->greaterThanOrEqualModifiedAt);
+		$this->addOptionalParam($params, "filter__lte_modified_at", $filter->lessThanOrEqualModifiedAt);
 		$this->addOptionalParam($params, "filter__in_partner_id", $filter->inPartnerId);
 		$this->addOptionalParam($params, "filter__eq_partner_id", $filter->equalPartnerId);
 		$this->addOptionalParam($params, "filter__eq_source_link", $filter->equalSourceLink);
@@ -1170,7 +1188,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function listKShows(KalturaSessionUser $kalturaSessionUser, KalturaKShowFilter $filter, $detailed = null, $pageSize = 10, $page = 1, $useFilterPuserId = null)
+	function listKShows($kalturaSessionUser, $filter, $detailed = null, $pageSize = 10, $page = 1, $useFilterPuserId = null)
 	{
 		$params = array();
 		$this->addOptionalParam($params, "filter__like_name", $filter->likeName);
@@ -1195,7 +1213,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function listModerations(KalturaSessionUser $kalturaSessionUser, KalturaModerationFilter $filter, $detailed = null, $pageSize = 10, $page = 1)
+	function listModerations($kalturaSessionUser, $filter, $detailed = null, $pageSize = 10, $page = 1)
 	{
 		$params = array();
 		$this->addOptionalParam($params, "filter__eq_id", $filter->equalId);
@@ -1216,7 +1234,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function listMyDvdEntries(KalturaSessionUser $kalturaSessionUser, KalturaEntryFilter $filter, $detailed = null, $pageSize = 10, $page = 1, $useFilterPuserId = null)
+	function listMyDvdEntries($kalturaSessionUser, $filter, $detailed = null, $pageSize = 10, $page = 1, $useFilterPuserId = null)
 	{
 		$params = array();
 		$this->addOptionalParam($params, "filter__eq_user_id", $filter->equalUserId);
@@ -1248,6 +1266,8 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "filter__lte_created_at", $filter->lessThanOrEqualCreatedAt);
 		$this->addOptionalParam($params, "filter__gte_updated_at", $filter->greaterThanOrEqualUpdatedAt);
 		$this->addOptionalParam($params, "filter__lte_updated_at", $filter->lessThanOrEqualUpdatedAt);
+		$this->addOptionalParam($params, "filter__gte_modified_at", $filter->greaterThanOrEqualModifiedAt);
+		$this->addOptionalParam($params, "filter__lte_modified_at", $filter->lessThanOrEqualModifiedAt);
 		$this->addOptionalParam($params, "filter__in_partner_id", $filter->inPartnerId);
 		$this->addOptionalParam($params, "filter__eq_partner_id", $filter->equalPartnerId);
 		$this->addOptionalParam($params, "filter__eq_source_link", $filter->equalSourceLink);
@@ -1270,7 +1290,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function listMyEntries(KalturaSessionUser $kalturaSessionUser, KalturaEntryFilter $filter, $detailed = null, $pageSize = 10, $page = 1, $useFilterPuserId = null)
+	function listMyEntries($kalturaSessionUser, $filter, $detailed = null, $pageSize = 10, $page = 1, $useFilterPuserId = null)
 	{
 		$params = array();
 		$this->addOptionalParam($params, "filter__eq_user_id", $filter->equalUserId);
@@ -1302,6 +1322,8 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "filter__lte_created_at", $filter->lessThanOrEqualCreatedAt);
 		$this->addOptionalParam($params, "filter__gte_updated_at", $filter->greaterThanOrEqualUpdatedAt);
 		$this->addOptionalParam($params, "filter__lte_updated_at", $filter->lessThanOrEqualUpdatedAt);
+		$this->addOptionalParam($params, "filter__gte_modified_at", $filter->greaterThanOrEqualModifiedAt);
+		$this->addOptionalParam($params, "filter__lte_modified_at", $filter->lessThanOrEqualModifiedAt);
 		$this->addOptionalParam($params, "filter__in_partner_id", $filter->inPartnerId);
 		$this->addOptionalParam($params, "filter__eq_partner_id", $filter->equalPartnerId);
 		$this->addOptionalParam($params, "filter__eq_source_link", $filter->equalSourceLink);
@@ -1324,7 +1346,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function listMyKShows(KalturaSessionUser $kalturaSessionUser, KalturaKShowFilter $filter, $detailed = null, $pageSize = 10, $page = 1, $useFilterPuserId = null)
+	function listMyKShows($kalturaSessionUser, $filter, $detailed = null, $pageSize = 10, $page = 1, $useFilterPuserId = null)
 	{
 		$params = array();
 		$this->addOptionalParam($params, "filter__like_name", $filter->likeName);
@@ -1349,7 +1371,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function listNotifications(KalturaSessionUser $kalturaSessionUser, KalturaNotificationFilter $filter, $pageSize = 10, $page = 1)
+	function listNotifications($kalturaSessionUser, $filter, $pageSize = 10, $page = 1)
 	{
 		$params = array();
 		$this->addOptionalParam($params, "filter__eq_id", $filter->equalId);
@@ -1365,7 +1387,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function listPartnerEntries(KalturaSessionUser $kalturaSessionUser, KalturaEntryFilter $filter, $detailed = null, $pageSize = 10, $page = 1, $useFilterPuserId = null)
+	function listPartnerEntries($kalturaSessionUser, $filter, $detailed = null, $pageSize = 10, $page = 1, $useFilterPuserId = null)
 	{
 		$params = array();
 		$this->addOptionalParam($params, "filter__eq_user_id", $filter->equalUserId);
@@ -1397,6 +1419,8 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "filter__lte_created_at", $filter->lessThanOrEqualCreatedAt);
 		$this->addOptionalParam($params, "filter__gte_updated_at", $filter->greaterThanOrEqualUpdatedAt);
 		$this->addOptionalParam($params, "filter__lte_updated_at", $filter->lessThanOrEqualUpdatedAt);
+		$this->addOptionalParam($params, "filter__gte_modified_at", $filter->greaterThanOrEqualModifiedAt);
+		$this->addOptionalParam($params, "filter__lte_modified_at", $filter->lessThanOrEqualModifiedAt);
 		$this->addOptionalParam($params, "filter__in_partner_id", $filter->inPartnerId);
 		$this->addOptionalParam($params, "filter__eq_partner_id", $filter->equalPartnerId);
 		$this->addOptionalParam($params, "filter__eq_source_link", $filter->equalSourceLink);
@@ -1419,7 +1443,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function listPlaylists(KalturaSessionUser $kalturaSessionUser, KalturaEntryFilter $filter, $detailed = null, $detailedFields = null, $pageSize = 10, $page = 1, $useFilterPuserId = null)
+	function listPlaylists($kalturaSessionUser, $filter, $detailed = null, $detailedFields = null, $pageSize = 10, $page = 1, $useFilterPuserId = null)
 	{
 		$params = array();
 		$this->addOptionalParam($params, "filter__eq_user_id", $filter->equalUserId);
@@ -1451,6 +1475,8 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "filter__lte_created_at", $filter->lessThanOrEqualCreatedAt);
 		$this->addOptionalParam($params, "filter__gte_updated_at", $filter->greaterThanOrEqualUpdatedAt);
 		$this->addOptionalParam($params, "filter__lte_updated_at", $filter->lessThanOrEqualUpdatedAt);
+		$this->addOptionalParam($params, "filter__gte_modified_at", $filter->greaterThanOrEqualModifiedAt);
+		$this->addOptionalParam($params, "filter__lte_modified_at", $filter->lessThanOrEqualModifiedAt);
 		$this->addOptionalParam($params, "filter__in_partner_id", $filter->inPartnerId);
 		$this->addOptionalParam($params, "filter__eq_partner_id", $filter->equalPartnerId);
 		$this->addOptionalParam($params, "filter__eq_source_link", $filter->equalSourceLink);
@@ -1474,7 +1500,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function listUiconf(KalturaSessionUser $kalturaSessionUser, KalturaUiConfFilter $filter, $detailed = null, $detailedFields = null, $pageSize = 10, $page = 1)
+	function listUiconf($kalturaSessionUser, $filter, $detailed = null, $detailedFields = null, $pageSize = 10, $page = 1)
 	{
 		$params = array();
 		$this->addOptionalParam($params, "filter__eq_id", $filter->equalId);
@@ -1494,7 +1520,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function ping(KalturaSessionUser $kalturaSessionUser)
+	function ping($kalturaSessionUser)
 	{
 		$params = array();
 
@@ -1502,7 +1528,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function queuePendingBatchJob(KalturaSessionUser $kalturaSessionUser, $jobType, $processorName, $processorTimeout, $overQuotaPartners = null, $deferedPartners = null)
+	function queuePendingBatchJob($kalturaSessionUser, $jobType, $processorName, $processorTimeout, $overQuotaPartners = null, $deferedPartners = null)
 	{
 		$params = array();
 		$params["job_type"] = $jobType;
@@ -1515,7 +1541,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function rankKShow(KalturaSessionUser $kalturaSessionUser, $kshowId, $rank)
+	function rankKShow($kalturaSessionUser, $kshowId, $rank)
 	{
 		$params = array();
 		$params["kshow_id"] = $kshowId;
@@ -1525,7 +1551,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function registerPartner(KalturaSessionUser $kalturaSessionUser, KalturaPartner $partner, $cmsPassword = null)
+	function registerPartner($kalturaSessionUser, $partner, $cmsPassword = null)
 	{
 		$params = array();
 		$this->addOptionalParam($params, "partner_name", $partner->name);
@@ -1549,7 +1575,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function reportEntry(KalturaSessionUser $kalturaSessionUser, KalturaModeration $moderation)
+	function reportEntry($kalturaSessionUser, $moderation)
 	{
 		$params = array();
 		$this->addOptionalParam($params, "moderation_comments", $moderation->comments);
@@ -1562,7 +1588,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function reportError(KalturaSessionUser $kalturaSessionUser, $reportingObj = null, $errorCode = null, $errorDescription = null)
+	function reportError($kalturaSessionUser, $reportingObj = null, $errorCode = null, $errorDescription = null)
 	{
 		$params = array();
 		$this->addOptionalParam($params, "reporting_obj", $reportingObj);
@@ -1573,7 +1599,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function reportKShow(KalturaSessionUser $kalturaSessionUser, KalturaModeration $moderation)
+	function reportKShow($kalturaSessionUser, $moderation)
 	{
 		$params = array();
 		$this->addOptionalParam($params, "moderation_comments", $moderation->comments);
@@ -1586,7 +1612,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function reportUser(KalturaSessionUser $kalturaSessionUser, KalturaModeration $moderation)
+	function reportUser($kalturaSessionUser, $moderation)
 	{
 		$params = array();
 		$this->addOptionalParam($params, "moderation_comments", $moderation->comments);
@@ -1599,7 +1625,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function rollbackKShow(KalturaSessionUser $kalturaSessionUser, $kshowId, $kshowVersion)
+	function rollbackKShow($kalturaSessionUser, $kshowId, $kshowVersion)
 	{
 		$params = array();
 		$params["kshow_id"] = $kshowId;
@@ -1609,7 +1635,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function search(KalturaSessionUser $kalturaSessionUser, $mediaType, $mediaSource, $search, $authData = null, $page = 1, $pageSize = 10)
+	function search($kalturaSessionUser, $mediaType, $mediaSource, $search, $authData = null, $page = 1, $pageSize = 10)
 	{
 		$params = array();
 		$params["media_type"] = $mediaType;
@@ -1623,7 +1649,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function searchAuthData(KalturaSessionUser $kalturaSessionUser, $mediaSource, $username, $password)
+	function searchAuthData($kalturaSessionUser, $mediaSource, $username, $password)
 	{
 		$params = array();
 		$params["media_source"] = $mediaSource;
@@ -1634,7 +1660,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function searchFromUrl(KalturaSessionUser $kalturaSessionUser, $url, $mediaType)
+	function searchFromUrl($kalturaSessionUser, $url, $mediaType)
 	{
 		$params = array();
 		$params["url"] = $url;
@@ -1644,7 +1670,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function searchMediaInfo(KalturaSessionUser $kalturaSessionUser, $mediaType, $mediaSource, $mediaId)
+	function searchMediaInfo($kalturaSessionUser, $mediaType, $mediaSource, $mediaId)
 	{
 		$params = array();
 		$params["media_type"] = $mediaType;
@@ -1655,7 +1681,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function searchmediaproviders(KalturaSessionUser $kalturaSessionUser)
+	function searchmediaproviders($kalturaSessionUser)
 	{
 		$params = array();
 
@@ -1663,7 +1689,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function setMetaData(KalturaSessionUser $kalturaSessionUser, $entryId, $kshowId, $hasRoughCut, $xml)
+	function setMetaData($kalturaSessionUser, $entryId, $kshowId, $hasRoughCut, $xml)
 	{
 		$params = array();
 		$params["entry_id"] = $entryId;
@@ -1675,7 +1701,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function startSession(KalturaSessionUser $kalturaSessionUser, $secret, $admin = null, $privileges = null, $expiry = 86400)
+	function startSession($kalturaSessionUser, $secret, $admin = null, $privileges = null, $expiry = 86400)
 	{
 		$params = array();
 		$params["secret"] = $secret;
@@ -1687,7 +1713,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function startWidgetSession(KalturaSessionUser $kalturaSessionUser, $widgetId, $expiry = 86400)
+	function startWidgetSession($kalturaSessionUser, $widgetId, $expiry = 86400)
 	{
 		$params = array();
 		$params["widget_id"] = $widgetId;
@@ -1697,7 +1723,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function testNotification(KalturaSessionUser $kalturaSessionUser)
+	function testNotification($kalturaSessionUser)
 	{
 		$params = array();
 
@@ -1705,7 +1731,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function updateBatchJob(KalturaSessionUser $kalturaSessionUser, $batchjobId, KalturaBatchJob $batchjob)
+	function updateBatchJob($kalturaSessionUser, $batchjobId, $batchjob)
 	{
 		$params = array();
 		$params["batchjob_id"] = $batchjobId;
@@ -1723,7 +1749,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function updateDvdEntry(KalturaSessionUser $kalturaSessionUser, $entryId, KalturaEntry $entry)
+	function updateDvdEntry($kalturaSessionUser, $entryId, $entry)
 	{
 		$params = array();
 		$params["entry_id"] = $entryId;
@@ -1759,7 +1785,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function updateEntriesThumbnails(KalturaSessionUser $kalturaSessionUser, $entryIds, $timeOffset)
+	function updateEntriesThumbnails($kalturaSessionUser, $entryIds, $timeOffset)
 	{
 		$params = array();
 		$params["entry_ids"] = $entryIds;
@@ -1769,7 +1795,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function updateEntry(KalturaSessionUser $kalturaSessionUser, $entryId, KalturaEntry $entry)
+	function updateEntry($kalturaSessionUser, $entryId, $entry, $allowEmptyField = null)
 	{
 		$params = array();
 		$params["entry_id"] = $entryId;
@@ -1800,12 +1826,13 @@ class KalturaClient extends KalturaClientBase
 		$this->addOptionalParam($params, "entry_description", $entry->description);
 		$this->addOptionalParam($params, "entry_mediaDate", $entry->mediaDate);
 		$this->addOptionalParam($params, "entry_adminTags", $entry->adminTags);
+		$this->addOptionalParam($params, "allow_empty_field", $allowEmptyField);
 
 		$result = $this->hit("updateentry", $kalturaSessionUser, $params);
 		return $result;
 	}
 
-	public function updateEntryTModeration(KalturaSessionUser $kalturaSessionUser, $entryId, $moderationStatus)
+	function updateEntryTModeration($kalturaSessionUser, $entryId, $moderationStatus)
 	{
 		$params = array();
 		$params["entry_id"] = $entryId;
@@ -1815,7 +1842,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function updateEntryThumbnail(KalturaSessionUser $kalturaSessionUser, $entryId, $sourceEntryId = null, $timeOffset = null)
+	function updateEntryThumbnail($kalturaSessionUser, $entryId, $sourceEntryId = null, $timeOffset = null)
 	{
 		$params = array();
 		$params["entry_id"] = $entryId;
@@ -1826,7 +1853,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function updateEntryThumbnailJpeg(KalturaSessionUser $kalturaSessionUser, $entryId)
+	function updateEntryThumbnailJpeg($kalturaSessionUser, $entryId)
 	{
 		$params = array();
 		$params["entry_id"] = $entryId;
@@ -1835,7 +1862,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function updateKShow(KalturaSessionUser $kalturaSessionUser, $kshowId, KalturaKShow $kshow, $detailed = null, $allowDuplicateNames = null)
+	function updateKShow($kalturaSessionUser, $kshowId, $kshow, $detailed = null, $allowDuplicateNames = null)
 	{
 		$params = array();
 		$params["kshow_id"] = $kshowId;
@@ -1854,7 +1881,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function updateKshowOwner(KalturaSessionUser $kalturaSessionUser, $kshowId, $detailed = null)
+	function updateKshowOwner($kalturaSessionUser, $kshowId, $detailed = null)
 	{
 		$params = array();
 		$params["kshow_id"] = $kshowId;
@@ -1864,7 +1891,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function updateNotification(KalturaSessionUser $kalturaSessionUser, KalturaNotification $notification)
+	function updateNotification($kalturaSessionUser, $notification)
 	{
 		$params = array();
 		$this->addOptionalParam($params, "notification_id", $notification->id);
@@ -1875,7 +1902,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function updatePartner(KalturaSessionUser $kalturaSessionUser, KalturaPartner $partner)
+	function updatePartner($kalturaSessionUser, $partner)
 	{
 		$params = array();
 		$this->addOptionalParam($params, "partner_name", $partner->name);
@@ -1898,7 +1925,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function updatePlaylist(KalturaSessionUser $kalturaSessionUser, $entryId, KalturaEntry $entry)
+	function updatePlaylist($kalturaSessionUser, $entryId, $entry)
 	{
 		$params = array();
 		$params["entry_id"] = $entryId;
@@ -1934,7 +1961,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function updateUiconf(KalturaSessionUser $kalturaSessionUser, $uiconfId, KalturaUiConf $uiconf)
+	function updateUiconf($kalturaSessionUser, $uiconfId, $uiconf)
 	{
 		$params = array();
 		$params["uiconf_id"] = $uiconfId;
@@ -1954,7 +1981,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function updateUser(KalturaSessionUser $kalturaSessionUser, $userId, KalturaUser $user)
+	function updateUser($kalturaSessionUser, $userId, $user)
 	{
 		$params = array();
 		$params["user_id"] = $userId;
@@ -1978,7 +2005,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function updateUserId(KalturaSessionUser $kalturaSessionUser, $userId, $newUserId)
+	function updateUserId($kalturaSessionUser, $userId, $newUserId)
 	{
 		$params = array();
 		$params["user_id"] = $userId;
@@ -1988,7 +2015,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function upload(KalturaSessionUser $kalturaSessionUser, $filename)
+	function upload($kalturaSessionUser, $filename)
 	{
 		$params = array();
 		$params["filename"] = $filename;
@@ -1997,7 +2024,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function uploadJpeg(KalturaSessionUser $kalturaSessionUser, $filename, $hash)
+	function uploadJpeg($kalturaSessionUser, $filename, $hash)
 	{
 		$params = array();
 		$params["filename"] = $filename;
@@ -2007,7 +2034,7 @@ class KalturaClient extends KalturaClientBase
 		return $result;
 	}
 
-	public function viewWidget(KalturaSessionUser $kalturaSessionUser, $entryId = null, $kshowId = null, $widgetId = null, $host = null)
+	function viewWidget($kalturaSessionUser, $entryId = null, $kshowId = null, $widgetId = null, $host = null)
 	{
 		$params = array();
 		$this->addOptionalParam($params, "entry_id", $entryId);
