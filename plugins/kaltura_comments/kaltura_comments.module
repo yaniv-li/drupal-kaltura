@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura_comments.module,v 1.2.2.2 2008/12/28 11:34:28 kaltura Exp $
+// $Id: kaltura_comments.module,v 1.2.2.3 2008/12/30 16:15:59 kaltura Exp $
 
 /*
  * @file
@@ -19,7 +19,7 @@ function kaltura_comments_comment(&$a1, $op) {
 /*
  * Implementation of hook_form_alter().
  */
-function kaltura_comments_form_alter($form_id, &$form) {
+function kaltura_comments_form_alter(&$form, &$form_state, $form_id) {
   if ($form_id == 'comment_form') {
     $cw_vars = format_cw_vars(array( 'kshow_id' => -2, 'partner_data' => 'entry_as_comment@yes', 'type' => '', 'context' => 'comment', 'field_id' => 'edit-comment' ));
     $form['video_comment'] = array(
@@ -35,13 +35,12 @@ function kaltura_comments_form_alter($form_id, &$form) {
  */
 function kaltura_comments_menu() {
   $items = array();
-  $items[] = array(
-    'path' => 'admin/settings/kaltura/kaltura_comments_settings',
+  $items['admin/settings/kaltura/kaltura_comments_settings'] = array(
     'title' => 'Kaltura Video Comments Settings',
     'description' => 'Administer the Kaltura video comments module.',
-    'callback' => 'drupal_get_form',
-    'callback arguments' => array( 'kaltura_vc_settings_form' ),
-    'access' => user_access('administer kaltura'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array( 'kaltura_vc_settings_form' ),
+    'access arguments' => array('administer kaltura'),
     'type' => MENU_NORMAL_ITEM,
     'weight' => -6,
   );
@@ -61,7 +60,7 @@ function kaltura_vc_settings_form() {
   );
   
   $players = kaltura_choose_player(0, 'comment', 'mix');
-  $saved_player = variable_get('kaltura_comment_entry_widget', KalturaSettings::DEFAULT_COMMENT_PLAYER_UICONF);
+  $saved_player = variable_get('kaltura_comment_entry_widget', KalturaSettings_DEFAULT_COMMENT_PLAYER_UICONF);
   $form['kaltura_comment_display']['kaltura_comment_entry_widget'] = $players['default_widget'];
   $form['kaltura_comment_display']['kaltura_comment_entry_widget']['#default_value'] = $saved_player;
   $form['kaltura_comment_display']['clear_block_item'] = array(

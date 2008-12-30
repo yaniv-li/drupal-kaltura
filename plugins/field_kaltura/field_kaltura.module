@@ -1,5 +1,5 @@
 <?php
-// $Id: field_kaltura.module,v 1.2.2.2 2008/12/28 11:34:28 kaltura Exp $
+// $Id: field_kaltura.module,v 1.2.2.3 2008/12/30 16:15:31 kaltura Exp $
 
 /**
  * @file
@@ -86,22 +86,34 @@ function field_kaltura_field_settings($op, $field) {
       $columns['value'] = array('type' => 'text', 'size' => 'big', 'not null' => FALSE, 'sortable' => TRUE);
       return $columns;
 
-    case 'filters':
-      return array(
-        'like' => array(
-          'operator' => 'views_handler_operator_like',
-          'handler' => 'views_handler_filter_like',
-        ),
-      );
-      break;
+    case 'views data':
+      $allowed_values = content_allowed_values($field);
+      if (count($allowed_values) || 1) {
+        $data = content_views_field_views_data($field);
+        $db_info = content_database_info($field);
+        $table_alias = content_views_tablename($field);
+
+
+        // Filter: Add a 'many to one' filter.
+        $copy = $data[$table_alias][$field['field_name'] .'_value'];
+        $copy['title'] = t('@label (!name) - Allowed values', array('@label' => t($field['widget']['label']), '!name' => $field['field_name']));
+        $copy['filter']['handler'] = 'content_handler_filter_many_to_one';
+        unset($copy['field'], $copy['argument'], $copy['sort']);
+        $data[$table_alias][$field['field_name'] .'_value_many_to_one'] = $copy;
+        // Argument : swap the handler to the 'many to one' operator.
+        $data[$table_alias][$field['field_name'] .'_value']['argument']['handler'] = 'content_handler_argument_many_to_one';
+        return $data;
+      }
   }
 }
 
 /*
  * Implementation of hook_form_alter().
  */
-function field_kaltura_form_alter($form_id, &$form) {
-  if ($form['field_type']['#value'] == 'Kaltura_Media') {
+function field_kaltura_form_alter(&$form, &$form_state, $form_id) {
+  //var_dump($form);
+  if ($form['#field']['type'] == 'Kaltura_Media') {
+    $form['#field']['multiple'] = "1";
     $form['field']['multiple']['#type'] = 'hidden';
     $form['field']['multiple']['#default_value'] = 0;
   }
@@ -114,6 +126,27 @@ function field_kaltura_form_alter($form_id, &$form) {
 function field_kaltura_field($op, &$node, $field, &$items, $teaser, $page) {
   switch ($op) {
     case 'validate':
+      $allowed_values = content_allowed_values($field);
+      if (is_array($items)) {
+        foreach ($items as $delta => $item) {
+          $error_element = isset($item['_error_element']) ? $item['_error_element'] : '';
+          if (is_array($item) && isset($item['_error_element'])) unset($item['_error_element']);
+          if (!empty($item['value'])) {
+            if (count($allowed_values) && !array_key_exists($item['value'], $allowed_values)) {
+              form_set_error($error_element, t('%name: illegal value.', array('%name' => t($field['widget']['label']))));
+            }
+            if (!empty($field['max_length']) && drupal_strlen($item['value']) > $field['max_length']) {
+              form_set_error($error_element, t('%name: the value may not be longer than %max characters.', array('%name' => $field['widget']['label'], '%max' => $field['max_length'])));
+            }
+          }
+        }
+      }
+      return $items;
+
+    case 'sanitize':
+      foreach ($items as $delta => $item) {
+        $items[$delta]['#kaltura_field'] = $field;
+      }
       break;
   }
 }
@@ -234,37 +267,42 @@ function field_kaltura_field_formatter_info() {
   );
 }
 
-function field_kaltura_field_formatter($field, $item, $formatter, $node) {
-  $function = 'theme_field_kaltura_formatter_'. $formatter;
-  return $function($item, $field);
-}
-
 /**
  * Theme function for 'default' text field formatter.
  */
-function theme_field_kaltura_formatter_default($item) {
-  return get_default_display($item, 1);
+function theme_field_kaltura_formatter_default($element) {
+  return get_default_display($element['#item'], 1);
 }
 
 /**
  * Theme function for 'full' text field formatter.
  */
-function theme_field_kaltura_formatter_full($item) {
-  return get_full_display($item, 0);
+function theme_field_kaltura_formatter_full($element) {
+  return get_full_display($element['#item'], 0);
 }
 
 /**
  * Theme function for 'teaser' text field formatter.
  */
-function theme_field_kaltura_formatter_teaser($item) {
-  return get_teaser_display($item, 1);
+function theme_field_kaltura_formatter_teaser($element) {
+  return get_teaser_display($element['#item'], 1);
 }
 
 /**
  * Theme function for 'thumbnail' text field formatter.
  */
-function theme_field_kaltura_formatter_thumbnail($item, $field) {
-  return get_thumbnail_display($item, 0, $field);
+function theme_field_kaltura_formatter_thumbnail($element) {
+  return get_thumbnail_display($element['#item'], 0, $element['#item']['#kaltura_field']);
+}
+
+/*
+ * helper function that can be used to filter field content
+ */
+function _field_kaltura_allowed_values($element) {
+  $field = content_fields($element['#field_name'], $element['#type_name']);
+  if (($allowed_values = content_allowed_values($field)) && isset($allowed_values[$element['#item']['value']])) {
+    return $allowed_values[$element['#item']['value']];
+  }
 }
 
 /**
@@ -415,48 +453,12 @@ function _field_kaltura_widget_settings_size_validate($element, &$form_state) {
  * @return
  *   the form item for a single element for this field
  */
-function field_kaltura_widget($op, &$node, $field, &$items) {
-  switch ($op) {
-    case 'form':
-      $form = array();
-
-      $form[$field['field_name']] = array('#tree' => TRUE);
-
-      if ($field['multiple']) {
-        $form[$field['field_name']]['#type'] = 'fieldset';
-        $form[$field['field_name']]['#description'] = content_filter_xss(t($field['widget']['description']));
-        $delta = 0;
-        // real widgets
-        foreach ($items as $data) {
-          if ($data['value']) {
-            field_kaltura_remix_textfield_process($field, $edit, $form_state, $form, $items, $delta);
-            $delta++;
-          }
-        }
-        // adding empty widgets
-        foreach (range($delta, $delta + 2) as $delta) {
-            field_kaltura_remix_textfield_process($field, $edit, $form_state, $form, $items, $delta, $no_content);
-        }
-      }
-      else {
-        if ($field['type'] == 'Kaltura_Media') {
-          field_kaltura_textfield_process($field, $edit, $form_state, $form, $items);
-        }
-        if ($field['type'] == 'Kaltura_Media_Remix') {
-          field_kaltura_remix_textfield_process($field, $edit, $form_state, $form, $items);
-        }
-      }
-      return $form;
-
-    case 'process form values':
-      // Don't save empty fields except the first value
-      foreach ($items as $delta => $item) {
-        if ($item['value'] == '' && $delta > 0) {
-          unset($items[$delta]);
-        }
-      }
-      break;
-  }
+function field_kaltura_widget(&$form, &$form_state, $field, $items, $delta = 0) {
+  $element = array(
+    '#type' => $field['widget']['type'],
+    '#default_value' => isset($items[$delta]) ? $items[$delta] : '',
+  );
+  return $element;
 }
 
 /**
@@ -467,32 +469,49 @@ function field_kaltura_widget($op, &$node, $field, &$items) {
  *
  * The $fields array is in $form['#field_info'][$element['#field_name']].
  */
-function field_kaltura_textfield_process($field, $edit, $form_state, &$form, $items) {
+function field_kaltura_textfield_process($element, $edit, $form_state, $form) {
   global $thumbnail_base_url;
-  $custom_name = 'edit-'. str_replace('_', '-', $field['field_name']) .'-0-value';
-  $cw_vars = format_cw_vars(array( 'kshow_id' => 0, 'partner_data' => '', 'type' => 'entry', 'context' => 'field', 'field_id' => $custom_name ));
+  $field = $form['#field_info'][$element['#field_name']];
+  $field_key = $element['#columns'][0];
+  $delta = $element['#delta'];
+  $custom_name = 'edit-'. str_replace('_', '-', $element['#field_name']) .'-'. $delta .'-'. $field_key;
+  $element['data'] = array('#tree' => 'true');
+  $cw_vars = format_cw_vars(array( 'kshow_id' => 0, 'partner_data' => '', 'type' => 'entry', 'context' => 'field', 'field_id'=> $custom_name ));
   $action_buttons = '<input type="button" value="Add Kaltura Media" onclick="kalturaInitModalBox(\''. url('kaltura/contribution_wizard/'. $cw_vars) .'\', {width:680, height:380} );" />';
-  $field_thumbs = get_field_thumbs($items[0]['value'], $custom_name, 'Media');
-  $form['data'] = array (
-    $custom_name .'_thumbs' => array(
-      '#type' => 'item',
-      '#value' => '<div id="'. $custom_name .'_thumbs_div">'. $field_thumbs .'</div>',
-    ),
-    'action_buttons' => array(
-      '#type' => 'item',
-      '#value' => $action_buttons,
-    ),
+  $field_thumbs = get_field_thumbs($element['#value'][$field_key], $custom_name, 'Media');
+  $element['data'][$custom_name .'_thumbs'] = array(
+    '#type' => 'item',
+    '#value' => '<div id="'. $custom_name .'_thumbs_div">'. $field_thumbs .'</div>',
   );
-  $form[$field['field_name']][0]['value'] = array(
-    '#tree' => TRUE,
+  $element['data']['action_buttons'] = array(
+    '#type' => 'item',
+    '#value' => $action_buttons,
+  );
+  $element[$field_key] = array(
     '#type' => 'hidden',
-    '#default_value' => $items[0]['value'],
-    '#size' => 60,
+    '#default_value' => isset($element['#value'][$field_key]) ? $element['#value'][$field_key] : NULL,
+    '#autocomplete_path' => $element['#autocomplete_path'],
+    '#size' => !empty($field['widget']['size']) ? $field['widget']['size'] : 60,
     '#attributes' => array('class' => 'text', 'readonly' => 'readonly'),
     '#readonly' => 'readonly',
     // The following values were set by the content module and need
     // to be passed down to the nested element.
+    '#title' => $element['#title'],
+    '#description' => $element['#description'],
+    '#required' => $element['#required'],
+    '#field_name' => $element['#field_name'],
+    '#type_name' => $element['#type_name'],
+    '#delta' => $element['#delta'],
+    '#columns' => $element['#columns'],
   );
+
+  // Used so that hook_field('validate') knows where to flag an error.
+  $element['_error_element'] = array(
+    '#type' => 'value',
+    '#value' => implode('][', array_merge($element['#parents'], array($field_key))),
+  );
+
+  return $element;
 }
 
 function get_field_thumbs($field_value, $field_name, $type) {
@@ -516,9 +535,13 @@ function get_field_thumbs($field_value, $field_name, $type) {
  *
  * The $fields array is in $form['#field_info'][$element['#field_name']].
  */
-function field_kaltura_remix_textfield_process($field, $edit, $form_state, &$form, $items, $delta = 0, $no_content = FALSE) {
+function field_kaltura_remix_textfield_process($element, $edit, $form_state, $form) {
   global $thumbnail_base_url;
-  $custom_name = 'edit-'. str_replace('_', '-', $field['field_name']) .'-'. $delta .'-value';
+  $field = $form['#field_info'][$element['#field_name']];
+  $field_key = $element['#columns'][0];
+  $delta = $element['#delta'];
+  $custom_name = 'edit-'. str_replace('_', '-', $element['#field_name']) .'-'. $delta .'-'. $field_key;
+  $element['data'] = array('#tree' => 'true');
   $cw_vars = format_cw_vars(array(
     'kshow_id' => 0,
     'partner_data' => '',
@@ -530,26 +553,39 @@ function field_kaltura_remix_textfield_process($field, $edit, $form_state, &$for
   $action_buttons = '<input type="button" value="Add Kaltura Remix" onclick="kalturaInitModalBox(\''. url('kaltura/contribution_wizard/'. $cw_vars) .'/\'+ get_title(), {width:680, height:380});" /><input type="button" value="Clear" onclick="remove_items_from_field(\''. $custom_name .'\');" />';
   $action_buttons .= '<input type="button" value="Edit Mix" onclick="if(document.getElementById(\''. $custom_name .'\').value) { kalturaInitModalBox(\''. url('kaltura/simple_editor/') .
     '\' + document.getElementById(\''. $custom_name .'\').value +\'/entry/empty_partner_data/no_refresh\', { width: 890, height: 546 }); }" />';
-  $field_thumbs = get_field_thumbs($items[$delta]['value'], $custom_name, 'Remix');
-  $form['mixdata'][$custom_name .'_thumbs'] = array(
+  $field_thumbs = get_field_thumbs($element['#value'][$field_key], $custom_name, 'Remix');
+  $element['data'][$custom_name .'_thumbs'] = array(
     '#type' => 'item',
     '#value' => '<div id="'. $custom_name .'_thumbs_div">'. $field_thumbs .'</div>',
   );
-  $form['mixdata']['add_video_'. $delta] = array(
+  $element['data']['add_video'] = array(
     '#type' => 'item',
     '#value' => $action_buttons,
   );
-  $form[$field['field_name']][$delta]['value'] = array(
+  $element[$field_key] = array(
     '#type' => 'hidden',
-    '#default_value' => (!$no_content)? $items[$delta]['value']: '',
-    '#size' => 60,
+    '#default_value' => isset($element['#value'][$field_key]) ? $element['#value'][$field_key] : NULL,
+    '#autocomplete_path' => $element['#autocomplete_path'],
+    '#size' => !empty($field['widget']['size']) ? $field['widget']['size'] : 60,
     '#attributes' => array('class' => 'text', 'readonly' => 'readonly'),
     '#readonly' => 'readonly',
     // The following values were set by the content module and need
     // to be passed down to the nested element.
+    '#title' => $element['#title'],
+    '#description' => $element['#description'],
+    '#required' => $element['#required'],
+    '#field_name' => $element['#field_name'],
+    '#type_name' => $element['#type_name'],
+    '#delta' => $element['#delta'],
+    '#columns' => $element['#columns'],
   );
   // Used so that hook_field('validate') knows where to flag an error.
+  $element['_error_element'] = array(
+    '#type' => 'value',
+    '#value' => implode('][', array_merge($element['#parents'], array($field_key))),
+  );
 
+  return $element;
 }
 
 /**
@@ -578,7 +614,7 @@ function theme_field_kaltura_remix_textfield($element) {
  * helper function to check if a specific field belongs to this module
  */
 function is_kaltura_field($field_name) {
-  $query = 'SELECT type FROM {node_field} WHERE field_name = \'%s\'';
+  $query = 'SELECT type FROM {content_node_field} WHERE field_name = \'%s\'';
   $result = db_fetch_object(db_query($query, $field_name));
   $my_fields = field_kaltura_field_info();
   if (array_key_exists($result->type, $my_fields)) return $result->type;
@@ -589,7 +625,7 @@ function is_kaltura_field($field_name) {
  * Implementation of hook_nodeapi().
  */
 function field_kaltura_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
-  if ($op == 'update') {
+  if ($op == 'presave') {
     // do something only if tags vocabulary applied and not empty on this node
     if ($node->taxonomy['tags']) {
       // get all tags as string

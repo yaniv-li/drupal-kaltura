@@ -1,5 +1,5 @@
 <?php
-// $Id: node_kaltura_entry.module,v 1.2.2.2 2008/12/28 11:34:28 kaltura Exp $
+// $Id: node_kaltura_entry.module,v 1.2.2.3 2008/12/30 16:17:56 kaltura Exp $
 
 /*
  * @file
@@ -39,13 +39,12 @@ function node_kaltura_entry_access($op, $node, $account) {
  */
 function node_kaltura_entry_menu() {
   $items = array();
-  $items[] = array(
-    'path' => 'admin/settings/kaltura/kaltura_entry_settings',
+  $items['admin/settings/kaltura/kaltura_entry_settings'] = array(
     'title' => 'Kaltura Media Node Settings',
     'description' => 'Administer the kaltura entry module.',
-    'callback' => 'drupal_get_form',
-    'callback arguments' => array( 'kaltura_entry_settings_form' ),
-    'access' => user_access( 'administer kaltura' ),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array( 'kaltura_entry_settings_form' ),
+    'access arguments' => array( 'administer kaltura' ),
     'type' => MENU_NORMAL_ITEM,
     'weight' => -7,
   );
@@ -98,7 +97,7 @@ function kaltura_entry_settings_form() {
     '#weight' => -3,
   );
   $players = kaltura_choose_player(0, 'video', 'entry');
-  $saved_player = variable_get('kaltura_video_entry_widget', KalturaSettings::DEFAULT_VIDEO_PLAYER_UICONF);
+  $saved_player = variable_get('kaltura_video_entry_widget', KalturaSettings_DEFAULT_VIDEO_PLAYER_UICONF);
   $form['kaltura_entry_video_display']['kaltura_video_entry_widget'] = $players['default_widget'];
   $form['kaltura_entry_video_display']['kaltura_video_entry_widget']['#default_value'] = $saved_player;
   $form['kaltura_entry_video_display']['clear_block_item'] = array(
@@ -212,7 +211,7 @@ function kaltura_entry_settings_form() {
     '#weight' => -1,
   );
   $players = kaltura_choose_player(0, 'audio', 'entry');
-  $saved_player = variable_get('kaltura_audio_entry_widget', KalturaSettings::DEFAULT_AUDIO_PLAYER_UICONF);
+  $saved_player = variable_get('kaltura_audio_entry_widget', KalturaSettings_DEFAULT_AUDIO_PLAYER_UICONF);
   $form['kaltura_entry_audio_display']['kaltura_audio_entry_widget'] = $players['default_widget'];
   $form['kaltura_entry_audio_display']['kaltura_audio_entry_widget']['#default_value'] = $saved_player;
   $form['kaltura_entry_audio_display']['clear_block_item'] = array(
@@ -403,7 +402,7 @@ function node_kaltura_entry_theme() {
  *
  * in add mode, we want to hide fields and settings that are not relevant
  */
-function node_kaltura_entry_form_alter($form_id, &$form) {
+function node_kaltura_entry_form_alter(&$form, &$form_state, $form_id) {
   if ($form_id == 'kaltura_entry_node_form' && !$form['nid']['#value']) {
     if (isset($form["type"]) && $form["type"]["#value"] ."_node_form" == $form_id) {
       unset($form["author"]);
@@ -433,7 +432,7 @@ function update_entry_node_taxonomy(&$node) {
       $terms['tags'][$avoc_id] = $node->kaltura_admin_tags;
   }
   $node->taxonomy = $terms;
-  taxonomy_node_save($node->nid, $terms);
+  taxonomy_node_save($node, $terms);
 }
 
 
