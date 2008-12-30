@@ -1,5 +1,8 @@
 ; $Id: kaltura_playlist
 name = Kaltura Playlist
 package = Kaltura Media Management
-dependencies = kaltura views jquery_update
+core = 6.x
+dependencies[] = kaltura
+dependencies[] = views
+dependencies[] = jquery_update
 description = 
