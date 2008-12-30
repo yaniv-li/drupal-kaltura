@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura_playlist.module,v 1.1.4.2 2008/12/28 11:48:56 kaltura Exp $
+// $Id: kaltura_playlist.module,v 1.1.4.3 2008/12/30 14:49:29 kaltura Exp $
 
 /**
  * @file
@@ -60,7 +60,7 @@ function kaltura_playlist_menu() {
 
 function kaltura_playlist_settings_form() {
   $players = kaltura_choose_player(0, 'video', 'entry');
-  $saved_player = variable_get('kaltura_viewplaylist_entry_widget', KalturaSettings::DEFAULT_VIEWPLAYLIST_PLAYER_UICONF);
+  $saved_player = variable_get('kaltura_viewplaylist_entry_widget', KalturaSettings_DEFAULT_VIEWPLAYLIST_PLAYER_UICONF);
   $form['kaltura_viewplaylist_entry_widget'] = $players['default_widget'];
   $form['kaltura_viewplaylist_entry_widget']['#default_value'] = $saved_player;
   $form['clear_block_item'] = array(
