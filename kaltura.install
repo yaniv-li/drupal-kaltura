@@ -1,12 +1,12 @@
 <?php
-// $Id: kaltura.install,v 1.2.4.3 2008/12/30 14:52:26 kaltura Exp $
+// $Id: kaltura.install,v 1.2.4.4 2009/01/14 14:15:40 kaltura Exp $
 
 /*
  * @file
  * Installation process for kaltura core module
  *
  */
-$GLOBALS['kaltura_client_folder'] = drupal_get_path('module', 'kaltura') .'/kaltura_client/';
+$GLOBALS['_kaltura_client_folder'] = drupal_get_path('module', 'kaltura') .'/kaltura_client/';
 
 /**
  * Implementation of hook_schema().
@@ -223,14 +223,14 @@ function kaltura_tables() {
     `received_at` datetime default NULL,
     PRIMARY KEY  (`notification_id`)
    )";
-   return $tables;
+  return $tables;
 }
 /**
  * Implementation of hook_install().
  */
 function kaltura_install() {
-  global $kaltura_client_folder;
-  require_once($kaltura_client_folder .'kaltura_settings.php');
+  global $_kaltura_client_folder;
+  require_once($_kaltura_client_folder .'kaltura_settings.php');
   $tables = kaltura_tables();
   foreach ($tables as $table_name => $create_sql) {
     db_query($create_sql);
@@ -246,8 +246,8 @@ function kaltura_install() {
  */
 function kaltura_uninstall() {
   // Remove tables.
-  global $kaltura_client_folder;
-  require_once($kaltura_client_folder .'kaltura_settings.php');
+  global $_kaltura_client_folder;
+  require_once($_kaltura_client_folder .'kaltura_settings.php');
   $tables = kaltura_tables();
   foreach ($tables as $table_name => $create_sql) {
     db_query('DROP TABLE {'. $table_name .'}');
