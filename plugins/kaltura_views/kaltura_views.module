@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura_views.module,v 1.2.4.2 2008/12/28 11:49:26 kaltura Exp $
+// $Id: kaltura_views.module,v 1.2.4.3 2009/01/14 14:29:13 kaltura Exp $
 
 /*
  * @file
@@ -209,7 +209,7 @@ function views_handler_field_kaltura_thumb($fieldinfo, $fielddata, $value, $data
   $node->kaltura_thumbnail_url = $data->node_kaltura_kaltura_thumbnail_url;
   $node->nid = $data->nid;
   $node->link_thumb = TRUE;
-  list( $kaltura_type, $kaltura_media_type, $kstatus ) = _handler_get_node_type($node->nid);
+  list( $kaltura_type, $kaltura_media_type, $kstatus ) = kaltura_handler_get_node_type($node->nid);
   $node->kaltura_media_type = $kaltura_media_type;
   $node->kstatus = $kstatus;
   $thumb_size = explode('x', $fielddata['options']);
@@ -223,7 +223,7 @@ function views_handler_field_kaltura_thumb($fieldinfo, $fielddata, $value, $data
   }  
 }
 
-function _handler_get_node_type($nid) {
+function kaltura_handler_get_node_type($nid) {
   $sql = 'SELECT type, kaltura_media_type, kstatus FROM {node} node LEFT JOIN {node_kaltura} knode ON node.nid = knode.nid WHERE node.nid = %d';
   $result = db_fetch_object(db_query($sql, $nid));
   return array( $result->type, $result->kaltura_media_type, $result->kstatus );  
