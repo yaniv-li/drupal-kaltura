@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura.notification.inc,v 1.1.2.2 2008/12/30 15:04:19 kaltura Exp $
+// $Id: kaltura.notification.inc,v 1.1.2.3 2009/01/14 12:46:17 kaltura Exp $
 
 /*
  * @file
@@ -39,10 +39,10 @@ function kaltura_notification_handler() {
   }
   echo 'OK';
   foreach ($noti->data as $notification_data) {
-    $times = _notification_received($notification_data['notification_id']);
+    $times = kaltura_notification_received($notification_data['notification_id']);
     if (!$times || $notification_data['notification_type'] == 'test') {
-      _notification_save($notification_data['notification_id'], $notification_data);
-      forward_notification($notification_data);
+      kaltura_notification_save($notification_data['notification_id'], $notification_data);
+      kaltura_forward_notification($notification_data);
       kaltura_invoke('notification_handler', $notification_data);
     }
     else {
@@ -54,7 +54,7 @@ function kaltura_notification_handler() {
 /*
  * This function saves the received notification to the DB
  */
-function _notification_save($notification_id, $notification_data) {
+function kaltura_notification_save($notification_id, $notification_data) {
   $insert_query = 'INSERT INTO {kaltura_notifications} (notification_id, data, received_at) VALUES (%d, \'%s\', \''. date('Y-m-d H:i:s') .'\')';
   $result = db_query($insert_query, $notification_id, serialize($notification_data));
 }
@@ -62,7 +62,7 @@ function _notification_save($notification_id, $notification_data) {
 /*
  * This function checks if the received notification was already handled - to avoid duplicates
  */
-function _notification_received($notification_id) {
+function kaltura_notification_received($notification_id) {
   $query = 'SELECT COUNT(notification_id) c FROM {kaltura_notifications} WHERE notification_id = %d';
   $result = db_query($query, $notification_id);
   $count_obj = db_fetch_object($result);
@@ -74,20 +74,20 @@ function _notification_received($notification_id) {
  *
  * Some notification types, as described in  kaltura API documentation, are not yet handled here
  */
-function forward_notification($noti) {
+function kaltura_forward_notification($noti) {
   watchdog('kaltura notification handler', print_r($noti, TRUE));
   switch ($noti['notification_type']) {
-    case 'entry_add': _notify_node_entry_add('entry', $noti);
+    case 'entry_add': kaltura_notify_node_entry_add('entry', $noti);
       break;
-    case 'kshow_add': _notify_node_entry_add('mix', $noti);
+    case 'kshow_add': kaltura_notify_node_entry_add('mix', $noti);
       break;
     case 'kshow_update_info': watchdog('KNH', 'notification of type kshow_update_info received<br />'. serialize($noti));
       break;
-    case 'entry_update_thumbnail': _update_entry_thumbnail($noti);
+    case 'entry_update_thumbnail': kaltura_update_entry_thumbnail($noti);
       break;
-    case 'entry_update': _notify_node_update($noti);
+    case 'entry_update': kaltura_notify_node_update($noti);
       break;
-    case 'test': _test_notification_received();
+    case 'test': kaltura_test_notification_received();
       break;
     default:
   }
@@ -98,14 +98,14 @@ function forward_notification($noti) {
  *
  * should only be called when test notification recieved
  */
-function _test_notification_received() {
+function kaltura_test_notification_received() {
   variable_set('kaltura_notification_status', 1);
 }
 
 /*
  * helper function to update the thumbnail url of an entry
  */
-function _update_entry_thumbnail($notification) {
+function kaltura_update_entry_thumbnail($notification) {
   $thumburl = $notification['thumbnail_url'];
   $entry = $notification['entry_id'];
   $update = 'UPDATE {node_kaltura} SET kaltura_thumbnail_url = \'%s\' WHERE kaltura_entryId = \'%s\'';
@@ -115,7 +115,7 @@ function _update_entry_thumbnail($notification) {
 /*
  * function to handle with entry update notification
  */
-function _notify_node_update($notification) {
+function kaltura_notify_node_update($notification) {
   $get_nid_from_entry = 'SELECT nid FROM {node_kaltura} WHERE kaltura_entryId = \'%s\'';
   $nodes = db_query($get_nid_from_entry, $notification['entry_id']);
   while ($obj = db_fetch_object($nodes)) {
@@ -130,7 +130,7 @@ function _notify_node_update($notification) {
         $updated_node->notification_update = TRUE;
       }
     }
-    _push_extra_data($updated_node, $notification);
+    kaltura_push_extra_data($updated_node, $notification);
   }
   else {
     //watchdog('nod', 'found more than 1 node '. count($node_ids));
@@ -141,8 +141,8 @@ function _notify_node_update($notification) {
 /*
  * function to handle both add entry notification and add kshow notification
  */
-function _notify_node_entry_add($type, $notification_data) {
-  if ($notification_data['partner_data' ]) {
+function kaltura_notify_node_entry_add($type, $notification_data) {
+  if ($notification_data['partner_data']) {
     $data_exploded  = explode('|', $notification_data['partner_data']);
     foreach ($data_exploded as $data) {
       $splited = explode('@', $data);
@@ -164,18 +164,26 @@ function _notify_node_entry_add($type, $notification_data) {
   $node->sticky = 0;
   $node->kstatus = $notification_data['status'];
   
-  if ($partner_data['entry_as_comment'] == 'yes') $node->kaltura_video_comment = 1;
-  else $node->kaltura_video_comment = 0;
+  if ($partner_data['entry_as_comment'] == 'yes') {
+    $node->kaltura_video_comment = 1;
+  }
+  else {
+    $node->kaltura_video_comment = 0;
+  }
   
-  _push_extra_data($node, $notification_data);
-  $node->kaltura_entry_data = serialize(array( $notification_data ));
+  kaltura_push_extra_data($node, $notification_data);
+  $node->kaltura_entry_data = serialize(array($notification_data));
   $node->kaltura_tags = $notification_data['tags'];
   if ($type == 'entry') {
     $node->kaltura_entryId = $notification_data['entry_id'];
   }
   else {
-    if (WORK_WITH_KSHOW) $node->kaltura_entryId = $notification_data['kshow_id'];
-    else $node->kaltura_entryId = $notification_data['show_entry_id'];
+    if (WORK_WITH_KSHOW) {
+      $node->kaltura_entryId = $notification_data['kshow_id'];
+    }
+    else {
+      $node->kaltura_entryId = $notification_data['show_entry_id'];
+    }
   }
   $node->kaltura_admin_tags = '';
   if (($type == 'mix' && $partner_data['create_kshow'] == 'yes') || $type == 'entry') {
@@ -187,7 +195,7 @@ function _notify_node_entry_add($type, $notification_data) {
 /*
  * helper function to inject the node object with some extra details from the notification
  */
-function _push_extra_data(&$node, $data) {
+function kaltura_push_extra_data(&$node, $data) {
   $fields = array(
     'kaltura_media_type' => 'media_type',
     'kaltura_duration' => 'length_in_msecs',
@@ -207,7 +215,11 @@ function _push_extra_data(&$node, $data) {
     'kaltura_total_rank' => 'total_rank',
   );
   foreach ($fields as $node_key => $field) {
-    if ($data[$field]) $node->$node_key = $data[$field];
-    if ($data[$field] && $field == 'length_in_msecs') $node->$node_key = (int)($data[$field]/1000);
+    if ($data[$field]) {
+      $node->$node_key = $data[$field];
+    }
+    if ($data[$field] && $field == 'length_in_msecs') {
+      $node->$node_key = (int)($data[$field]/1000);
+    }
   }
 }
