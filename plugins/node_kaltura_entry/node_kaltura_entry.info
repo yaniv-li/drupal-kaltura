@@ -1,4 +1,4 @@
-; $Id: node_kaltura_entry
+; $Id: node_kaltura_entry.info,v 1.1.2.3 2009/01/14 13:29:14 kaltura Exp $: node_kaltura_entry
 name = Kaltura Media Node
 package = Kaltura Media Management
 core = 6.x
