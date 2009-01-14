@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura_playlist.install,v 1.1.2.3 2008/12/30 16:16:40 kaltura Exp $
+// $Id: kaltura_playlist.install,v 1.1.2.4 2009/01/14 13:25:37 kaltura Exp $
 
 /*
  * @file
@@ -51,15 +51,15 @@ function kaltura_playlist_schema() {
  */
 function kaltura_playlist_install() {
   drupal_install_schema('kaltura_playlist');
-  if (module_exists('views')) _populate_nodes();
+  if (module_exists('views')) kaltura_populate_nodes();
 }
 
-function _populate_nodes() {
+function kaltura_populate_nodes() {
   if (!module_exists('views')) return;
   
-  include('kaltura_playlist.module');
+  include_once('kaltura_playlist.module');
   // get views with _get_relevant_views()
-  $views = _get_relevant_views();
+  $views = kaltura_get_relevant_views();
   $count = 0;
   // for each relevant view, build a node object (view title = node title)
   foreach ($views as $key => $view) {
