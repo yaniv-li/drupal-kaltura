@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura.admin.inc,v 1.1.4.3 2008/12/30 14:40:55 kaltura Exp $
+// $Id: kaltura.admin.inc,v 1.1.4.4 2009/01/14 14:09:07 kaltura Exp $
 
 /*
  * @file
@@ -99,8 +99,8 @@ function register_kaltura_partner() {
     variable_set('kaltura_partner_url2', $_REQUEST['partner_url2']);
     variable_set('kaltura_notification_type', 0);
     variable_set('kaltura_content_categories', implode(',', $_REQUEST['kaltura_content_categories']));
-    _update_kaltura_partner(2, $partner->url2);
-    _create_widgets_for_partner($pid, $secret);
+    kaltura_update_kaltura_partner(2, $partner->url2);
+    kaltura_create_widgets_for_partner($pid, $secret);
     $stats_url = (KalturaSettings_DRUPAL_STATS_URL) .'register_success/p/'. $res['result']['partner']['id'];
     $registration_stats = '<iframe src="'. $stats_url .'" width="1" height="1" border="0" style="border: 0;"></iframe>';
     drupal_set_message('Congratulations!  You have successfully installed the All in One Video Module and registered for the Kaltura Partner Program.'. $registration_stats);
@@ -119,7 +119,7 @@ function register_kaltura_partner() {
 /*
  * helper function to retrieve partner's details from kaltura
  */
-function _get_partner_details($partner_id, $cms_email, $cms_password) {
+function kaltura_get_partner_details($partner_id, $cms_email, $cms_password) {
   $session_user = KalturaHelpers::getSessionUser();
   $config = KalturaHelpers::getServiceConfiguration();
   $config->partnerId = $partner_id;
@@ -144,7 +144,7 @@ function _get_partner_details($partner_id, $cms_email, $cms_password) {
  * the partner, in case he does not have these yet
  * 
  */
-function _create_widgets_for_partner($partner_id, $secret) {
+function kaltura_create_widgets_for_partner($partner_id, $secret) {
   $session_user = KalturaHelpers::getSessionUser();
   $kaltura_client = KalturaHelpers::getKalturaClient(1);
   $widgets = new KalturaSettings;
@@ -183,8 +183,8 @@ function kaltura_settings_form() {
       '#collapsible' => TRUE, 
       '#collapsed' => FALSE
     );
-    list($admin_session_status, $admin_session_error) = check_server_status($admin = 1);
-    list($normal_session_status, $normal_session_error) = check_server_status($admin = 0);
+    list($admin_session_status, $admin_session_error) = kaltura_check_server_status($admin = 1);
+    list($normal_session_status, $normal_session_error) = kaltura_check_server_status($admin = 0);
     $status_class = ($admin_session_status && $normal_session_status)? 'ok': 'bad';
     $session_status = ($admin_session_status && $normal_session_status)? 'OK': 'ERROR';
     
@@ -205,8 +205,8 @@ function kaltura_settings_form() {
       '#value' => 'Session status: '. $session_status . (($error_status)? $error: ''),
       '#suffix' => '</div>'
     );
-    if (variable_get_real('kaltura_notification_type', 0) == 1) {
-      list( $status, $text ) = _test_notification_config();
+    if (kaltura_variable_get_real('kaltura_notification_type', 0) == 1) {
+      list( $status, $text ) = kaltura_test_notification_config();
       $prefix = '<div class="kaltura_status_'. (($status)? 'ok': 'bad') .'">';
       $form['kaltura_server_status']['kaltura_notification_status'] = array(
         '#type' => 'item',
@@ -216,7 +216,7 @@ function kaltura_settings_form() {
         '#suffix' => '</div>'
       );
     }
-    list( $status, $text ) = _test_cron_job_status();
+    list( $status, $text ) = kaltura_test_cron_job_status();
     $prefix = '<div class="kaltura_status_'. (($status)? 'ok': 'bad') .'">';
     $form['kaltura_server_status']['kaltura_cron_job_status'] = array(
       '#type' => 'item',
@@ -225,7 +225,7 @@ function kaltura_settings_form() {
       '#value' => $text,
       '#suffix' => '</div>'
     );
-    list( $status, $text ) = _test_crossdomain();
+    list( $status, $text ) = kaltura_test_crossdomain();
     $prefix = '<div class="kaltura_status_'. (($status)? 'ok': 'bad') .'">';
     $form['kaltura_server_status']['kaltura_crossdomain_status'] = array(
       '#type' => 'item',
@@ -244,7 +244,7 @@ function kaltura_settings_form() {
       drupal_set_message('You must agree to the terms of use', 'error');
   }
   if ($_REQUEST['op'] == 'Complete Installation' && $_REQUEST['kaltura_partner_id']) {
-    list( $pid, $subpid, $url2, $secret, $admin_secret ) = _get_partner_details($_REQUEST['kaltura_partner_id'], $_REQUEST['cms_email'], $_REQUEST['cms_password']);
+    list( $pid, $subpid, $url2, $secret, $admin_secret ) = kaltura_get_partner_details($_REQUEST['kaltura_partner_id'], $_REQUEST['cms_email'], $_REQUEST['cms_password']);
     if ($pid) {
       variable_set('kaltura_partner_id', $pid);
       variable_set('kaltura_subp_id', $subpid);
@@ -256,8 +256,8 @@ function kaltura_settings_form() {
       variable_set('kaltura_server_url',    KalturaHelpers::getKalturaServerUrl());
       drupal_set_message('Your partner details were imported successfully. please check the '. l('notification settings', 'admin/settings/kaltura/general/notifications'));
       drupal_set_message('You can '. l('import Kaltura Media from your existing partner', 'admin/settings/kaltura/import'));
-      _create_widgets_for_partner($pid, $secret);
-      _update_kaltura_partner(2, $url2);
+      kaltura_create_widgets_for_partner($pid, $secret);
+      kaltura_update_kaltura_partner(2, $url2);
       drupal_goto('admin/settings/kaltura/general');
     }
     else {
@@ -350,7 +350,7 @@ function kaltura_settings_form() {
       $form['kaltura_registration']['cms_password'] = array(
           '#type' => 'hidden',
           '#title' => t('CMS password'),
-          '#default_value' => generate_cms_password(),
+          '#default_value' => kaltura_generate_cms_password(),
           '#size' => 20,
           '#maxlength' => 60  
       );
@@ -475,9 +475,9 @@ function kaltura_form_alter($form_id, &$form) {
 /*
  * callback function for url admin/settings/kaltura/import
  */
-function kaltura_import_entries() {
+function kaltura_import_entries_page() {
   if ($_POST['op'] == 'import selected') {
-    _import_entries($_POST['entries_to_import']);
+    kaltura_import_entries($_POST['entries_to_import']);
     drupal_goto('admin/settings/kaltura/import');
   }
   if (variable_get('kaltura_partner_id', '') == '') {
@@ -498,17 +498,17 @@ function kaltura_import_entries() {
     return t('Can\'t import entries, you did not enable the node_kaltura_entries module.');
   }
   if (!$_GET['p']) $_GET['p'] = 1;
-  list( $total, $each_page, $entries ) = _get_my_entries($filter, $each_page = 30, $_GET['p']);
+  list( $total, $each_page, $entries ) = kaltura_get_my_entries($filter, $each_page = 30, $_GET['p']);
   if ($entries === NULL) {
     return t('No entries found.');
   }
-  $entries_need_import = _remove_existing_entries($entries);
+  $entries_need_import = kaltura_remove_existing_entries($entries);
   if (!count($entries_need_import)) {
     return t('No entries needed to be imported.');
   }
   if (count($entries_need_import) < $each_page) {
-    list( $t, $n, $second_page ) = _get_my_entries($filter, $each_page, $_GET['p']+1);
-    $new_entries_need_import = _remove_existing_entries($second_page);
+    list( $t, $n, $second_page ) = kaltura_get_my_entries($filter, $each_page, $_GET['p']+1);
+    $new_entries_need_import = kaltura_remove_existing_entries($second_page);
     if (is_array($new_entries_need_import) && $second_page !== NULL) {
       foreach ($new_entries_need_import as $eid => $entry) {
         $entries_need_import[$eid] = $entry;
@@ -537,28 +537,29 @@ function kaltura_import_entries() {
   else {
     $entries_options = array();
   }
-  $output = drupal_get_form('_create_entries_form', array( $entries_options ));
+  $output = drupal_get_form('kaltura_create_entries_form', array( $entries_options ));
   return $pager . $output . $pager;
 }
 
 /*
- * helper function that uses _get_entries() to retreive a list of specific entries
- * belongs to the partner, and call _import_entry() for each of the retreived list
+ * helper function that uses kaltura_get_entries() to retreive a list of specific entries
+ * belongs to the partner, and call kaltura_import_entry() for each of the retreived list
  */
-function _import_entries($entries) {
+function kaltura_import_entries($entries) {
   $entries_list = implode(',', $entries);
-  $my_entries = _get_entries($entries_list);
+  $my_entries = kaltura_get_entries($entries_list);
   $my_entries = $my_entries['entries'];
   foreach ($my_entries as $entry => $details) {
-    _import_entry($details);
+    kaltura_import_entry($details);
   }
+  drupat_set_message('<b>Please Note: All imported nodes are not yet published (node status 0)</b>');
 }
 
 /*
  * helper function that gets an entry retreived from Kaltura
  * builds a node object according to entry, and invokes node_insert to save the node
  */
-function _import_entry($entry_details) {
+function kaltura_import_entry($entry_details) {
   global $user;
   $node = new stdClass();
   if ($entry_details['type'] == 1) {
@@ -610,9 +611,10 @@ function _import_entry($entry_details) {
  * helper function to provide form fields containing all entries for import
  * each entry as checkbox option
  */
-function _create_entries_form($form) {
+function kaltura_create_entries_form($form) {
   $args = func_get_args();
-  $entries_options = $args[1][0];
+  $form = array();
+  $entries_options = $args[0][0];
   $form['entries_to_import'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Choose the entries you want to import'),
@@ -629,7 +631,7 @@ function _create_entries_form($form) {
 /*
  * helper functuion to get all entries of partner from Kaltura's DB
  */
-function _get_my_entries($filter, $page_size = 30, $page = 1) {
+function kaltura_get_my_entries($filter, $page_size = 30, $page = 1) {
   if (!is_object($filter) && gettype($filter) == 'KalturaEntryFilter') {
     $filter = new KalturaEntryFilter;
   }
@@ -659,7 +661,7 @@ function _get_my_entries($filter, $page_size = 30, $page = 1) {
  * helper function that recieves a list of entries, and returns a new list
  * which does not contain entries that are already represented as nodes
  */
-function _remove_existing_entries($entries) {
+function kaltura_remove_existing_entries($entries) {
   $count = 0;
   $new_entries = array();
   if (is_array($entries) && count($entries)) {
@@ -679,7 +681,7 @@ function _remove_existing_entries($entries) {
  *
  * cron job is required to collect statictics about kaltura items
  */
-function _test_cron_job_status() {
+function kaltura_test_cron_job_status() {
   $cron_last = variable_get('cron_last', NULL);
   if (!$cron_last) {
     return array(
@@ -701,17 +703,17 @@ function _test_cron_job_status() {
  *
  * this function tries to close a loop with the kaltura sevrer in a "real-time" test.
  * The notification handler sets a variable in the DB before the this function run ends
- * therefore we need to use the variable_get_real() function to check the variable status in the DB
+ * therefore we need to use the kaltura_variable_get_real() function to check the variable status in the DB
  * and not in the $_GLOBALS which are set before this function even start
  */
-function _test_notification_config() {
-  if (variable_get_real('kaltura_notification_status', 0) == 0) {
+function kaltura_test_notification_config() {
+  if (kaltura_variable_get_real('kaltura_notification_status', 0) == 0) {
     $session_user = KalturaHelpers::getSessionUser();
     $kaltura_client = KalturaHelpers::getKalturaClient();
     $result = $kaltura_client->testNotification($session_user);
     sleep(3);
   }
-  if (variable_get_real('kaltura_notification_status', 0) === 1)
+  if (kaltura_variable_get_real('kaltura_notification_status', 0) === 1)
     return array( TRUE, 'Drupal server receives notification from Kaltura server.' );
 
   return array( FALSE, 'Drupal server fails to receive notifications from Kaltura. Please fix your configuration or disable server notifications.' );
@@ -723,7 +725,7 @@ function _test_notification_config() {
  * This function checks a variable status in the DB and not in the $_GLOBALS
  *
  */
-function variable_get_real($var, $default) {
+function kaltura_variable_get_real($var, $default) {
   $sql = 'SELECT * FROM {variable} WHERE name = \'%s\'';
   $result = db_fetch_object(db_query($sql, $var));
   if (!$result) return $default;
@@ -742,7 +744,7 @@ function alternate_xml_verification($filename) {
 /*
  * helper function that checks if crossdomain.xml is in the right place
  */
-function _test_crossdomain() {
+function kaltura_test_crossdomain() {
   $filename = $_SERVER['DOCUMENT_ROOT'] .'/crossdomain.xml';
   $cd_xml = @fopen($filename, 'r');
   if ($cd_xml && filesize($filename) > 0 && file_exists($filename)) {
@@ -785,7 +787,7 @@ function _test_crossdomain() {
 /*
  * helper function that updates partner notification settings in kaltura's server
  */
-function _update_kaltura_partner($notifications_config = 2, $notification_url = '') {
+function kaltura_update_kaltura_partner($notifications_config = 2, $notification_url = '') {
   $partner = new KalturaPartner();
   $partner->allowMultiNotification = '1';
   $partner->notify = 1;
@@ -818,10 +820,10 @@ function kaltura_notifications_settings_form() {
     $url2 = $_REQUEST['kaltura_partner_url2'] .'/?q=kaltura/notification_handler';
     if ($_REQUEST['kaltura_notification_type'] == 1) $not_type = 3;
     else $not_type = 2;
-    $result = _update_kaltura_partner($not_type, $url2);
+    $result = kaltura_update_kaltura_partner($not_type, $url2);
     if ($_REQUEST['last_notification_url'] != $_REQUEST['kaltura_partner_url2']) {
       variable_set('kaltura_notification_status', 0);
-      list( $status, $text ) = _test_notification_config();
+      list( $status, $text ) = kaltura_test_notification_config();
       if ($status == FALSE) drupal_set_message(t('Notification test failed. The URL you specified is not valid. Please make sure it is correct and save the settings again.'), 'error');
       else drupal_set_message(t('Notification test was successful.'));
     }
@@ -862,7 +864,7 @@ function kaltura_notifications_settings_form() {
  *
  * used to verify partner details, and display errors if there are
  */
-function check_server_status($admin) {
+function kaltura_check_server_status($admin) {
   $session_user = KalturaHelpers::getSessionUser();
 
   $config = KalturaHelpers::getServiceConfiguration();
@@ -888,7 +890,7 @@ function check_server_status($admin) {
  *
  * cms is the "administration panel" for kaltura's partners in kaltura's website
  */
-function generate_cms_password() {
+function kaltura_generate_cms_password() {
   $pass = '';
   $pass = md5(time() . $_SERVER['REMOTE_ADDR']);
   $pass = drupal_substr($pass, 0, 8);
