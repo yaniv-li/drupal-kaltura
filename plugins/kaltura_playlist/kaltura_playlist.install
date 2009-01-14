@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura_playlist.install,v 1.1.4.2 2008/12/28 11:48:56 kaltura Exp $
+// $Id: kaltura_playlist.install,v 1.1.4.3 2009/01/14 14:23:21 kaltura Exp $
 
 /*
  * @file
@@ -53,7 +53,7 @@ function kaltura_playlist_tables() {
     `playlist_view` varchar(255) NOT NULL default '',
     PRIMARY KEY  (`vid`)
    )";
-   return $tables;
+  return $tables;
 }
 /**
  * Implementation of hook_install().
@@ -63,14 +63,14 @@ function kaltura_playlist_install() {
   foreach ($tables as $table_name => $create_sql) {
     db_query($create_sql);
   }
-  if (module_exists('views')) _populate_nodes();
+  if (module_exists('views')) kaltura_populate_nodes();
 }
 
-function _populate_nodes() {
+function kaltura_populate_nodes() {
   if (!module_exists('views')) return;
-  include('kaltura_playlist.module');
+  include_once('kaltura_playlist.module');
   // get views with _get_relevant_views()
-  $views = _get_relevant_views();
+  $views = kaltura_get_relevant_views();
   $count = 0;
   // for each relevant view, build a node object (view title = node title)
   foreach ($views as $key => $view) {
