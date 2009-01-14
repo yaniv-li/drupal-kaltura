@@ -1,5 +1,5 @@
-; $Id: kaltura_comments
+; $Id: kaltura_comments.info,v 1.1.4.3 2009/01/14 14:21:16 kaltura Exp $: kaltura_comments
 name = Kaltura Media Comments
 package = Kaltura Media Management
 dependencies = kaltura
-description =
+description = enable users to post video comments in the drupal comments system
