@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura_comments.module,v 1.2.4.3 2008/12/30 14:47:49 kaltura Exp $
+// $Id: kaltura_comments.module,v 1.2.4.4 2009/01/14 14:21:55 kaltura Exp $
 
 /*
  * @file
@@ -10,7 +10,7 @@
 function kaltura_comments_comment(&$a1, $op) {
   switch ($op) {
     case 'view':
-      $comment = _kaltura_replace_tags($a1->comment, $comment = TRUE);
+      $comment = kaltura_replace_tags($a1->comment, $comment = TRUE);
       $a1->comment = $comment;
       break;
   }
@@ -21,7 +21,13 @@ function kaltura_comments_comment(&$a1, $op) {
  */
 function kaltura_comments_form_alter($form_id, &$form) {
   if ($form_id == 'comment_form') {
-    $cw_vars = format_cw_vars(array( 'kshow_id' => -2, 'partner_data' => 'entry_as_comment@yes', 'type' => '', 'context' => 'comment', 'field_id' => 'edit-comment' ));
+    $cw_vars = kaltura_format_cw_vars(array(
+      'kshow_id' => -2,
+      'partner_data' => 'entry_as_comment@yes',
+      'type' => '',
+      'context' => 'comment',
+      'field_id' => 'edit-comment',
+    ));
     $form['video_comment'] = array(
       '#type' => 'item',
       '#value' => '<input type="button" value="'. t('Video Comment') .'" onclick="kalturaInitModalBox(\''. url('kaltura/contribution_wizard/'. $cw_vars) .'\');" />',
