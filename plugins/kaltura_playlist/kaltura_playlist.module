@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura_playlist.module,v 1.1.2.3 2008/12/30 16:16:40 kaltura Exp $
+// $Id: kaltura_playlist.module,v 1.1.2.4 2009/01/14 13:27:09 kaltura Exp $
 
 /**
  * @file
@@ -29,7 +29,7 @@ function kaltura_playlist_perm() {
 /*
  * Implementation of hook_access().
  */
-function kaltura_playlist_acess($op, $node, $account) {
+function kaltura_playlist_access($op, $node, $account) {
   switch ($op) {
     case 'create':
       return user_access('create kaltura playlist', $account);
@@ -116,7 +116,7 @@ function kaltura_playlist_form(&$node, &$param) {
     '#default_value' => $node->title, 
     '#weight' => -5
   );
-  $available_views = _get_relevant_views();
+  $available_views = kaltura_get_relevant_views();
   $form['playlist_view'] = array(
     '#type' => 'select',
     '#title' => t('View'),
@@ -128,7 +128,7 @@ function kaltura_playlist_form(&$node, &$param) {
   return $form;
 }
 
-function _get_relevant_views() {
+function kaltura_get_relevant_views() {
   $views = views_get_all_views();
 //var_dump($views);
   $relevant_views = array();
@@ -138,7 +138,7 @@ function _get_relevant_views() {
     foreach ($view->display as $display) {
       if ($display->display_plugin == 'default') {
         // has a feed output, let's see if entryId is a field
-        if(isset($display->display_options['fields']['kaltura_entryId']))
+        if (isset($display->display_options['fields']['kaltura_entryId']))
           $relevant_views[$view->name .'|'. $display->id] = $view_name;
       }
     }
@@ -162,7 +162,7 @@ function kaltura_playlist_theme() {
  * Implementation of hook_insert().
  */
 function kaltura_playlist_insert(&$node) {
-  watchdog('playlist', 'node created '. print_r($node, true));
+  watchdog('playlist', 'node created '. print_r($node, TRUE));
   $sql = 'INSERT INTO {node_kaltura_playlist} (vid, nid, playlist_view) VALUES(%d, %d, \'%s\')';
   db_query($sql, $node->vid, $node->nid, $node->playlist_view);
 }
@@ -211,19 +211,19 @@ function kaltura_playlist_view($node, $teaser = FALSE, $page = FALSE) {
 }
 
 function theme_kaltura_playlist_view($node) {
-  list($view_name, $view_display) = _get_view_details($node->playlist_view);
-  list($view_raw, $view_fields) = _get_view_raw_data($node->playlist_view);
+  list($view_name, $view_display) = kaltura_get_view_details($node->playlist_view);
+  list($view_raw, $view_fields) = kaltura_get_view_raw_data($node->playlist_view);
   $first_entry = $view_raw[0];
-  $view_html = _nodes2html($view_raw, $view_fields);
+  $view_html = kaltura_nodes2html($view_raw, $view_fields);
   $autonext = variable_get('kaltura_viewplaylist_autonext', 1);
-  $playlist_js = _prepare_js_code('kaltura_playlist_'. $view_name, $first_entry, $autonext);
-  $kdp = _get_kaltura_kdp($first_entry);
+  $playlist_js = kaltura_prepare_js_code('kaltura_playlist_'. $view_name, $first_entry, $autonext, count($view_raw));
+  $kdp = kaltura_get_kaltura_kdp($first_entry);
   return '<div class="kaltura_playlist"><div class="playlist-player">'. $kdp .
     '</div><div id="kaltura_playlist_'. $view_name .'" class="play-list">'.
     '<a class="go up"></a>'. $view_html .'<a class="go down"></a></div><div class="clear-block"></div></div>'. $playlist_js;
 }
 
-function _get_kaltura_kdp($first_entry) {
+function kaltura_get_kaltura_kdp($first_entry) {
   $width = variable_get('kaltura_viewplaylist_entry_width', 410);
   $height = variable_get('kaltura_viewplaylist_entry_height', 364);
   $size = 'width="'. $width .'" height="'. $height .'"';
@@ -231,14 +231,14 @@ function _get_kaltura_kdp($first_entry) {
     '" id="kaltura_playlist_module" finishF="auto_scroll_playlist" '. $size .' /]';
 }
 
-function _get_view_details($view_details) {
+function kaltura_get_view_details($view_details) {
   $arr_view_details = explode('|', $view_details);
   $view_name = $arr_view_details[0];
   $view_display = $arr_view_details[1];
   return array( $view_name, $view_display );
 }
 
-function _extract_fields_from_view($view) {
+function kaltura_extract_fields_from_view($view) {
   $all_fields = $view->display['default']->display_options['fields'];
   foreach ($all_fields as $field_name => $data) {
     if ($data['exclude'] == 0) $fields[$data['table'] .'_'. $field_name] = $data['table'] .'_'. $field_name;
@@ -246,9 +246,9 @@ function _extract_fields_from_view($view) {
   return $fields;
 }
 
-function _get_view_raw_data($view_details) {
+function kaltura_get_view_raw_data($view_details) {
   global $user;
-  list($view_name, $view_display) = _get_view_details($view_details);
+  list($view_name, $view_display) = kaltura_get_view_details($view_details);
   $view = views_get_view($view_name);
   if ($view) {
     $view->display['default']->display_options['fields']['kaltura_media_type'] = array(
@@ -287,7 +287,7 @@ function _get_view_raw_data($view_details) {
       'relationship' => 'none',
     );
 
-    $view_fields = _extract_fields_from_view($view);
+    $view_fields = kaltura_extract_fields_from_view($view);
     require_once(drupal_get_path('module', 'views') .'/includes/admin.inc');
     @$view->preview('default', $args);
     $query = db_prefix_tables($view->build_info['query']);
@@ -306,11 +306,11 @@ function _get_view_raw_data($view_details) {
   return array( $view_name, $view_fields );
 }
 
-function _wrap_value($attr, $val) {
+function kaltura_wrap_value($attr, $val) {
   return '<div class="'. $attr .'">'. $val .'</div>';
 }
 
-function _format_known_fields($attr, $value) {
+function kaltura_format_known_fields($attr, $value) {
   switch ($attr) {
     case 'node_kaltura_kaltura_thumbnail_url':
       $return = '<img src="'. $value .'/width/74/height/55" />';
@@ -348,32 +348,22 @@ function _format_known_fields($attr, $value) {
 
 function kaltura_playlist_format_value($attribute, $value) {
   $user_val = kaltura_playlist_invoke('format_value', $attribute, $value);
-  if ($user_val && $user_val[0]) return  _wrap_value($attribute, $user_val[0]);
+  if ($user_val && $user_val[0]) return  kaltura_wrap_value($attribute, $user_val[0]);
   if ($user_val && $user_val[0] === FALSE) return '';
-  $value = _format_known_fields($attribute, $value);
+  $value = kaltura_format_known_fields($attribute, $value);
   if ($value === FALSE) return '';
-  return _wrap_value($attribute, $value);
+  return kaltura_wrap_value($attribute, $value);
 }
 
 function kaltura_playlist_invoke($hook) {
   $args = func_get_args();
   array_shift($args); // remove $hook
   $hook = 'kaltura_playlist_'. $hook;
-  foreach (module_implements($hook) as $module) {
-    $function = $module .'_'. $hook;
-    $result = ($function($args));
-
-    if (is_array($result)) {
-      $return = array_merge($return, $result);
-    }
-    else if (isset($result)) {
-      $return[] = $result;
-    }
-  }
+  $return = module_invoke_all($hook, $args);
   return $return;  
 }
 
-function _nodes2html($nodes, $fields) {
+function kaltura_nodes2html($nodes, $fields) {
   $node_div = array();
   if (is_array($nodes) && count($nodes)) {
     foreach ($nodes as $node_result) {
@@ -390,7 +380,7 @@ function _nodes2html($nodes, $fields) {
   return '<div class="clips">'. $html .'</div>';
 }
 
-function _prepare_js_code($div_id, $first_entry, $autonext) {
+function kaltura_prepare_js_code($div_id, $first_entry, $autonext, $node_count) {
   $javascript = '<script type="text/javascript">
   var timeoutId = 0;
   var mykdp = new KalturaPlayerController(\'kaltura_playlist_module\');
@@ -403,14 +393,19 @@ function _prepare_js_code($div_id, $first_entry, $autonext) {
     myplaylist = $("div.clips").children(".playlist-item");
   }
   fill_playlist("'. $div_id .'");
-  
-  $("div#'.$div_id.'").scrollable({ 
-    items:\'div.clips\', 
-    vertical:true, 
-    size:4, 
-    next:\'a.down\', 
-    prev:\'a.up\' 
-  });
+  ';
+  if ($node_count >= 4) {
+    $javascript .= '
+    $("div#'. $div_id .'").scrollable({ 
+      items:\'div.clips\', 
+      vertical:true, 
+      size:4, 
+      next:\'a.down\', 
+      prev:\'a.up\' 
+    });
+    ';
+  }
+  $javascript .= '
   $("div.clips").height($("div.clips").height()+2);
   
   function replace_media(entry_id){

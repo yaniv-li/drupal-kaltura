@@ -1,5 +1,5 @@
 <?php
-// $Id: field_kaltura.module,v 1.2.2.3 2008/12/30 16:15:31 kaltura Exp $
+// $Id: field_kaltura.module,v 1.2.2.4 2009/01/14 13:22:16 kaltura Exp $
 
 /**
  * @file
@@ -151,13 +151,13 @@ function field_kaltura_field($op, &$node, $field, &$items, $teaser, $page) {
   }
 }
 
-function get_default_display($item, $teaser) {
+function kaltura_get_default_display($item, $teaser) {
   $entries = explode(',', rtrim($item['value'], ','));
   $all_field = '';
   if (is_array($entries) && count($entries)) {
     foreach ($entries as $entry_id) {
       if (!$entry_id) continue;
-      $mynode = node_load(_get_node_for_mix($entry_id));
+      $mynode = node_load(kaltura_get_node_for_mix($entry_id));
       if ($mynode) {
         if ($mynode->type == 'kaltura_entry') {
           $all_field .= '<div class="field-entry-'. $entry_id .'">'. theme('node_kaltura_entry_entryId', $mynode, 0) .'</div>';
@@ -171,13 +171,13 @@ function get_default_display($item, $teaser) {
   $text = $all_field;
   return $text;
 }
-function get_full_display($item, $teaser) {
+function kaltura_get_full_display($item, $teaser) {
   $entries = explode(',', rtrim($item['value'], ','));
   $all_field = '';
   if (is_array($entries) && count($entries)) {
     foreach ($entries as $entry_id) {
       if (!$entry_id) continue;
-      $mynode = node_load(_get_node_for_mix($entry_id));
+      $mynode = node_load(kaltura_get_node_for_mix($entry_id));
       if ($mynode) {
         $all_field .= node_view($mynode);
       }
@@ -187,13 +187,13 @@ function get_full_display($item, $teaser) {
   return $text;
 }
 
-function get_teaser_display($item, $teaser) {
+function kaltura_get_teaser_display($item, $teaser) {
   $entries = explode(',', rtrim($item['value'], ','));
   $all_field = '';
   if (is_array($entries) && count($entries)) {
     foreach ($entries as $entry_id) {
       if (!$entry_id) continue;
-      $mynode = node_load(_get_node_for_mix($entry_id));
+      $mynode = node_load(kaltura_get_node_for_mix($entry_id));
       if ($mynode) {
         $all_field .= node_view($mynode, TRUE);
       }
@@ -203,7 +203,7 @@ function get_teaser_display($item, $teaser) {
   return $text;
 }
 
-function get_thumbnail_display($item, $teaser, $field) {
+function kaltura_get_thumbnail_display($item, $teaser, $field) {
   $size = array(
     'width' => (!empty($field['thumbsize_width']))? $field['thumbsize_width']: NULL,
     'height' => (!empty($field['thumbsize_height']))? $field['thumbsize_height']: NULL,
@@ -214,7 +214,7 @@ function get_thumbnail_display($item, $teaser, $field) {
   if (is_array($entries) && count($entries)) {
     foreach ($entries as $entry_id) {
       if (!$entry_id) continue;
-      $mynode = node_load(_get_node_for_mix($entry_id));
+      $mynode = node_load(kaltura_get_node_for_mix($entry_id));
       if ($mynode) {
         if ($mynode->type == 'kaltura_entry') {
           $all_field .= '<div class="field-entry-'. $entry_id .'">'. theme('node_kaltura_entry_thumbnail_url', $mynode, $teaser, FALSE, $size) .'</div>';
@@ -271,28 +271,28 @@ function field_kaltura_field_formatter_info() {
  * Theme function for 'default' text field formatter.
  */
 function theme_field_kaltura_formatter_default($element) {
-  return get_default_display($element['#item'], 1);
+  return kaltura_get_default_display($element['#item'], 1);
 }
 
 /**
  * Theme function for 'full' text field formatter.
  */
 function theme_field_kaltura_formatter_full($element) {
-  return get_full_display($element['#item'], 0);
+  return kaltura_get_full_display($element['#item'], 0);
 }
 
 /**
  * Theme function for 'teaser' text field formatter.
  */
 function theme_field_kaltura_formatter_teaser($element) {
-  return get_teaser_display($element['#item'], 1);
+  return kaltura_get_teaser_display($element['#item'], 1);
 }
 
 /**
  * Theme function for 'thumbnail' text field formatter.
  */
 function theme_field_kaltura_formatter_thumbnail($element) {
-  return get_thumbnail_display($element['#item'], 0, $element['#item']['#kaltura_field']);
+  return kaltura_get_thumbnail_display($element['#item'], 0, $element['#item']['#kaltura_field']);
 }
 
 /*
@@ -470,15 +470,21 @@ function field_kaltura_widget(&$form, &$form_state, $field, $items, $delta = 0) 
  * The $fields array is in $form['#field_info'][$element['#field_name']].
  */
 function field_kaltura_textfield_process($element, $edit, $form_state, $form) {
-  global $thumbnail_base_url;
+  global $_kaltura_thumbnail_base_url;
   $field = $form['#field_info'][$element['#field_name']];
   $field_key = $element['#columns'][0];
   $delta = $element['#delta'];
   $custom_name = 'edit-'. str_replace('_', '-', $element['#field_name']) .'-'. $delta .'-'. $field_key;
   $element['data'] = array('#tree' => 'true');
-  $cw_vars = format_cw_vars(array( 'kshow_id' => 0, 'partner_data' => '', 'type' => 'entry', 'context' => 'field', 'field_id'=> $custom_name ));
+  $cw_vars = kaltura_format_cw_vars(array(
+    'kshow_id' => 0,
+    'partner_data' => '',
+    'type' => 'entry',
+    'context' => 'field',
+    'field_id' => $custom_name,
+  ));
   $action_buttons = '<input type="button" value="Add Kaltura Media" onclick="kalturaInitModalBox(\''. url('kaltura/contribution_wizard/'. $cw_vars) .'\', {width:680, height:380} );" />';
-  $field_thumbs = get_field_thumbs($element['#value'][$field_key], $custom_name, 'Media');
+  $field_thumbs = kaltura_get_field_thumbs($element['#value'][$field_key], $custom_name, 'Media', $element['#required']);
   $element['data'][$custom_name .'_thumbs'] = array(
     '#type' => 'item',
     '#value' => '<div id="'. $custom_name .'_thumbs_div">'. $field_thumbs .'</div>',
@@ -514,17 +520,18 @@ function field_kaltura_textfield_process($element, $edit, $form_state, $form) {
   return $element;
 }
 
-function get_field_thumbs($field_value, $field_name, $type) {
-  global $thumbnail_base_url;
+function kaltura_get_field_thumbs($field_value, $field_name, $type, $required) {
+  global $_kaltura_thumbnail_base_url;
   $thumbs = array();
   $entries = explode(',', $field_value);
   foreach ($entries as $entry) {
     if ($entry) {
-      $thumbs[] = '<div class="kaltura_field_thumb"><img src="'. $thumbnail_base_url .'/entry_id/'. $entry .'" /><br />'.
-        '<input type="button" title="remove item" onclick="remove_item_from_field(\''. $field_name .'\', \''. $entry .'\', \''. $thumbnail_base_url .'\');" class="remove_media" /></div>';
+      $thumbs[] = '<div class="kaltura_field_thumb"><img src="'. $_kaltura_thumbnail_base_url .'/entry_id/'. $entry .'" /><br />'.
+        '<input type="button" title="remove item" onclick="remove_item_from_field(\''. $field_name .'\', \''. $entry .'\', \''. $_kaltura_thumbnail_base_url .'\');" class="remove_media" /></div>';
     }
   }
-  return '<div class="title">Added '. $type .':</div>'. implode('', $thumbs) .'<div class="clear-block"></div>';
+  $span_required = ($required)? '<span class="form-required" title="This field is required.">*</span>': '';
+  return '<div class="title">Added '. $type .': '. $span_required . '</div>'. implode('', $thumbs) .'<div class="clear-block"></div>';
 }
 
 /**
@@ -536,13 +543,13 @@ function get_field_thumbs($field_value, $field_name, $type) {
  * The $fields array is in $form['#field_info'][$element['#field_name']].
  */
 function field_kaltura_remix_textfield_process($element, $edit, $form_state, $form) {
-  global $thumbnail_base_url;
+  global $_kaltura_thumbnail_base_url;
   $field = $form['#field_info'][$element['#field_name']];
   $field_key = $element['#columns'][0];
   $delta = $element['#delta'];
   $custom_name = 'edit-'. str_replace('_', '-', $element['#field_name']) .'-'. $delta .'-'. $field_key;
   $element['data'] = array('#tree' => 'true');
-  $cw_vars = format_cw_vars(array(
+  $cw_vars = kaltura_format_cw_vars(array(
     'kshow_id' => 0,
     'partner_data' => '',
     'type' => 'entry',
@@ -553,7 +560,7 @@ function field_kaltura_remix_textfield_process($element, $edit, $form_state, $fo
   $action_buttons = '<input type="button" value="Add Kaltura Remix" onclick="kalturaInitModalBox(\''. url('kaltura/contribution_wizard/'. $cw_vars) .'/\'+ get_title(), {width:680, height:380});" /><input type="button" value="Clear" onclick="remove_items_from_field(\''. $custom_name .'\');" />';
   $action_buttons .= '<input type="button" value="Edit Mix" onclick="if(document.getElementById(\''. $custom_name .'\').value) { kalturaInitModalBox(\''. url('kaltura/simple_editor/') .
     '\' + document.getElementById(\''. $custom_name .'\').value +\'/entry/empty_partner_data/no_refresh\', { width: 890, height: 546 }); }" />';
-  $field_thumbs = get_field_thumbs($element['#value'][$field_key], $custom_name, 'Remix');
+  $field_thumbs = kaltura_get_field_thumbs($element['#value'][$field_key], $custom_name, 'Remix', $element['#required']);
   $element['data'][$custom_name .'_thumbs'] = array(
     '#type' => 'item',
     '#value' => '<div id="'. $custom_name .'_thumbs_div">'. $field_thumbs .'</div>',
@@ -613,7 +620,7 @@ function theme_field_kaltura_remix_textfield($element) {
 /*
  * helper function to check if a specific field belongs to this module
  */
-function is_kaltura_field($field_name) {
+function kaltura_is_kaltura_field($field_name) {
   $query = 'SELECT type FROM {content_node_field} WHERE field_name = \'%s\'';
   $result = db_fetch_object(db_query($query, $field_name));
   $my_fields = field_kaltura_field_info();
@@ -637,7 +644,7 @@ function field_kaltura_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
       // get all fields for node which are kaltura fields
       foreach ($node as $obj_key => $values) {
         if (substr($obj_key, 0, 5) != 'field') continue;
-        if ($type = is_kaltura_field($obj_key)) {
+        if ($type = kaltura_is_kaltura_field($obj_key)) {
           foreach ($values as $value) {
             if ($value['value']) {
               if ($type == 'Kaltura_Media') {
@@ -655,7 +662,7 @@ function field_kaltura_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
       }
       // update taxonomy as entries tags
       if (is_array($kaltura_entries) && count($kaltura_entries)) {
-        _update_field_entries_tags($kaltura_entries, $tags, $node->title);
+        kaltura_update_field_entries_tags($kaltura_entries, $tags, $node->title);
       }
     }
   }
@@ -665,7 +672,7 @@ function field_kaltura_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
  * helper function that calls Kaltura updateEntry service to update the kaltura DB with the metadata
  * of the node which a specific entry belongs to
  */
-function _update_field_entries_tags($entries, $tags, $name) {
+function kaltura_update_field_entries_tags($entries, $tags, $name) {
   $session_user = KalturaHelpers::getSessionUser();
   $kaltura_client = KalturaHelpers::getKalturaClient();
   $entry = new KalturaEntry;
