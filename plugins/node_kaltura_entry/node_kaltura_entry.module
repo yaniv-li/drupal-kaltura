@@ -1,5 +1,5 @@
 <?php
-// $Id: node_kaltura_entry.module,v 1.2.4.3 2008/12/30 14:51:05 kaltura Exp $
+// $Id: node_kaltura_entry.module,v 1.2.4.4 2009/01/14 14:30:56 kaltura Exp $
 
 /*
  * @file
@@ -22,7 +22,7 @@ function node_kaltura_entry_perm() {
 /*
  * Implementation of hook_access().
  */
-function node_kaltura_entry_access($op, $node, $account) {
+function node_kaltura_entry_access($op, $node) {
   switch ($op) {
     case 'create':
       return user_access('create kaltura items', $account);
@@ -285,7 +285,7 @@ function node_kaltura_entry_form(&$node, &$param) {
     $form['media_preview'] = array(
       '#type' => 'item',
       '#title' => t('Media'),
-      '#value' => _kaltura_replace_tags(theme('node_kaltura_entry_entryId', $node, 0)),
+      '#value' => kaltura_replace_tags(theme('node_kaltura_entry_entryId', $node, 0)),
     );
 
     $form['kaltura_admin_tags'] = array(
@@ -365,7 +365,10 @@ function node_kaltura_entry_form(&$node, &$param) {
   }
   else {    
     $partner_data = "user_id@". $user->uid;
-    $cw_vars = format_cw_vars(array( 'kshow_id' => -2, 'partner_data' => $partner_data ));
+    $cw_vars = kaltura_format_cw_vars(array(
+      'kshow_id' => -2,
+      'partner_data' => $partner_data,
+    ));
     $form["add_kaltura"] = array(
       "#prefix" => "<div class=\"add_video_to_node\"><script>jQuery(document).ready(function(){ kalturaInitModalBox('" . url("kaltura/contribution_wizard/". $cw_vars) ."'); });</script>",
       "#type" => "item",
@@ -476,7 +479,7 @@ function node_kaltura_entry_update($node) {
     }
     // we don't expose the tags and admin tags fields, to no need to update taxonomy by hand.
 //    update_entry_node_taxonomy($node);
-    _update_entry_tags_from_taxonomy($node);
+    kaltura_update_entry_tags_from_taxonomy($node);
         
     $sql = 'UPDATE {node_kaltura} SET '. $update_str .' WHERE vid = %d';
     db_query($sql, $node->kaltura_tags, $node->kaltura_admin_tags, $node->kstatus, $node->kaltura_media_type, $node->kaltura_duration,
@@ -487,7 +490,7 @@ function node_kaltura_entry_update($node) {
     // in case the update was done in drupal, and not by notification, we want to update
     // the metadata in kaltura's DB
     if ($node->notification_update !== TRUE) {
-      _kaltura_update_entry_tags($node->kaltura_entryId, $node->kaltura_tags, $node->kaltura_admin_tags);
+      kaltura_update_entry_tags($node->kaltura_entryId, $node->kaltura_tags, $node->kaltura_admin_tags);
     }
     else {
       // updated through notification. no need to call Kaltura API
@@ -499,7 +502,7 @@ function node_kaltura_entry_update($node) {
  * helper function that takes a node's taxonomy tags
  * and pushes it into the kaltura tags field
  */
-function _update_entry_tags_from_taxonomy(&$node) {
+function kaltura_update_entry_tags_from_taxonomy(&$node) {
   $voc = variable_get('kaltura_entry_tags_voc', '');
   if ($voc != '') {
     $tags = $node->taxonomy['tags'][$voc];
@@ -591,7 +594,9 @@ function theme_node_kaltura_entry_entryId($node, $teaser) {
  * function to render the admin_tags field into HTML
  */
 function theme_node_kaltura_entry_admin_tags($node) {
-  $admin_tags = "<div class=\"kaltura_admin_tags\"><label class=\"field_title\">". t('Kaltura Admin Tags') .": </label>". check_plain($node->kaltura_admin_tags) .'</div>';
+  if ($node->kaltura_admin_tags) {
+    $admin_tags = "<div class=\"kaltura_admin_tags\"><label class=\"field_title\">". t('Kaltura Admin Tags') .": </label>". check_plain($node->kaltura_admin_tags) .'</div>';
+  }
   return $admin_tags;
 }
 
@@ -630,14 +635,16 @@ function theme_node_kaltura_entry_thumbnail_url($node, $teaser, $nosize = FALSE,
  * function to render the tags field into HTML
  */
 function theme_node_kaltura_entry_tags($node) {
-  $tags = "<div class=\"kaltura_tags\"><label class=\"field_title\">". t('Kaltura Tags') .": </label>". check_plain($node->kaltura_tags) .'</div>';
+  if ($node->kaltura_tags) {
+    $tags = "<div class=\"kaltura_tags\"><label class=\"field_title\">". t('Kaltura Tags') .": </label>". check_plain($node->kaltura_tags) .'</div>';
+  }
   return $tags;
 }
 
 /*
  * This function calls Kaltura API to update metadata of a mix in the kaltura DB
  */
-function _kaltura_update_entry_tags($eid, $tags, $admin_tags) {
+function kaltura_update_entry_tags($eid, $tags, $admin_tags) {
   $admin = 0;
   if ($need_admin) {
     $admin = 1;
@@ -651,5 +658,5 @@ function _kaltura_update_entry_tags($eid, $tags, $admin_tags) {
   $entry->name = $name;
   $result = $kaltura_client->updateEntry($session_user, $eid, $entry);
   // If we want to collect more data, we can call this function with 3rd parameter FALSE:
-  _add_result_to_entry_data($eid, $result['result']);
+  kaltura_add_result_to_entry_data($eid, $result['result']);
 }
