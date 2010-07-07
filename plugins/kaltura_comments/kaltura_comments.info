@@ -1,4 +1,4 @@
-; $Id: kaltura_comments.info,v 1.1.2.3 2009/01/14 13:23:09 kaltura Exp $: kaltura_comments
+; $Id: kaltura_comments.info,v 1.1.2.4 2010/07/07 08:44:37 kaltura Exp $: kaltura_comments
 name = Kaltura Media Comments
 package = Kaltura Media Management
 core = 6.x

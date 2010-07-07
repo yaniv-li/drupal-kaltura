@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura.install,v 1.2.2.3 2009/01/14 13:03:14 kaltura Exp $
+// $Id: kaltura.install,v 1.2.2.4 2010/07/07 08:44:37 kaltura Exp $
 
 /*
  * @file
@@ -22,14 +22,14 @@ function kaltura_schema() {
       'vid' => array(
         'description' => 'The current {node_revisions}.vid version identifier.',
         'type' => 'int',
-        'size' => 'small',
+        'size' => 'normal',
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 0),
-        'nid' => array(
+      'nid' => array(
         'description' => 'The primary identifier for a node.',
         'type' => 'int',
-        'size' => 'small',
+        'size' => 'normal',
         'unsigned' => TRUE,
         'not null' => TRUE),
       'kaltura_entryId' => array(

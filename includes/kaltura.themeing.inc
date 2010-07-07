@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura.themeing.inc,v 1.1.2.3 2009/01/14 12:46:17 kaltura Exp $
+// $Id: kaltura.themeing.inc,v 1.1.2.4 2010/07/07 08:44:37 kaltura Exp $
 
 /*
  * @file
@@ -16,15 +16,25 @@ $GLOBALS['_kaltura_client_folder'] = drupal_get_path('module', 'kaltura') .'/kal
  *
  * some of the return content is a javascript with handler functions for the buttons on the player
  */
-function kaltura_replace_tags($content, $is_comment = FALSE, $replace_to_thumb = FALSE) {
+function kaltura_replace_tags($content, $is_comment = FALSE, $replace_to_thumb = FALSE, $edit_mix_access = FALSE, $show_embed = FALSE, $content_type = null) {
+
   global $user, $multibyte;
+  $kaltura_editor_width = (variable_get('kaltura_editor_width', ''))? variable_get('kaltura_editor_width', ''): KalturaSettings_SE_WIDTH;
+  $kaltura_editor_height = (variable_get('kaltura_editor_height', ''))? variable_get('kaltura_editor_height', ''): KalturaSettings_SE_HEIGHT;
+  $kaltura_editor_URL = (variable_get('kaltura_editor_URL', ''))? variable_get('kaltura_editor_URL', ''): KalturaSettings_SE_URL;
+  $added_playlist = false;
+  
+  
+  
   $length = drupal_strlen($content);
   // add PHP_EOL before each kaltura widget to ensure correct grep_match results
   $content = str_replace('[kaltura-widget', PHP_EOL .'[kaltura-widget', $content);
   $found = FALSE;
   preg_match_all('/\[kaltura-widget(.*)\/\]/', $content, $matches);
   $kaltura_tags = array();
+
   foreach ($matches[0] as $key => $match) {
+
     if (strpos($match, '/][kal', $split_point) === FALSE) {
       $kaltura_tags[] = $matches[0][$key];
       continue;
@@ -45,11 +55,16 @@ function kaltura_replace_tags($content, $is_comment = FALSE, $replace_to_thumb =
     }
   }
 
+//get the node ID if available - needed to identify node access
+/*if ( arg(0) == 'node' && is_numeric(arg(1)) ) {
+  $node_id = arg(1);
+}*/
+
   foreach ($kaltura_tags as $kaltura_tag) {
+
     $found = TRUE;
     // parse the parameters from the tag
     $params = kaltura_get_params_from_tag($kaltura_tag);
-  
     // get the embed options from the params
     $embed_options = kaltura_get_embed_options($params);
     
@@ -62,7 +77,9 @@ function kaltura_replace_tags($content, $is_comment = FALSE, $replace_to_thumb =
     $partner_config = KalturaHelpers::getServiceConfiguration();
     $kaltura_server = (variable_get('kaltura_server_url', ''))? variable_get('kaltura_server_url', ''): KalturaSettings_SERVER_URL;
 
-    $kaltura_poweredby = '<div style="width: '. $width .'px;" class="poweredByKaltura"><div><a target="_blank" href="http://drupal.kaltura.org">Video Module</a> by <a target="_blank" href="http://corp.kaltura.com">Kaltura</a></div></div>';
+    $kaltura_poweredby = '<div style="width: '. $width .'px;" class="poweredByKaltura">'.
+    '<!--<div><a target="_blank" href="http://drupal.kaltura.org">Video Module</a> by <a target="_blank" href="http://corp.kaltura.com">Kaltura</a></div>-->'.
+    '</div>';
     if (variable_get('kaltura_display_credits', 1)) {
       $links = '<a href="http://corp.kaltura.com/download">open source video</a><a href="http://corp.kaltura.com/technology/">video platform</a>';
     }
@@ -72,6 +89,7 @@ function kaltura_replace_tags($content, $is_comment = FALSE, $replace_to_thumb =
       continue;
     }
     
+    $embed_textarea_id = "kaltura_embed_".$embed_options["media_id"];
     $div_id = "kaltura_wrapper_". $embed_options["media_id"];
     $player_id = ($embed_options['div_id'])? $embed_options['div_id']: "kaltura_player_". $embed_options["media_id"];
     $align = ($embed_options["align"])? 'text-align:'. $embed_options["align"] .'; ': '';
@@ -85,18 +103,44 @@ function kaltura_replace_tags($content, $is_comment = FALSE, $replace_to_thumb =
     else {
       $comment_div = '';
     }
-    $html = $comment_div .'
-      <div id="'. $div_id .'" class="kaltura_wrapper" style="'. (($comment_div != '')? 'display:none;':'') . $align . $embed_options['custom_style'] .'"'. $embed_options['js_events'] .'>'. $links .'</div>'. $kaltura_poweredby .'
-      <script type="text/javascript">
+  
+    
+    $html .= $comment_div .'
+      <div id="'. $div_id .'" class="kaltura_wrapper" style="'. (($comment_div != '')? 'display:none;':'') . $align . $embed_options['custom_style'] .'"'. $embed_options['js_events'] .'>'. $links .'</div>'. $kaltura_poweredby;
+     if ($show_embed) {
+       if ($params['media_type'] == 'viewplaylist') $title_class="kaltura_embed_title";
+     	$html .= '<div class="kaltura_embed_code"><strong class="'.$title_class.'">Embed code of this video:</strong><br /><textarea style="overflow-y:auto" id="'.$embed_textarea_id.'" onclick="javascript:this.focus; this.select();"></textarea></div>'; 
+     }
+     
+     
+     //Render KDP
+     $html .= '<script type="text/javascript">
               var kaltura_swf = new SWFObject("'. $embed_options["swfUrl"] .'", "'. $player_id .'", "'. $embed_options["width"] .'", "'. $embed_options["height"] .'", "9", "#000000");
               kaltura_swf.addParam("wmode", "opaque");
               kaltura_swf.addParam("flashVars", "'. $embed_options["flashVars"] . (($comment_div != '')? '&autoPlay=true': '') .'");
               kaltura_swf.addParam("allowScriptAccess", "always");
               kaltura_swf.addParam("allowFullScreen", "TRUE");
               kaltura_swf.addParam("allowNetworking", "all");
-              kaltura_swf.write("'. $div_id .'");
-      </script>
+              kaltura_swf.write("'. $div_id .'");';
+	if ($show_embed) {
+     $html .= '		  
+			  user_embed_textbox = document.getElementById("'.$embed_textarea_id.'");
+     		  user_embed_textbox.value = kaltura_swf.getSWFHTML();
+			';
+	}
+	if ($params['media_type'] == 'viewplaylist' &&  ($added_playlist == false))
+	{
+	 $added_playlist = true;
+     $html .= '		  
+			  function customFunc1(parm) {prev_playlist_item()}
+			  function customFunc2(parm) {next_playlist_item();}
+			';
+	
+	}
+    $html .= '</script>
     ';
+    
+    
     
     // rebuild the html with our new code tag 
     $content = str_replace($kaltura_tag, $html, $content);
@@ -105,33 +149,64 @@ function kaltura_replace_tags($content, $is_comment = FALSE, $replace_to_thumb =
   if ($found && $replace_to_thumb === FALSE) {
     $plugin_url = KalturaHelpers::getKalturaServerUrl();
     $js = '
-      <script type="text/javascript">
+      <script type="text/javascript">';
+     
+
+     $js .= '
         function onPlayerAddClick (kshowId,entryId,pd_extraData) {
           if (kshowId && kshowId != -1) 
             kalturaInitModalBox("'. url("kaltura/contribution_wizard/") .'" + kshowId);
           if (entryId && entryId != -1 && "true" == "'. (($embed_options['roughcut'])? 'true': '') .'")
             kalturaInitModalBox("'. url("kaltura/contribution_wizard/") . (($embed_options['roughcut'])? 'entry-': '') .'" + entryId );
-        }
+        }';
   
+   	$js .= '
         function onPlayerEditClick (kshowId,entryId,pd_extraData) {
           if (kshowId && kshowId != -1 && "true" == "'. (($embed_options['kshow'])? 'true': '') .'") 
-            kalturaInitModalBox("'. url("kaltura/simple_editor/") .'" + kshowId + "/kshow/user_id@'. $user->uid .'", { width: 890, height: 546 } );
+            kalturaInitModalBox("'. url($kaltura_editor_URL) .'/" + kshowId + "/kshow/user_id@'. $user->uid .'", { width: '.$kaltura_editor_width.', height: '.$kaltura_editor_height.' } );
           if (entryId && entryId != -1 && "true" == "'. (($embed_options['roughcut'])? 'true': '') .'")
-            kalturaInitModalBox("'. url("kaltura/simple_editor/") .'" + entryId + "/entry/user_id@'. $user->uid .'", { width: 890, height: 546 } );
-        }
+            kalturaInitModalBox("'. url($kaltura_editor_URL) .'/" + entryId + "/entry/user_id@'. $user->uid .'", { width: '.$kaltura_editor_width.', height: '.$kaltura_editor_height.' } );
+        }';
+        
+    //NOTE CM: new KDP v2 Editor handler
+     
+    if($edit_mix_access) {
+		$js .= '
+			function gotoEditorWindow(entryID) {';
+		
+		//If the edit button is pressed on the Drupal node edit page, remind user that they still need to submit the node, especially if it's new, else they won't be able to access their content.
+		if (arg(count(arg())-1) == 'edit') {
+			$js .= 'alert("WARNING: Edits are not saved until you submit this form.  You should submit first before editing your mix.");';
+		}
+		
+		$js .= '
+				kalturaInitModalBox("'. url($kaltura_editor_URL) .'/" + entryID + "/entry/user_id@'. $user->uid .'", { width: '.$kaltura_editor_width.', height: '.$kaltura_editor_height.' });
+			}';
+	} else {
+		$js .= '
+			function gotoEditorWindow(entryID) {
+				if (entryID) {
+					window.location = "'.url("kaltura/clone").'/"+entryID+"/'.$content_type.'/confirm";
+				}
+			}';
+	}
   
+  	$js .= '
         function handleGotoContribWizard (kshowId, pd_extraData) {
           kalturaInitModalBox("'. url("kaltura/contribution_wizard/") .'" + kshowId);
-        }
-  
+        }';
+   	/*
+   	$js .= '
         function handleGotoEditorWindow (kshowId, pd_extraData) {
-          kalturaInitModalBox("'. url("kaltura/simple_editor/") .'" + kshowId, { width: 890, height: 546 } );
-        }
-      </script>';
+          kalturaInitModalBox("'. url($kaltura_editor_URL) .'/" + kshowId, { width: 890, height: 546 } );
+        }';
+   */  
+   $js .= '</script>';
   
     $content .= $js;
+    
   }
-  
+
   return $content;
 }
 
@@ -156,11 +231,14 @@ function kaltura_get_params_from_tag($tag) {
   return $params;
 }
 
+
 /*
  * callback function for kaltura/contribution_wizard
  *
  * Args is url are a PHP array encoded as JSON and url encoded
  * use kaltura_format_cw_vars() function to convert your array of variables to the correct string
+ *
+ * this function exposes a hook call kaltura_use_cw which has higer priority then any other option
  *
  * valid list of params: (required params marked with *, values in brackets)
  *   kshow_id* [-2, -1, 0, real_id]
@@ -170,13 +248,26 @@ function kaltura_get_params_from_tag($tag) {
  *   field_id
  *   title
  */
-function kaltura_contribution_wizard() {
+ function kaltura_contribution_wizard() {
+  global $user;
   $args = func_get_args();
   $temp_args = unserialize(urldecode($args[0]));
   
   // argument handling
+  
   foreach ($temp_args as $key => $val) {
-    ${$key} = $val;
+   ${$key} = $val;
+  }
+
+  $temp_ui_conf = kaltura_invoke('use_cw', $temp_args);
+  if (!empty($temp_ui_conf[0]))
+  {
+	$ui_conf = $temp_ui_conf[0];
+  }
+  $is_entry_node = false;
+  if ($kshow_id == -2)
+  {
+	$is_entry_node = true;
   }
   
   $kaltura_client = KalturaHelpers::getKalturaClient();
@@ -184,34 +275,106 @@ function kaltura_contribution_wizard() {
   if (!$kaltura_client) {
     drupal_set_message('Failed to start Kaltura session. Please check your settings.', 'warning');
     echo theme_kaltura_maintenance_page("<br /><a href=\"#\" onclick=\"window.top.kalturaCloseModalBox()\">Close</a>", TRUE);
-    exit;
+   
+   exit;
+  }
+  /* TODO: remove the creation of RC */
+ 
+		if (isset($args[1]) && $args[1] != '') {
+		  $title = $args[1];
+		}
+		
+	// create roughcut at this point by API call,
+	$session_user = KalturaHelpers::getSessionUser();
+	
+	if (empty($partner_data))
+	{
+		$partner_data = "user_id@". $user->uid;
+		$partner_data .= "|kshow_exist@no";
+	}
+			
+/*	$partner_data = "user_id@". $user->uid;
+	$partner_data .= "|kshow_exist@no";
+*/	
+	if ($context == 'field_mix' /*|| $context == 'kaltura_mix' || $context == 'kaltura_entry'*/) {
+		$rc = new KalturaMixEntry;
+		$rc->name =  $title;
+		$rc->userId = $session_user->screenName;
+		//$rc->type = ENTRY_TYPE_ROUGHCUT;
+		//$rc->tags = $_REQUEST['kaltura_tags'];
+		//$rc->adminTags = $_REQUEST['kaltura_admin_tags'];
+		$rc->partnerId = variable_get('kaltura_partner_id', '');
+		$rc->partner_data = $partner_data;
+		
+		//NOTE: CM TO DO - make SIMPLE/ADVANCED variable
+		$rc->editorType = KalturaEditorType::ADVANCED;
+		$result = $kaltura_client->mixing->add($rc);
+		
+		// pass roughcut ID to CW.
+		$kshow_id = $result->id;
+	} 
+
+	//Don't create a node for field_mix
+	if ($context != 'field_mix' && $is_entry_node == false && !empty($result)) {
+		//NOTE: CM  - add an argument for updates vs. new node. right now this is causing two nodes to be created for every mix..
+		kaltura_create_node_from_roughcut($result,1);
   }
   
-  /* TODO: remove the creation of RC */
-  if ($context == 'field_mix') {
-    if (isset($args[1]) && $args[1] != '') {
-      $title = $args[1];
-    }
-    // create roughcut at this point by API call,
-    $rc = new KalturaEntry;
-    $rc->name = $title;
-    $session_user = KalturaHelpers::getSessionUser();
-    $result = $kaltura_client->addRoughcutEntry($session_user, -2, $rc);
-    // pass roughcut ID to CW.
-    $kshow_id = $result['result']['entry']['id'];
-    kaltura_create_node_from_roughcut($result['result'], 1);
-  }
-    
   $theme_params->height = 360;
   $theme_params->width = 680;
-  $theme_params->swfUrl = KalturaHelpers::getContributionWizardUrl();
-  $flash_vars = KalturaHelpers::getContributionWizardFlashVars($kaltura_client->getKs(), $kshow_id, $partner_data, $type, (($context == 'comment')? TRUE: FALSE));
-  $theme_params->flashVarsStr = KalturaHelpers::flashVarsToString($flash_vars);
   
-  if ($partner_data && strpos($partner_data, 'kshow_exist@yes')) {
-    $add_new = TRUE;
-    $theme_params->mix_id = kaltura_get_node_for_mix($kshow_id);
+  if ($context == 'comment')
+  {
+	$theme_params->swfUrl = KalturaHelpers::getContributionWizardUrl(KalturaSettings_CW_COMMENTS_UICONF_ID);
   }
+  else
+  {
+	if (empty($ui_conf)) // ui_conf was not supplied by external vars (like block button)
+	{
+		$theme_params->swfUrl = KalturaHelpers::getContributionWizardUrl();
+		if (empty($context) && is_entry_node == true) // this is entry
+		{
+			$ui_conf = variable_get('kaltura_video_entry_cw_type', '');
+			if (!empty($ui_conf)) //found
+			{
+				if ($ui_conf == 1) // this is custom
+				{
+					$ui_conf = variable_get('kaltura_video_entry_cw_custom', KalturaSettings_CW_UICONF_ID);
+				}
+				$theme_params->swfUrl = KalturaHelpers::getContributionWizardUrl($ui_conf);
+			}
+		}
+		else if ($context == 'kaltura_mix')
+		{
+
+			$ui_conf = variable_get('kaltura_mix_roughcut_cw_type', '');
+			if (!empty($ui_conf)) //found
+			{
+				if ($ui_conf == 1) // this is custom
+				{
+					$ui_conf = variable_get('kaltura_mix_roughcut_cw_custom', KalturaSettings_CW_UICONF_ID);
+				}
+				$theme_params->swfUrl = KalturaHelpers::getContributionWizardUrl($ui_conf);
+			}
+		}
+	}
+	else
+	{
+		$theme_params->swfUrl = KalturaHelpers::getContributionWizardUrl($ui_conf);
+	}
+  }
+  
+  $simple = false;
+  if (KalturaSettings_CW_UICONF_ID_SIMPLE == $ui_conf) $simple=true;
+  
+  $flash_vars = KalturaHelpers::getContributionWizardFlashVars($kaltura_client->getKs(), $kshow_id, $partner_data, $type, (($context == 'comment')? TRUE: FALSE), $simple, $ui_conf);
+  $theme_params->flashVarsStr = KalturaHelpers::flashVarsToString($flash_vars);
+
+  if ($partner_data /*&& strpos($partner_data, 'kshow_exist@no')*/) {
+    $add_new = TRUE;
+	$theme_params->mix_id = kaltura_get_node_for_mix($kshow_id);
+  }
+
 
   if ($context == 'field' || $context == 'field_mix' || $context == 'comment') {
     $no_collect_entries = ($context == 'field_mix')? TRUE: FALSE;
@@ -221,7 +384,17 @@ function kaltura_contribution_wizard() {
   if ($navigate_back === NULL) {
     $navigate_back = TRUE;
   }
-  if ($kshow_id != "-2" && !$add_new) {
+  if (KalturaSettings_CW_UICONF_ID_SIMPLE == $ui_conf) {
+    if (isset($write_output) && $write_output == 0)
+    {
+	    return theme('contribution_wizard_simple', $theme_params);
+	}
+	else
+	{
+	    echo theme('contribution_wizard_simple', $theme_params);
+	}
+  }
+  else if ($kshow_id != "-2" && !$add_new) {
     echo theme('contribution_wizard', $theme_params);
   }
   else {
@@ -282,14 +455,25 @@ function theme_contribution_wizard($theme_params) {
  * in case we add entries as a standalone nodes or a new roughcut
  */
 function theme_contribution_wizard_add($theme_params, $navigate_back = TRUE) {
+
   $goto_url = kaltura_cw_destination();
   $javascript = '
     var kshowId = -1;
     var goto_url = "'. $goto_url .'";
-    var node_url = "'. (($theme_params->mix_id)? url("node/". $theme_params->mix_id): '') .'";
+    var node_url = "'. (($theme_params->mix_id)? url("node/". $theme_params->mix_id): '') .'/edit";
     function onContributionWizardAfterAddEntry(obj) {
-      if (obj && obj.length > 0 && obj[0].kshowId)
-      kshowId = obj[0].kshowId;
+    var entries = "&entries=";
+		if (obj && obj.length > 0)
+		{
+			for (i=0; i < obj.length; i++)
+			{
+				entryId = (obj[i].uniqueID == null ? obj[i].entryId : obj[i].uniqueID);
+				entries += entryId + ",";
+			}
+		}
+		node_url = node_url + entries;
+//      if (obj && obj.length > 0 && obj[0].kshowId)
+//      kshowId = obj[0].kshowId;
     }
     
     function onContributionWizardClose(modified) {
@@ -298,6 +482,7 @@ function theme_contribution_wizard_add($theme_params, $navigate_back = TRUE) {
       $javascript .= ' else ';
       $javascript .= ($theme_params->mix_id)? 'setTimeout("SendTopToNodePage();", 0);': 'setTimeout("SendTopToEntriesPage();",0);';
       $javascript .= '}';
+    
     
   $flash_embed = '
     <div id="divKalturaCw"></div>
@@ -315,11 +500,146 @@ function theme_contribution_wizard_add($theme_params, $navigate_back = TRUE) {
 }
 
 /*
+ * theme for kaltura/contribution_wizard_simple
+ * in case we add entries as a standalone nodes or a new roughcut
+ */
+function theme_contribution_wizard_simple($theme_params, $navigate_back = TRUE) {
+
+  $goto_url = kaltura_cw_destination();
+  $javascript = '
+    var kshowId = -1;
+    var goto_url = "'. $goto_url .'";
+    var node_url = "'. (($theme_params->mix_id)? url("node/". $theme_params->mix_id): '') .'/edit";	
+	var flashObj;
+	var delegate = {};
+	var mediaTypeInput;
+	
+	//KSU handlers
+	delegate.readyHandler = function()
+	{	
+		flashObj = document.getElementById("kalturaCw");';
+		$javascript .= ($theme_params->mix_id)? '': 'flashObj.setMaxUploads(1);';
+		$javascript .= '
+		
+	}
+
+	delegate.selectHandler = function()
+	{	
+		flashObj.upload();
+//		console.log("selectHandler()");		
+//		console.log(flashObj.getTotalSize());
+	}
+
+	function setMediaType()
+	{
+		var mediaType = document.getElementById("mediaTypeInput").value; alert(mediaType);
+//		console.log(mediaType);
+		flashObj.setMediaType(mediaType);
+	}
+	
+	delegate.singleUploadCompleteHandler = function(args)
+	{
+		
+		flashObj.addEntries();
+		console.log("singleUploadCompleteHandler", args[0].title);
+		
+	}
+
+	delegate.allUploadsCompleteHandler = function()
+	{
+		console.log("allUploadsCompleteHandler");
+	}
+
+	delegate.entriesAddedHandler = function(entries)
+	{
+	    var entriesStr = "&entries=";
+		if (entries && entries.length > 0)
+		{
+			for (i=0; i < entries.length; i++)
+			{
+				entryId = (entries[i].uniqueID == null ? entries[i].entryId : entries[i].uniqueID);
+				entriesStr += entryId + ",";
+			}
+		}
+		node_url = node_url + entriesStr;
+		
+		console.log(entries);
+		document.getElementById("filStatus").innerHTML = "Upload Complete!";
+		';
+		$javascript .= ($theme_params->mix_id)? 'setTimeout("SendTopToNodePage();", 0);': 'setTimeout("SendTopToEntriesPage();",0);';
+	$javascript .= '}
+
+	delegate.progressHandler = function(args)
+	{	
+		document.getElementById("simpleStatus").style.display="inline";
+//		document.getElementById("divKalturaCw").style.display="none";
+		document.getElementById("btnSimpleUpload").style.display="none";
+		document.getElementById("fileName").innerHTML = args[2].title;
+		document.getElementById("filSize").innerHTML = Math.round(args[1]/1000) + "KB";
+		document.getElementById("filStatus").innerHTML = "Do not leave this page!!";
+		document.getElementById("progress").innerHTML = Math.round((args[0]*100 / args[1])*100)/100 + "%";
+		console.log(args[2].title + ": " + args[0] + " / " + args[1]);
+	}
+    
+	delegate.uiConfErrorHandler = function()
+	{
+		console.log("ui conf loading error");
+	}
+    
+    function onContributionWizardAfterAddEntry(obj) {
+    var entries = "&entries=";
+		if (obj && obj.length > 0)
+		{
+			for (i=0; i < obj.length; i++)
+			{
+				entryId = (obj[i].uniqueID == null ? obj[i].entryId : obj[i].uniqueID);
+				entries += entryId + ",";
+			}
+		}
+		node_url = node_url + entries;
+//      if (obj && obj.length > 0 && obj[0].kshowId)
+//      kshowId = obj[0].kshowId;
+    }
+    
+    function onContributionWizardClose(modified) {
+      if (modified == "0")';
+      $javascript .= ($theme_params->mix_id)? 'setTimeout("SendTopToNodePage();", 0);': ($navigate_back)? 'setTimeout("window.top.history.back();", 0);': 'setTimeout("window.top.kalturaCloseModalBox();",0);';
+      $javascript .= ' else ';
+      $javascript .= ($theme_params->mix_id)? 'setTimeout("SendTopToNodePage();", 0);': 'setTimeout("SendTopToEntriesPage();",0);';
+      $javascript .= '}';
+    
+    
+  $flash_embed = '
+
+    <div id="divKalturaCw" style="position:absolute; top:130; left:240; z-index:999;"></div>
+    <script type="text/javascript">
+      var kso = new SWFObject("'. $theme_params->swfUrl .'", "kalturaCw", "'. '200' .'", "'. '30' .'", "9", "#000000");
+      kso.addParam("flashVars", "'. $theme_params->flashVarsStr .'");
+      kso.addParam("allowScriptAccess", "always");
+      kso.addParam("allowFullScreen", "TRUE");
+      kso.addParam("allowNetworking", "all");
+      kso.addParam("wmode", "transparent");
+      kso.write("divKalturaCw");
+    </script>
+		<div id="userInput" style="height:100px">
+		<form>
+			<input type="button" id="btnSimpleUpload" style="position:absolute; top:130; left:240; margin:0;padding:0;" value="Click to upload">
+			<span style="position:absolute; top:230; left:240; margin:0;padding:0;width:200px"><div id="simpleStatus" style="position:absolute; margin-top:20px;margin-bottom:20px;display:none"><span id="fileName">&nbsp;</span><br/><span>Size: </span><span id="filSize">&nbsp;</span><br/><span>Progress: </span><span id="progress">&nbsp;</span><br/><span id="filStatus">&nbsp;</span></div></span>
+		</form>
+		</div>
+    
+  ';
+
+  return theme("kaltura_modal", array("javascript" => $javascript, "flashEmbed" => $flash_embed));
+}
+
+/*
  * theme for kaltura/contribution_wizard_field
  * in case we add content as a CCK field
  */
 function theme_contribution_wizard_field($theme_params, $field_id, $no_collect_entries, $kshow_id, $add_filter = 1) {
   $goto_url = kaltura_cw_destination();
+    
   $javascript = '
     var entry_list = '. (($no_collect_entries === TRUE)? '"'. $kshow_id .'"': '-1') .';
     var goto_url = "'. $goto_url .'";
@@ -352,7 +672,8 @@ function theme_contribution_wizard_field($theme_params, $field_id, $no_collect_e
           <ul id="sidemenu">
           <li id="tab-kaltura"><a class="current" href="'. url($_GET['q']) .'">Add Interactive Video</a></li>
           <li id="tab-kaltura_browse"><a href="'. url('kaltura/entries/allow-insert/'. $field_id, array( 'query' => array( 'filter' => $add_filter, 'cwurl' => url($_GET['q']) ) )) .'">Browse Interactive Videos</a></li>
-          <li><a href="#" onclick="window.top.kalturaCloseModalBox();return false;">Close</a></li>
+          <li><span>xzczczczcxxz</span></li>
+          <li><span class="close" href="#" onclick="window.top.kalturaCloseModalBox();return false;">&nbsp;&nbsp;&nbsp;&nbsp;</span></li>
           </ul>
       </div>';
   }
@@ -379,6 +700,15 @@ function kaltura_simple_editor() {
   $type = $args[1];
   $partner_data = ($args[2] != 'empty_partner_data')? $args[2]: '';
   $no_refresh = ($args[3] == 'no_refresh')? TRUE: FALSE;
+
+
+  $kaltura_editor_width = (variable_get('kaltura_editor_width', ''))? variable_get('kaltura_editor_width', ''): KalturaSettings_SE_WIDTH;
+  $kaltura_editor_height = (variable_get('kaltura_editor_height', ''))? variable_get('kaltura_editor_height', ''): KalturaSettings_SE_HEIGHT;
+  $editor_uiConf = variable_get('kaltura_mix_roughcut_editor_type', '');
+  if (!empty($editor_uiConf) && $editor_uiConf == KalturaSettings_SE_CUSTOM)
+  {
+	$editor_uiConf = variable_get('kaltura_mix_roughcut_editor_custom', '');
+  }
   
   if (WORK_WITH_KSHOW) {
     $kaltura_client = KalturaHelpers::getKalturaClient(FALSE, "edit:". $kshow_id);
@@ -394,12 +724,22 @@ function kaltura_simple_editor() {
     exit;
   }
   
-  $theme_params->height = 546;
-  $theme_params->width = 890;
-  $theme_params->swfUrl = KalturaHelpers::getSimpleEditorUrl();
-  $flash_vars = KalturaHelpers::getSimpleEditorFlashVars($kaltura_client->getKs(), $kshow_id, $type, $partner_data);
-  $theme_params->flashVarsStr = KalturaHelpers::flashVarsToString($flash_vars);
+  $theme_params->height = $kaltura_editor_height;
+  $theme_params->width = $kaltura_editor_width;
   
+  if (!empty($editor_uiConf))
+  {
+	  $theme_params->swfUrl = KalturaHelpers::getSimpleEditorUrl($editor_uiConf);
+	  $flash_vars = KalturaHelpers::getSimpleEditorFlashVars($kaltura_client->getKs(), $kshow_id, $type, $partner_data, $editor_uiConf);
+ }
+  else
+  {
+	  $theme_params->swfUrl = KalturaHelpers::getSimpleEditorUrl();
+	  $flash_vars = KalturaHelpers::getSimpleEditorFlashVars($kaltura_client->getKs(), $kshow_id, $type, $partner_data);  
+  }
+  
+  $theme_params->flashVarsStr = KalturaHelpers::flashVarsToString($flash_vars);
+        
   echo theme('simple_editor', $theme_params, $no_refresh);
   exit;
 }
@@ -445,6 +785,107 @@ function theme_simple_editor($theme_params, $no_refresh) {
   return theme("kaltura_modal", array("javascript" => $javascript, "flashEmbed" => $flash_embed));
 }
 
+
+
+/*
+ * callback function for kaltura/advanced_editor 
+ */
+function kaltura_advanced_editor() {
+  $args = func_get_args();
+  $kshow_id = $args[0];
+  $type = $args[1];
+  $partner_data = ($args[2] != 'empty_partner_data')? $args[2]: '';
+  $no_refresh = ($args[3] == 'no_refresh')? TRUE: FALSE;
+
+  $kaltura_editor_width = (variable_get('kaltura_editor_width', ''))? variable_get('kaltura_editor_width', ''): KalturaSettings_AE_WIDTH;
+  $kaltura_editor_height = (variable_get('kaltura_editor_height', ''))? variable_get('kaltura_editor_height', ''): KalturaSettings_AE_HEIGHT;
+
+  $editor_uiConf = variable_get('kaltura_mix_roughcut_editor_type', '');
+  if (!empty($editor_uiConf) && $editor_uiConf == KalturaSettings_AE_CUSTOM)
+  {
+	$editor_uiConf = variable_get('kaltura_mix_roughcut_editor_custom', '');
+  }
+  
+  if (WORK_WITH_KSHOW) {
+    $kaltura_client = KalturaHelpers::getKalturaClient(FALSE, "edit:". $kshow_id);
+  }
+  else {
+    $kaltura_client = KalturaHelpers::getKalturaClient(FALSE, "edit:*");
+  }
+
+  
+  if (!$kaltura_client) {
+    drupal_set_message('Failed to start Kaltura session. Please check your settings.', 'warning');
+    echo theme_kaltura_maintenance_page("<br /><a href=\"#\" onclick=\"window.top.kalturaCloseModalBox()\">Close</a>", TRUE);
+    exit;
+  }
+  
+  $theme_params->height = $kaltura_editor_height;
+  $theme_params->width = $kaltura_editor_width;
+
+  
+  if (!empty($editor_uiConf))
+  {
+	  $theme_params->swfUrl = KalturaHelpers::getAdvancedEditorUrl($editor_uiConf);
+	  $flash_vars = KalturaHelpers::getAdvancedEditorFlashVars($kaltura_client->getKs(), $kshow_id, $type, $partner_data, $editor_uiConf);
+  }
+  else
+  {
+	  $theme_params->swfUrl = KalturaHelpers::getAdvancedEditorUrl();
+	  $flash_vars = KalturaHelpers::getAdvancedEditorFlashVars($kaltura_client->getKs(), $kshow_id, $type, $partner_data);
+  }
+   
+  $theme_params->flashVarsStr = KalturaHelpers::flashVarsToString($flash_vars);
+    
+  echo theme('advanced_editor', $theme_params, $no_refresh);
+  exit;
+}
+
+/*
+ * theme for kaltura/advanced_editor 
+ */
+function theme_advanced_editor($theme_params, $no_refresh) {
+  $javascript =' 
+  function onSimpleEditorBackClick(modified) {
+    if (modified == 0) { 
+      setTimeout("window.top.kalturaCloseModalBox();", 0);
+    } else {
+    ';
+  if ($no_refresh === TRUE) {
+    $javascript .= 'setTimeout("window.top.kalturaCloseModalBox();", 0);';
+  }
+  else {
+    $javascript .= 'setTimeout("window.top.kalturaRefreshTop();", 0);';
+  }
+  $javascript .= '
+    }
+    return;
+  }
+  
+  function onSimpleEditorSaveClick(modified) {
+  
+  }
+  ';
+
+	
+  $flash_embed = '
+    <div id="divKalturaAe"></div>
+    <script type="text/javascript">
+      var kso = new SWFObject("'. $theme_params->swfUrl .'", "kalturaAe", "'. $theme_params->width .'", "'. $theme_params->height .'", "9", "#000000");
+      kso.addParam("flashVars", "'. $theme_params->flashVarsStr .'");
+      kso.addParam("allowScriptAccess", "always");
+      kso.addParam("allowFullScreen", "TRUE");
+      kso.addParam("allowNetworking", "all");
+      kso.write("divKalturaAe");
+    </script>
+  ';
+
+  return theme("kaltura_modal", array("javascript" => $javascript, "flashEmbed" => $flash_embed));
+}
+
+
+
+
 /*
  * main theme for modal windows 
  */
@@ -484,8 +925,10 @@ function kaltura_insert_widget() {
   $field_name = str_replace('_', '-', $args[1]);
   $fix_subject = '';
   if ($field_name == 'edit-comment') {
-    $fix_subject = '      if (window.top.document.getElementById("edit-subject").value == "") ';
+    $fix_subject = '      if(window.top.document.getElementById("edit-subject")) {';
+    $fix_subject .= '      if (window.top.document.getElementById("edit-subject").value == "") ';
     $fix_subject .= '       window.top.document.getElementById("edit-subject").value = "video comment";';
+    $fix_subject .= ' }';
     $entries = explode(',', rtrim($entry_list, ','));
     $entry_list = '';
     foreach ($entries as $entry) {
@@ -498,7 +941,12 @@ function kaltura_insert_widget() {
     if (bodyTextArea)
       bodyTextArea.value += "'. $entry_list .'";
       '. $fix_subject;
-      $javascript .= ($field_name == 'edit-comment')? 'window.top.document.getElementById("edit-preview").click();': '';
+      if (module_exists('ajax_comments')) {
+        $javascript .= ($field_name == 'edit-comment')? 'window.top.document.getElementById("ajax-comments-submit").click();': '';
+      }
+      else {
+        $javascript .= ($field_name == 'edit-comment')? 'window.top.document.getElementById("edit-preview").click();': '';
+      }      
       $javascript .= ($field_name != 'edit-comment')? 'update_field_thumbs(window.top.document.getElementById(\''. $field_name .'\'), \''. $_kaltura_thumbnail_base_url .'\');': '';
       $javascript .= '
       window.top.kalturaCloseModalBox();
@@ -543,52 +991,80 @@ function kaltura_get_embed_options($params) {
     $protocol = "http://"; 
   }
 
-
+  if ($params['autoplay']) {
+    $autoplay = '&autoplay=1';
+  }
   if ($params['uiconf_id']) {
     $uicid = $params['uiconf_id'];
-    $theme_uicid = TRUE;
+    if (is_numeric($uicid))
+    {
+	    $theme_uicid = $uicid;
+    }
+    else
+    {
+	    $theme_uicid = TRUE;
+	}
+  }
+  
+  if ($params['widget_id']) {
+    $widget_id = $params['widget_id'];
   }
   $wid = '_'. variable_get('kaltura_partner_id', '');
+  $delivery = 'HTTP';
 
   $widescreen = '';
   if ($params["entry"]) {
     $uicid = kaltura_use_uiconf($uicid, 'entry', $theme_uicid, $params['media_type']);
-    $swf_url = KalturaHelpers::getSwfUrlForWidget($wid .'_'. $uicid .'/entry_id/'. $params["entry"] .'/uiconf_id/'. $uicid);
+    $swf_url = KalturaHelpers::getSwfUrlForWidget($wid  .'/entry_id/'. $params["entry"] .'/uiconf_id/'. $uicid);
     $media_id = $params["entry"];
     if ($params['media_type'] == 'video') {
+	  $delivery = variable_get('kaltura_video_entry_delivery_type', 'HTTP');
       if (variable_get('kaltura_video_entry_player_ratio', 0) == 1) {
         $widescreen = '&widescreen=1';
       }
     }
+    elseif ($params['media_type'] == 'viewplaylist')
+    {
+		$delivery = variable_get('kaltura_viewplaylist_entry_delivery_type', 'HTTP');
+    }
+
     $player_size = kaltura_calculate_player_size('entry', $params['size'], $params['width'], $params['height']);
   }
   elseif ($params["kid"]) {
     $uicid = kaltura_use_uiconf($uicid, 'mix', $theme_uicid);
     $kshow = TRUE;
-    $swf_url = KalturaHelpers::getSwfUrlForWidget($wid .'_'. $uicid .'/kid/'. $params["kid"] .'/uiconf_id/'. $uicid);
+    $swf_url = KalturaHelpers::getSwfUrlForWidget($wid  .'/kid/'. $params["kid"] .'/uiconf_id/'. $uicid);
     $media_id = $params["kid"];
     $player_size = kaltura_calculate_player_size('mix', $params['size'], $params['width'], $params['height']);
   }
   elseif ($params["mix"]) {
     $uicid = kaltura_use_uiconf($uicid, 'mix', $theme_uicid);
     $roughcut = TRUE;
-    $swf_url = KalturaHelpers::getSwfUrlForWidget($wid .'_'. $uicid .'/entry_id/'. $params["mix"] .'/uiconf_id/'. $uicid);
+    $swf_url = KalturaHelpers::getSwfUrlForWidget($wid  .'/entry_id/'. $params["mix"] .'/uiconf_id/'. $uicid);
     $media_id = $params["mix"];
     $player_size = kaltura_calculate_player_size('mix', $params['size'], $params['width'], $params['height']);
+    $delivery = variable_get('kaltura_roughcut_mix_delivery_type', 'HTTP');
   }
   elseif ($params["comment"]) {
     $uicid = kaltura_use_uiconf($uicid, 'entry', $theme_uicid, 'comment');
-    $swf_url = KalturaHelpers::getSwfUrlForWidget($wid .'_'. $uicid .'/entry_id/'. $params["comment"] .'/uiconf_id/'. $uicid);
+    $swf_url = KalturaHelpers::getSwfUrlForWidget($wid  .'/entry_id/'. $params["comment"] .'/uiconf_id/'. $uicid);
     $media_id = $params["comment"];
     $player_size = kaltura_calculate_player_size('comment', $params['size'], $params['width'], $params['height']);
-  }
+      $delivery = variable_get('kaltura_comment_delivery_type', 'HTTP');
+}
 
   $finish_f = '';
   if ($params['finishF']) {
     $finish_f = '&finishF='. $params['finishF'];
   }
-  $flash_vars_str = "layoutId=". $player_size['layout_id'] ."&pd_original_url=". urlencode($protocol . $_SERVER["HTTP_HOST"] . request_uri()) . $widescreen . $finish_f;
-
+  
+  $flash_vars_str = KalturaHelpers::flashVarsToString(KalturaHelpers::getKalturaPlayerFlashVars(""));
+  $flash_vars_str .= "&externalInterfaceDisabled=false&layoutId=". $player_size['layout_id'] ."&		pd_original_url=". urlencode($protocol . $_SERVER["HTTP_HOST"] . request_uri()) . $widescreen . $finish_f . $autoplay;
+  if ($delivery == 'RTMP')
+  {
+    $flash_vars_str .= "&streamerType=rtmp&streamerUrl=rtmp://rtmpakmi.kaltura.com/ondemand&rtmpFlavors=1";
+  }
+  
   return array(
     "flashVars" => $flash_vars_str,
     "height" => $player_size["height"],

@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura.notification.inc,v 1.1.2.3 2009/01/14 12:46:17 kaltura Exp $
+// $Id: kaltura.notification.inc,v 1.1.2.4 2010/07/07 08:44:37 kaltura Exp $
 
 /*
  * @file
@@ -23,6 +23,10 @@ function kaltura_notification_handler() {
   $admin_secret = variable_get('kaltura_admin_secret', '');
   //$params = $_REQUEST;
   $params = $_POST;
+ /*   foreach($_POST as $key => $val)
+  {
+	error_log($key . "=>" . $val);
+  }*/
   watchdog('kaltura NH', print_r($params, TRUE));
   unset($params['q']);
   $noti = new KalturaNotificationClient($params, $admin_secret);
@@ -77,7 +81,15 @@ function kaltura_notification_received($notification_id) {
 function kaltura_forward_notification($noti) {
   watchdog('kaltura notification handler', print_r($noti, TRUE));
   switch ($noti['notification_type']) {
-    case 'entry_add': kaltura_notify_node_entry_add('entry', $noti);
+    case 'entry_add': 
+	  if ($noti['media_type'] == 6)
+	  {
+		kaltura_notify_node_entry_add('mix', $noti);
+	  }
+	  else
+	  {
+		kaltura_notify_node_entry_add('entry', $noti);
+	  }
       break;
     case 'kshow_add': kaltura_notify_node_entry_add('mix', $noti);
       break;
@@ -121,21 +133,23 @@ function kaltura_notify_node_update($notification) {
   while ($obj = db_fetch_object($nodes)) {
     $node_ids[] = $obj->nid;
   }
-  $updatable_data = array('tags' => 'kaltura_tags', 'admin_tags' => 'kaltura_admin_tags', 'status' => 'kstatus');
+
+  $updatable_data = array('tags' => 'kaltura_tags', 'admin_tags' => 'kaltura_admin_tags', 'status' => 'kstatus','name' => 'title');
   if (count($node_ids) == 1) {
     $updated_node = node_load($node_ids[0]);
+    $updated_node->notification_update = TRUE;
+    $updated_node->body = get_entry_description($notification['media_type'], $notification['entry_id']);
     foreach ($updatable_data as $notification_key => $node_key) {
       if ($updated_node->$node_key != $notification[$notification_key]) {
         $updated_node->$node_key = $notification[$notification_key];
-        $updated_node->notification_update = TRUE;
       }
     }
     kaltura_push_extra_data($updated_node, $notification);
+    node_save($updated_node);
   }
   else {
     //watchdog('nod', 'found more than 1 node '. count($node_ids));
   }
-  node_save($updated_node);
 }
 
 /*
@@ -150,7 +164,9 @@ function kaltura_notify_node_entry_add($type, $notification_data) {
     }
   }
   $node->title = $notification_data['name'];
-  $node->body = '';//'test '. time(); // print_r($notification_data,TRUE).PHP_EOL.print_r($_REQUEST,TRUE);
+//  $node->body = '';//'test '. time(); // print_r($notification_data,TRUE).PHP_EOL.print_r($_REQUEST,TRUE);
+  $node->body = get_entry_description($notification_data['media_type'], $notification_data['entry_id']);
+
   $node->type = 'kaltura_'. $type;
   $node->uid = ($notification_data['puser_id'])? $notification_data['puser_id']: FALSE;
   if ($node->uid === FALSE) {
@@ -158,7 +174,7 @@ function kaltura_notify_node_entry_add($type, $notification_data) {
   }
   $node->status = 1;
   $node->created = time();
-  $node->comment = FALSE;
+  $node->comment = variable_get('comment_kaltura_entry', 2);
   $node->changed = time();
   $node->promote = 0;
   $node->sticky = 0;
@@ -223,3 +239,4 @@ function kaltura_push_extra_data(&$node, $data) {
     }
   }
 }
+

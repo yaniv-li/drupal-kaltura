@@ -18,7 +18,9 @@ KalturaPlayerController = function (playerId) {
 
 KalturaPlayerController.prototype = {
 	insertMedia: function (kshowId, entryId, autoStart) {
-		this.queue("insertMedia", kshowId, entryId, autoStart);
+	this.queue("sendNotification", "changeMedia", { entryId: entryId });
+//	this.queue("sendNotification", "insertMedia", entryId);
+	//	this.queue("insertMedia", kshowId, entryId, autoStart);
 		this.currentKshowId = kshowId;
 		this.currentEntryId = entryId;
 	},
