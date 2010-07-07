@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura.admin.inc,v 1.1.2.4 2010/07/07 08:44:37 kaltura Exp $
+// $Id: kaltura.admin.inc,v 1.1.2.5 2010/07/07 09:34:53 kaltura Exp $
 
 /*
  * @file

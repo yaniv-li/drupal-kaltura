@@ -1,4 +1,4 @@
-; $Id: kaltura.info,v 1.1.2.4 2010/07/07 08:44:37 kaltura Exp $: kaltura
+; $Id: kaltura.info,v 1.1.2.5 2010/07/07 09:34:53 kaltura Exp $: kaltura
 name = Kaltura
 package = Kaltura Media Management
 project = Kaltura

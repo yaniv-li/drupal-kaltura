@@ -1,4 +1,4 @@
-; $Id: field_kaltura.info,v 1.1.2.4 2010/07/07 08:44:37 kaltura Exp $: field_kaltura
+; $Id: field_kaltura.info,v 1.1.2.5 2010/07/07 09:34:53 kaltura Exp $: field_kaltura
 name = kaltura as CCK field
 package = Kaltura Media Management
 dependencies[] = kaltura
