@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura.admin.inc,v 1.1.4.4 2009/01/14 14:09:07 kaltura Exp $
+// $Id: kaltura.admin.inc,v 1.1.4.5 2010/07/09 00:13:59 xuriz Exp $
 
 /*
  * @file
@@ -101,18 +101,14 @@ function register_kaltura_partner() {
     variable_set('kaltura_content_categories', implode(',', $_REQUEST['kaltura_content_categories']));
     kaltura_update_kaltura_partner(2, $partner->url2);
     kaltura_create_widgets_for_partner($pid, $secret);
-    $stats_url = (KalturaSettings_DRUPAL_STATS_URL) .'register_success/p/'. $res['result']['partner']['id'];
-    $registration_stats = '<iframe src="'. $stats_url .'" width="1" height="1" border="0" style="border: 0;"></iframe>';
-    drupal_set_message('Congratulations!  You have successfully installed the All in One Video Module and registered for the Kaltura Partner Program.'. $registration_stats);
+    drupal_set_message('Congratulations!  You have successfully installed the All in One Video Module and registered for the Kaltura Partner Program.');
     drupal_goto('admin/settings/kaltura/general');
   }
   else {
     //$msg = 'There was an error while trying to register new partner.<br />'. str_replace('_', ' ', $res['error'][0]['code']) .': '. $res['error'][0]['desc'];
     $msg = 'The email address you entered already belongs to a registered Kaltura partner.<br />'.
       'Please register with another email or <a href="#" onclick="switch_to_exist_partner();return false;">click here</a> to import your existing partner details';
-    $stats_url = (KalturaSettings_DRUPAL_STATS_URL) .'register_fail/'. $res['error'][0]['code'];
-    $registration_stats = '<iframe src="'. $stats_url .'" width="1" height="1" border="0" style="border: 0;"></iframe>';
-    drupal_set_message($msg . $registration_stats, 'error');
+    drupal_set_message($msg, 'error');
   }
 }
 
@@ -266,15 +262,12 @@ function kaltura_settings_form() {
   }
   if (variable_get('kaltura_partner_id', '') == '') {
     $register_visible = TRUE;
-    $registration_stats = '';
     if (!variable_get('kaltura_registration_first_load', FALSE)) {
-      $stats_url = (KalturaSettings_DRUPAL_STATS_URL) .'register_form';
-      $registration_stats = '<iframe src="'. $stats_url .'" width="1" height="1" border="0" style="border: 0;"></iframe>';
       variable_set('kaltura_registration_first_load', TRUE);
     }
     global $user;
     $information_text = 'Once you complete the form below and click "Complete installation", '.
-      'the All in One Video Module will be fully installed and ready to use.<br />'. PHP_EOL . $registration_stats;
+      'the All in One Video Module will be fully installed and ready to use.<br />'. PHP_EOL ;
     $registered = '<br /><a href="#" onclick="switch_to_exist_partner();return false;">Click here if you already have a Partner ID</a>';
     $not_registered = 'If you are not registered as a Kaltura partner, and would like to register '.
       '<input type="button" onclick="switch_to_register();" value="Click Here" />';

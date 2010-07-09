@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura.install,v 1.2.4.4 2009/01/14 14:15:40 kaltura Exp $
+// $Id: kaltura.install,v 1.2.4.5 2010/07/09 00:13:59 xuriz Exp $
 
 /*
  * @file
@@ -235,10 +235,8 @@ function kaltura_install() {
   foreach ($tables as $table_name => $create_sql) {
     db_query($create_sql);
   }
-  $stats_url = (KalturaSettings_DRUPAL_STATS_URL) .'install';
-  $install_stats = '<iframe src="'. $stats_url .'" width="1" height="1" border="0" style="border: 0;"></iframe>';
   drupal_set_message('<b>To '. l('complete installation', 'admin/settings/kaltura/general') .' of the Kaltura All in One Video Module installation, '.
-    'you must '. l('get a Partner ID', 'admin/settings/kaltura/general') .'.</b>'. $install_stats);
+    'you must '. l('get a Partner ID', 'admin/settings/kaltura/general') .'.</b>');
 }
 
 /**
@@ -252,9 +250,7 @@ function kaltura_uninstall() {
   foreach ($tables as $table_name => $create_sql) {
     db_query('DROP TABLE {'. $table_name .'}');
   }
-  $stats_url = (KalturaSettings_DRUPAL_STATS_URL) .'uninstall/p/'. variable_get('kaltura_partner_id', '');
-  $uninstall_stats = '<iframe src="'. $stats_url .'" width="1" height="1" border="0" style="border: 0;"></iframe>';
-  drupal_set_message('Kaltura module was uninstalled.'. $uninstall_stats);
+  drupal_set_message('Kaltura module was uninstalled.');
   // get all kaltura_ variables, and delete theme
   $get_vars = 'SELECT name FROM {variable} WHERE name LIKE \'%s\'';
   $result = db_query($get_vars, 'kaltura\_%');
