@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura.install,v 1.2.2.6 2010/07/09 00:18:31 xuriz Exp $
+// $Id: kaltura.install,v 1.2.2.7 2010/07/09 00:36:48 xuriz Exp $
 
 /*
  * @file
@@ -246,4 +246,20 @@ function kaltura_requirements($phase) {
     'description' => $desc,
     );
   return $reqs;
+}
+
+/**
+ * Expand node_kaltura nid and vid columns to full-sized int fields.
+ */
+function kaltura_update_6000() {
+  $ret = array();
+  $new_field = array(
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+    'size' => 'normal',
+  );
+  db_change_field($ret, 'node_kaltura', 'nid', 'nid', $new_field);
+  db_change_field($ret, 'node_kaltura', 'vid', 'vid', $new_field);
+  return $ret;
 }
