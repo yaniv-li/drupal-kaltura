@@ -1,4 +1,4 @@
-; $Id: kaltura_views.info,v 1.2.2.5 2010/07/07 09:34:53 kaltura Exp $: kaltura_views
+; $Id: kaltura_views.info,v 1.2.2.5.2.1 2010/08/09 04:30:22 univate Exp $: kaltura_views
 name = Kaltura Media Views
 package = Kaltura Media Management
 core = 6.x
