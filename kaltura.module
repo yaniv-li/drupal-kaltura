@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura.module,v 1.2.2.7.2.1 2010/08/10 02:29:13 univate Exp $
+// $Id: kaltura.module,v 1.2.2.7.2.2 2010/08/10 02:59:53 univate Exp $
 
 /**
  * @file
@@ -538,33 +538,6 @@ function get_entry_description($type, $entryId)
 		$result = $kaltura_client->baseEntry->get($entryId);
 		return $result->description;
 	}
-}
-
-/*
- * Implementation of hook_help().
- */
-function kaltura_help($path, $arg) {
-	switch ($path) {
-		case 'admin/help#kaltura':
-			return kaltura_get_help_html('general');
-	}
-}
-
-
-/*
- * helper function to load HTML content for Drupal's help pages
- */
-function kaltura_get_help_html($page) {
-	switch ($page) {
-		case 'general':
-			$filename = 'kaltura_general_help';
-			break;
-		case 'crossdomain':
-			$filename = 'kaltura_cd_help';
-			break;
-	}
-	$help_html = file_get_contents(drupal_get_path('module', 'kaltura') .'/kaltura_help/'. $filename .'.html');
-	return $help_html;
 }
 
 /*

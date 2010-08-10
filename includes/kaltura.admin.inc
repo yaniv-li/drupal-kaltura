@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura.admin.inc,v 1.1.2.5.2.2 2010/08/10 02:29:13 univate Exp $
+// $Id: kaltura.admin.inc,v 1.1.2.5.2.3 2010/08/10 02:59:53 univate Exp $
 
 /*
  * @file
@@ -222,6 +222,13 @@ function kaltura_create_widgets_for_partner($partner_id, $secret) {
  */
 function kaltura_settings_form() {
 	global $base_url;
+
+  if (!module_exists('advanced_help')) {
+    $form['kaltura_help'] = array(
+      '#value' => t('For more detailed help enable the advanced help module.'),
+    );
+  }
+
 	if (variable_get('kaltura_partner_id', '') != '') {
 		$notification_settings = kaltura_notifications_settings_form();
 		$form['kaltura_notification_settings'] = array(
