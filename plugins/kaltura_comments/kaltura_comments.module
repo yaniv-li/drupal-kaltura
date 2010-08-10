@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura_comments.module,v 1.2.2.6 2010/07/07 09:34:53 kaltura Exp $
+// $Id: kaltura_comments.module,v 1.2.2.6.2.1 2010/08/10 02:29:13 univate Exp $
 
 /*
  * @file
@@ -47,7 +47,7 @@ function kaltura_comments_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array( 'kaltura_vc_settings_form' ),
     'access arguments' => array('administer kaltura'),
-    'type' => MENU_NORMAL_ITEM,
+    'type' => MENU_LOCAL_TASK,
     'weight' => -6,
   );
   return $items;
