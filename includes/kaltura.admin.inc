@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura.admin.inc,v 1.1.2.9 2010/08/19 22:12:11 xuriz Exp $
+// $Id: kaltura.admin.inc,v 1.1.2.10 2010/08/19 22:12:54 xuriz Exp $
 
 /*
  * @file
@@ -375,7 +375,7 @@ function kaltura_settings_form() {
           'target' => '_blank'
         )
       );
-      $information_text = 'Please enter your CMS email & password';
+      $information_text = 'Please enter your Kaltura email &amp; password';
       $information_text .= '<br />'. l('forgot password', 'http://www.kaltura.com/index.php/cms/login', $forgot_link_attributes);
       $form['kaltura_settings_information']['#value'] = $information_text;
     }
@@ -748,6 +748,7 @@ function alternate_xml_verification($filename) {
     t('crossdomain.xml is in place and seems to be OK')
   );
 }
+
 /*
  * helper function that checks if crossdomain.xml is in the right place
  */
