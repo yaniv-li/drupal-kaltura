@@ -1,8 +1,7 @@
-; $Id: field_kaltura.info,v 1.1.2.5 2010/07/07 09:34:53 kaltura Exp $: field_kaltura
+; $Id: field_kaltura.info,v 1.1.2.6 2010/08/19 21:34:45 xuriz Exp $: field_kaltura
 name = kaltura as CCK field
 package = Kaltura Media Management
 dependencies[] = kaltura
-dependencies[] = node_kaltura_entry
 dependencies[] = content
 core = 6.x
 description = provides 2 new CCK fields based on the kaltura nodes

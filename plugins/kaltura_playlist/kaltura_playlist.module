@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura_playlist.module,v 1.1.2.6 2010/07/07 09:34:53 kaltura Exp $
+// $Id: kaltura_playlist.module,v 1.1.2.7 2010/08/19 21:34:46 xuriz Exp $
 
 /**
  * @file
@@ -46,7 +46,7 @@ function kaltura_playlist_access($op, $node, $account) {
 function kaltura_playlist_menu() {
   $items = array();
   $items['admin/settings/kaltura/kaltura_playlist_settings'] = array(
-    'title' => 'Playlist Node Settings',
+    'title' => 'Kaltura Playlist Node Settings',
     'description' => 'Administer the kaltura playlist module.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array( 'kaltura_playlist_settings_form' ),
@@ -58,20 +58,13 @@ function kaltura_playlist_menu() {
 }
 
 function kaltura_playlist_settings_form() {
+  $players = kaltura_choose_player(0, 'video', 'entry');
   $saved_player = variable_get('kaltura_viewplaylist_entry_widget', KalturaSettings_DEFAULT_VIEWPLAYLIST_PLAYER_UICONF);
-  $players = kaltura_choose_player(0, 'viewplaylist', 'entry', FALSE, $saved_player);
   $form['kaltura_viewplaylist_entry_widget'] = $players['default_widget'];
   $form['kaltura_viewplaylist_entry_widget']['#default_value'] = $saved_player;
   $form['clear_block_item'] = array(
     '#type' => 'item',
     '#value' => '<div class="clear-block"></div>',
-  );
-  
-  $form['kaltura_viewplaylist_entry_delivery_type'] = array(
-    '#type' => 'select',
-    '#title' => t('Delivery Type'),
-    '#options' => array( 'HTTP' => 'Progressive Download (HTTP)', 'RTMP' => 'Adaptive Streaming (RTMP)'),
-    '#default_value' => variable_get('kaltura_viewplaylist_entry_delivery_type', 'HTTP'),
   );
   
   $form['kaltura_viewplaylist_entry_width'] = array(
@@ -124,56 +117,14 @@ function kaltura_playlist_form(&$node, &$param) {
     '#weight' => -5
   );
   $available_views = kaltura_get_relevant_views();
-  $tags_views = kaltura_get_tag_filter_views();
-
-  $js_script = '<script type="text/javascript">
-  function change_view(val)
-  {
-	switch(val)
-	{';
-  foreach ($tags_views as $name => $val)
-  {
-	$js_script .= 'case "'.$name.'":
-	';
-  }
-	$js_script .= 'document.getElementById("edit-tag-filter").style.display="inline"; break;
-	default: document.getElementById("edit-tag-filter").style.display="none"; break;
-	}
-  }
-  </script>';
-  $ops = array("=" => "Is equal to","!=" => "Is not equal to","contains" => "Contains",
-			  "word" => "Contains any word","allwords" => "Contains all words","starts" => "Starts with",
-			  "not_starts" => "Does not start with", "ends" => "Ends with","not_ends" => "Does not end with",
-			  "not" => "Does not contain");
-
   $form['playlist_view'] = array(
     '#type' => 'select',
     '#title' => t('View'),
     '#description' => t('The list includes only views that selects the "Kaltura media ID" field in the default display.'),
     '#options' => $available_views,
     '#required' => TRUE,
-    '#prefix' => $js_script,
-    '#attributes' => array('onChange' => 'change_view(this.options[this.selectedIndex].value)'),
     '#default_value' => $node->playlist_view,    
   );
-  
-  $form['tag_filter_operator'] = array(
-    '#type' => 'select', 
-    '#title' => t('Tag operator'), 
-    '#description' => t('* "Is equal to" operator works only on a single tag, if using multiple tags on the same node should use "Contains"'),
-   '#default_value' => empty($node->tag_filter_operator) ? "contains" : $node->tag_filter_operator, 
-    '#options' => $ops,
-  );
-    
-  $form['tag_filter'] = array(
-    '#type' => 'textfield', 
-    '#title' => t('Tag value'), 
-    '#description' => t('Tag specified for all entries'),
-   '#default_value' => $node->tag_filter, 
-    '#size' => '30',
-  );
-  
-  
   return $form;
 }
 
@@ -194,25 +145,6 @@ function kaltura_get_relevant_views() {
   }
   return $relevant_views;
 }
-
-function kaltura_get_tag_filter_views()
-{
-  $views = views_get_all_views();
-  $relevant_views = array();
-  if (!is_array($views) || !count($views)) return $relevant_views;
-  foreach ($views as $view_name => $view) {
-    if ($view->disabled) continue;
-    foreach ($view->display as $display) {
-      if ($display->display_plugin == 'default') {
-        if (!empty($display->display_options['filters']['kaltura_tags']) &&
-			$display->display_options['filters']['kaltura_tags']['exposed'] == 1) 
-          $relevant_views[$view->name .'|'. $display->id] = $view_name;
-      }
-    }
-  }
-  return $relevant_views;
-}
-
 /*
  * Implementation of hook_theme().
  */
@@ -231,9 +163,8 @@ function kaltura_playlist_theme() {
  */
 function kaltura_playlist_insert(&$node) {
   watchdog('playlist', 'node created '. print_r($node, TRUE));
-  $sql = 'INSERT INTO {node_kaltura_playlist} (vid, nid, playlist_view, tag_filter_operator, tag_filter) 
-			VALUES(%d, %d, \'%s\', \'%s\', \'%s\' )';
-  db_query($sql, $node->vid, $node->nid, $node->playlist_view, $node->tag_filter_operator, $node->tag_filter);
+  $sql = 'INSERT INTO {node_kaltura_playlist} (vid, nid, playlist_view) VALUES(%d, %d, \'%s\')';
+  db_query($sql, $node->vid, $node->nid, $node->playlist_view);
 }
 
 /**
@@ -244,8 +175,8 @@ function kaltura_playlist_update($node) {
     node_example_insert($node);
   }
   else {
-    $sql = 'UPDATE {node_kaltura_playlist} SET playlist_view = \'%s\',tag_filter_operator = \'%s\',tag_filter = \'%s\' WHERE vid = %d';
-    db_query($sql, $node->playlist_view, $node->tag_filter_operator, $node->tag_filter, $node->vid);
+    $sql = 'UPDATE {node_kaltura_playlist} SET playlist_view = \'%s\' WHERE vid = %d';
+    db_query($sql, $node->playlist_view, $node->vid);
   }
 }
 
@@ -261,7 +192,7 @@ function kaltura_playlist_delete($node) {
  * Implementation of hook_load().
  */
 function kaltura_playlist_load($node) {
-  $sql = 'SELECT playlist_view,tag_filter_operator,tag_filter FROM {node_kaltura_playlist} WHERE vid = %d';
+  $sql = 'SELECT playlist_view FROM {node_kaltura_playlist} WHERE vid = %d';
   $result = db_query($sql, $node->vid);
   $additions = db_fetch_object($result);
   return $additions;  
@@ -281,7 +212,7 @@ function kaltura_playlist_view($node, $teaser = FALSE, $page = FALSE) {
 
 function theme_kaltura_playlist_view($node) {
   list($view_name, $view_display) = kaltura_get_view_details($node->playlist_view);
-  list($view_raw, $view_fields) = kaltura_get_view_raw_data($node->playlist_view, $node->tag_filter, $node->tag_filter_operator);
+  list($view_raw, $view_fields) = kaltura_get_view_raw_data($node->playlist_view);
   $first_entry = $view_raw[0];
   $view_html = kaltura_nodes2html($view_raw, $view_fields);
   $autonext = variable_get('kaltura_viewplaylist_autonext', 1);
@@ -315,7 +246,7 @@ function kaltura_extract_fields_from_view($view) {
   return $fields;
 }
 
-function kaltura_get_view_raw_data($view_details, $tag_filter = '', $tag_filter_op = 'contains') {
+function kaltura_get_view_raw_data($view_details) {
   global $user;
   list($view_name, $view_display) = kaltura_get_view_details($view_details);
   $view = views_get_view($view_name);
@@ -339,11 +270,6 @@ function kaltura_get_view_raw_data($view_details, $tag_filter = '', $tag_filter_
         'relationship' => 'none',
       );
     }
-    if (!empty($view->display['default']->display_options['filters']['kaltura_tags']))
-    {
-		$view->display['default']->display_options['filters']['kaltura_tags']['value'] = $tag_filter;
-		$view->display['default']->display_options['filters']['kaltura_tags']['operator'] = $tag_filter_op;
-	}
     $view->display['default']->display_options['filters']['kaltura_media_type_1'] = array(
       'operator' => 'not in',
       'value' => array(
@@ -371,9 +297,6 @@ function kaltura_get_view_raw_data($view_details, $tag_filter = '', $tag_filter_
       _db_query_callback($view->build_info['query_args'], TRUE);
       $query = preg_replace_callback(DB_QUERY_REGEXP, '_db_query_callback', $query);
     }
-    if($view->pager['items_per_page']) {
-      $query .= ' LIMIT 0,'.$view->pager['items_per_page'];
-    }
     $results = db_query($query);
     while ($node = db_fetch_object($results)) {
       $nodes[] = $node;
@@ -384,14 +307,7 @@ function kaltura_get_view_raw_data($view_details, $tag_filter = '', $tag_filter_
 }
 
 function kaltura_wrap_value($attr, $val) {
-if ($attr == 'node_kaltura_kaltura_thumbnail_url')
-{
   return '<div class="'. $attr .'">'. $val .'</div>';
-}
-else
-{
-  return '<div class="'. 'playlist-item-line' .'">'. $val .'</div>';
-}
 }
 
 function kaltura_format_known_fields($attr, $value) {
@@ -401,9 +317,6 @@ function kaltura_format_known_fields($attr, $value) {
       break;
     case 'node_kaltura_kaltura_entryId':
       return FALSE;
-      break;
-    case 'node_revisions_timestamp':
-      $return = format_date($value, 'small');
       break;
     case 'node_changed':
       $return = format_date($value, 'small');
@@ -427,19 +340,7 @@ function kaltura_format_known_fields($attr, $value) {
         $return = ($min .':'. ($sec));
       }
       break;
-    case 'node_kaltura_kaltura_plays':
-	  $return = "Plays: " . $value;
-	  break;
-    case 'node_kaltura_kaltura_tags':
-	  $return = "Tags: " . $value;
-	  break;
-    case 'node_kaltura_kaltura_rank':
-	  $return = "Rank: " . $value;
-	  break;
-     case 'node_kaltura_kaltura_admin_tags':
-	  $return = "Categories: " . $value;
-	  break;
-   default:
+    default:
       $return = $value;
   }
   return $return;
@@ -509,25 +410,9 @@ function kaltura_prepare_js_code($div_id, $first_entry, $autonext, $node_count) 
   
   function replace_media(entry_id){
     $("#"+mykdp.currentEntryId).removeClass("playing");
-    mykdp.insertEntry(entry_id,true); 
+    mykdp.insertEntry(entry_id, true);
     $("#"+mykdp.currentEntryId).addClass("playing");
   }
-  function next_playlist_item()
-  {
-	auto_scroll_playlist();
-  }
-  function prev_playlist_item()
-  {
-      current_entry = mykdp.currentEntryId;
-      prev_entries = $("#"+current_entry).prev();
-      if (prev_entries.length) {
-        next_id = $(prev_entries[prev_entries.length-1]).attr("id");
-      } else {
-        next_id = $(myplaylist[0]).attr("id");
-      }
-      $("#"+next_id).click();
-  }
-  
   ';
   
   if ($autonext == 1) {

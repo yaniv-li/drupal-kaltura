@@ -1,5 +1,5 @@
 <?php
-// $Id: node_kaltura_mix.module,v 1.2.2.6 2010/07/07 09:34:53 kaltura Exp $
+// $Id: node_kaltura_mix.module,v 1.2.2.7 2010/08/19 21:34:46 xuriz Exp $
 
 /*
  * @file
@@ -16,8 +16,7 @@
 function node_kaltura_mix_perm() {
   return array(
     'create kaltura mixes',
-    'edit all kaltura mixes',
-    'edit own kaltura mixes',
+    'edit kaltura mixes',
     'view kaltura mixes',
     //'edit own ???'
   );
@@ -31,7 +30,7 @@ function node_kaltura_mix_access($op, $node, $account) {
     case 'create':
       return user_access('create kaltura mixes', $account);
     case 'update':
-      return (user_access('edit all kaltura mixes', $account) || user_access('edit own kaltura mixes', $account) && ($account->uid == $node->uid));
+      return user_access('edit kaltura mixes', $account);
     case 'delete':
       return user_access('delete kaltura mixes', $account);
   }
@@ -43,7 +42,7 @@ function node_kaltura_mix_access($op, $node, $account) {
 function node_kaltura_mix_menu() {
   $items = array();
   $items['admin/settings/kaltura/kaltura_mix_settings'] = array(
-    'title' => 'Media Remix Settings',
+    'title' => 'Kaltura Media Mix Settings',
     'description' => 'Administer the kaltura mix module.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array( 'kaltura_mix_settings_form' ),
@@ -51,18 +50,6 @@ function node_kaltura_mix_menu() {
     'type' => MENU_NORMAL_ITEM,
     'weight' => -6,
   );
-
-
-  $items['kaltura/clone/%/%'] = array(
-    'title' => 'Clone Remix',
-    'page callback' => 'kaltura_clone_mix',
-    'access arguments' => array('clone kaltura mixes'),
-    'page arguments' => array(2,3,4),
-    'type' => MENU_CALLBACK,
-  );
-
-
-
   return $items;
 }
 
@@ -71,49 +58,6 @@ function node_kaltura_mix_menu() {
  * currently - the only settings are the taxonomy vocabularies corresponding to tags and admin tags of kaltura item
  */
 function kaltura_mix_settings_form() {
-
-  $form['entry_wizards'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Wizards'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-    '#weight' => 0,
-  );
-
-  list($regular, $custom) = 	kaltura_choose_cw('kaltura_mix_roughcut_cw_type', 'kaltura_mix_roughcut_cw_custom');
-  $form['entry_wizards']['kaltura_mix_roughcut_cw_type'] = $regular;
-  $form['entry_wizards']['kaltura_mix_roughcut_cw_custom'] = $custom;
-
-/* Editor section */
-  $default_editor = variable_get('kaltura_mix_roughcut_editor_type', KalturaSettings_AE_UICONF_ID);
-
-  $form['entry_wizards']['kaltura_mix_roughcut_editor_type'] = array(
-    '#type' => 'select',
-    '#title' => t('Editor Type'),
-    '#options' => array( KalturaSettings_SE_UICONF_ID => 'Simple', KalturaSettings_AE_UICONF_ID => 'Advanced', '1' => 'Custom - Simple', '2' => 'Custom - Advanced'),
-    '#attributes' => array('onChange' => 'change_editor(this.options[this.selectedIndex].value)'),
-    '#default_value' => $default_editor,
-  );
-  
-  $pre_edit_custom = '<script type="text/javascript">
-				function change_editor(val) 
-				{
-					div = document.getElementById("editor_custom");
-					if (val == 1  || val == 2) div.style.display="block";
-					else  div.style.display="none";
-				}</script>';
-	
-  $custom_editor_display = (($default_editor != '1' && $default_editor != '2')? 'style="display:none"' : '');					
-  $form['entry_wizards']['kaltura_mix_roughcut_editor_custom'] = array(
-    '#type' => 'textfield',
-    '#size' => 10,
-    '#title' => t('Custom Editor'),
-    '#description' => t('Please insert ui_conf_id only'),    
-    '#prefix' => $pre_edit_custom . '<div id="editor_custom" '.$custom_editor_display.'>',
-    '#suffix' => '</div>',
-    '#default_value' => variable_get('kaltura_mix_roughcut_editor_custom', ''),
- );
-
   $taxonomy_array = taxonomy_get_vocabularies($type = 'kaltura_mix');
   $options[] = '';
   foreach ($taxonomy_array as $voc) {
@@ -127,7 +71,7 @@ function kaltura_mix_settings_form() {
     '#title' => 'Taxonomy',
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
-    '#weight' => -1,
+    '#weight' => 0,
   );
   $form['mix_taxonomy']['kaltura_mix_tags_voc'] = array(
     '#title' => 'Taxonomy Vocabulary for Tags',
@@ -150,23 +94,16 @@ function kaltura_mix_settings_form() {
     '#title' => t('Display settings'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
-    '#weight' => -2
+    '#weight' => -1
   );
+  $players = kaltura_choose_player(0, 'roughcut', 'mix');
   $saved_player = variable_get('kaltura_roughcut_mix_widget', KalturaSettings_DEFAULT_RC_PLAYER_UICONF);
-  $players = kaltura_choose_player(0, 'roughcut', 'mix', FALSE, $saved_player);
   $form['kaltura_mix_display']['kaltura_roughcut_mix_widget'] = $players['default_widget'];
   $form['kaltura_mix_display']['kaltura_roughcut_mix_widget']['#default_value'] = $saved_player;
   $form['kaltura_mix_display']['clear_block_item'] = array(
     '#type' => 'item',
     '#value' => '<div class="clear-block"></div>',
   );
-  $form['kaltura_mix_display']['kaltura_roughcut_mix_delivery_type'] = array(
-    '#type' => 'select',
-    '#title' => t('Delivery Type'),
-    '#options' => array( 'HTTP' => 'Progressive Download (HTTP)', 'RTMP' => 'Adaptive Streaming (RTMP)'),
-    '#default_value' => variable_get('kaltura_roughcut_mix_delivery_type', 'HTTP'),
-  );
-  
   $form['kaltura_mix_display']['kaltura_mix_width'] = array(
     '#type' => 'textfield',
     '#size' => 5,
@@ -227,14 +164,8 @@ function node_kaltura_mix_node_info() {
  *
  * The mix is being created b an API call to kaltura.
  */
-
-
 function node_kaltura_mix_form(&$node, $form_state) {
   global $user;
-  $kaltura_editor_URL = (variable_get('kaltura_editor_URL', ''))? variable_get('kaltura_editor_URL', ''): KalturaSettings_SE_URL;
-  $kaltura_editor_width = (variable_get('kaltura_editor_width', ''))? variable_get('kaltura_editor_width', ''): KalturaSettings_SE_WIDTH;
-  $kaltura_editor_height = (variable_get('kaltura_editor_height', ''))? variable_get('kaltura_editor_height', ''): KalturaSettings_SE_HEIGHT;
-    
   $type = node_get_types('type', $node);
   // if nid exists, it means we are in edit node mode
   if ($node->nid) {
@@ -252,16 +183,12 @@ function node_kaltura_mix_form(&$node, $form_state) {
       '#rows' => 20, 
       '#required' => FALSE
     );
-    
-    //NOTE CM: removed this and enabled player's edit button properly.  is this the right workflow, or should we disable kaltura editor on node edit page completely?
-    $action_buttons = '<input type="button" value="Edit Mix" onclick=" kalturaInitModalBox(\''. url($kaltura_editor_URL) .
-      '\' + \'/'. $node->kaltura_entryId .'\' + \'/entry/empty_partner_data/no_refresh\', { width: '.$kaltura_editor_width.', height: '.$kaltura_editor_height.' });" />';
+    $action_buttons = '<input type="button" value="Edit Mix" onclick=" kalturaInitModalBox(\''. url('kaltura/simple_editor/') .
+      '\' + \''. $node->kaltura_entryId .'\' + \'/entry/empty_partner_data/no_refresh\', { width: 890, height: 546 });" />';
     $form['edit_mix'] = array(
     '#type' => 'item',
     '#value' => $action_buttons,
-    );
-    //-----------
-    
+    );    
     $form['kaltura_tags'] = array(
       '#type' => 'hidden', 
       '#title' => 'Kaltura Tags', 
@@ -283,8 +210,7 @@ function node_kaltura_mix_form(&$node, $form_state) {
     $form['media_preview'] = array(
       '#type' => 'item',
       '#title' => t('Media'),
-      '#value' => kaltura_replace_tags(theme('node_kaltura_mix_entryId', $node, 0),false,false,true),
-      '#weight' => 0,
+      '#value' => kaltura_replace_tags(theme('node_kaltura_mix_entryId', $node, 0)),
     );    
     $form['kstatus'] = array(
       '#type' => 'hidden',
@@ -375,24 +301,11 @@ function node_kaltura_mix_form(&$node, $form_state) {
       '#default_value' => ($node->title)? $node->title: $_REQUEST['title'], 
       '#weight' => -5
     );
-    
-  $form['#multistep'] = TRUE;
-  $form['#redirect'] = FALSE;
-  
-    $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Continue'),
-    '#weight' => 10,
-  );
-
-    
     // if form state have a continue attribute, it means we are on the second step of the form
     // so we create the mix using kaltura API client, and then we start the contribution wizard to add media
-
- if ($_REQUEST['title'] && $form_state['storage']['continue']) { 
-
+    if ($_REQUEST['title'] && $form_state['storage']['continue']) { 
       $partner_data = "user_id@". $user->uid;
-      $kaltura_client = KalturaHelpers::getKalturaClient(true); // in order to add admin tags, admin session must be established
+      $kaltura_client = KalturaHelpers::getKalturaClient();
       $session_user = KalturaHelpers::getSessionUser();
       if (WORK_WITH_KSHOW) {
         $result = kaltura_add_kshow($session_user, $kaltura_client, $partner_data);
@@ -402,35 +315,20 @@ function node_kaltura_mix_form(&$node, $form_state) {
           'kshow_id' => $show_entry_id,
           'partner_data' => $partner_data,
         ));
-        $prefix = "<div class=\"add_video_to_node\"><script>jQuery(document).ready(function(){
-             kalturaInitModalBox('". url("kaltura/contribution_wizard/". $cw_vars)."/'+get_title()); 
-        });</script>";
+        $prefix = "<div class=\"add_video_to_node\"><script>jQuery(document).ready(function(){ kalturaInitModalBox('". url("kaltura/contribution_wizard/". $cw_vars) ."'); });</script>";
         kaltura_create_node_from_kshow($result['result']);
       }
-      /**
-       * TODO
-       * CMAC
-       * changes
-       * changed $result variable to use the new object format, rather than an array
-       * question
-       * is it necessary for WORK_WITH_KSHOW, since KSHOW is deprecated?
-       */
       else {
         $result = kaltura_add_roughcut($session_user, $kaltura_client, $partner_data);
         $partner_data .= "|kshow_exist@yes";
-        $show_entry_id = $result->id;
+        $show_entry_id = $result['result']['entry']['id'];
         $cw_vars = kaltura_format_cw_vars(array(
           'kshow_id' => $show_entry_id,
           'partner_data' => $partner_data,
           'type' => 'entry',
-          'context' => 'kaltura_mix',
         ));
-    	  $prefix = "<div class=\"add_video_to_node\"><script>jQuery(document).ready(function(){ 
-    	  	kalturaInitModalBox('". url("kaltura/contribution_wizard/". $cw_vars)."/'+get_title()); 
-    	  });</script>";
-      // $prefix = "<div class=\"add_video_to_node\"><script>jQuery(document).ready(function(){ alert(get_title()); });</script>";
-
-        kaltura_create_node_from_roughcut($result);
+        $prefix = "<div class=\"add_video_to_node\"><script>jQuery(document).ready(function(){ kalturaInitModalBox('". url("kaltura/contribution_wizard/". $cw_vars) ."'); });</script>";
+        kaltura_create_node_from_roughcut($result['result']);
       }
       
       $form["add_kaltura"] = array(
@@ -476,17 +374,11 @@ function kaltura_create_node_from_kshow($result) {
 
 /*
  * helper function to create a node from a result of addRoughcutEntry API call
- * TODO
- * CMAC
- * changes
- * changed node value assigns from the old array values to the new class values
  */
 function kaltura_create_node_from_roughcut($result, $status = NULL) {
-
   global $user;
-  
-  $node->title = $result->name;
-  $node->body = $result->description; // print_r($notification_data,TRUE).PHP_EOL.print_r($_REQUEST,TRUE);
+  $node->title = $result['entry']['name'];
+  $node->body = $result['entry']['description']; // print_r($notification_data,TRUE).PHP_EOL.print_r($_REQUEST,TRUE);
   $node->type = 'kaltura_mix';
   $node->uid = $user->uid;
   $node->status = ($status)? $status: $_REQUEST['status'];
@@ -496,30 +388,9 @@ function kaltura_create_node_from_roughcut($result, $status = NULL) {
   $node->promote = $_REQUEST['promote'];
   $node->sticky = $_REQUEST['sticky'];
   kaltura_push_mix_extra_fields($node, $result);
-  $node->kstatus = $result->status;
-  $node->kaltura_tags = str_replace('a generated show\'', '', $result->tags);
-  $node->kaltura_entryId = $result->id;
-  
-  // NOTE: Added by CM
-//  $node->kaltura_media_type= $result->type;
-  $node->kaltura_media_type= 6; //Oferc: In drupal mix is always 6 
-
-  $node->kaltura_duration= (WORK_WITH_KSHOW)? 'lengthInMsecs': 'duration';
-  $node->kaltura_thumbnail_url= $result->thumbnailUrl;
-  $node->hasRealThumbnail= $result->thumbnailUrl;
-  $node->kaltura_partner_data= $result->partnerData;
-  $node->kaltura_source= '';
-  $node->kaltura_source_id= '';
-  $node->kaltura_source_link= '';
-  $node->kaltura_width= '';
-  $node->kaltura_height= '';
-  $node->kaltura_download_url= $result->downloadUrl;
-  $node->kaltura_media_date= '';
-  $node->kaltura_views= $result->views;
-  $node->kaltura_plays= $result->plays;
-  $node->kaltura_votes= $result->votes;
-  $node->kaltura_rank= $result->rank;
-  $node->kaltura_total_rank= $result->totalRank;
+  $node->kstatus = $result['entry']['status'];
+  $node->kaltura_tags = str_replace('a generated show\'', '', $result['entry']['tags']);
+  $node->kaltura_entryId = $result['entry']['id'];
   
   // Admin tags are not returned in xml from kaltura, so we take them from $_REQUEST
   //$node->admin_tags = $result['entry']['admin_tags'];
@@ -527,49 +398,39 @@ function kaltura_create_node_from_roughcut($result, $status = NULL) {
   
   $node->kaltura_entry_data = serialize(array( $result ));
   node_save($node);
-  
   module_invoke('node_kaltura_mix', 'hook_insert', $node);
-  
-  return $node->nid;
-  
 }
-
-
-
 
 /*
  * helper function to inject the node with extra data
- * TODO
- * CMAC
- * excluded population of fields in loop, poulated in array definition where possible
  */
 function kaltura_push_mix_extra_fields(&$node, $result) {
   $fields = array(
     // node key => result key
     'kaltura_media_type' => 'mediaType',
     'kaltura_duration' => (WORK_WITH_KSHOW)? 'lengthInMsecs': 'duration',
-    'kaltura_thumbnail_url' => $result->thumbnailUrl,
-    'kaltura_partner_data' => $result->partnerData,
+    'kaltura_thumbnail_url' => 'thumbnailUrl',
+    'kaltura_partner_data' => 'partnerData',
     'kaltura_source' => '',
     'kaltura_source_id' => '',
     'kaltura_source_link' => '',
     'kaltura_width' => '',
     'kaltura_height' => '',
-    'kaltura_download_url' => $result->downloadUrl,
+    'kaltura_download_url' => '',
     'kaltura_media_date' => '',
-    'kaltura_views' => $result->views,
-    'kaltura_plays' => $result->plays,
-    'kaltura_votes' => $result->votes,
-    'kaltura_rank' => $result->rank,
-    'kaltura_total_rank' => $result->totalRank,
+    'kaltura_views' => 'views',
+    'kaltura_plays' => 'plays',
+    'kaltura_votes' => 'votes',
+    'kaltura_rank' => 'rank',
+    'kaltura_total_rank' => 'totalRank',
   );
-/*  foreach ($fields as $node_key => $result_key) {
+  foreach ($fields as $node_key => $result_key) {
     if ($result_key != '') {
       if ($result['entry'][$result_key]) {
         $node->$node_key = $result['entry'][$result_key];
       }
     }
-  }*/
+  }
 }
 
 /*
@@ -589,95 +450,14 @@ function kaltura_add_kshow($session_user, $kaltura_client, $partner_data) {
  * helper function to call the addRoughcutEntry service, providing the data the user has submitted in the first step of the form
  */
 function kaltura_add_roughcut($session_user, $kaltura_client) {
-  $rc = new KalturaMixEntry;
+  $rc = new KalturaEntry;
   $rc->name = $_REQUEST['title'];
-  $rc->userId = $session_user->screenName;
   $rc->type = ENTRY_TYPE_ROUGHCUT;
   $rc->tags = $_REQUEST['kaltura_tags'];
-  $rc->adminTags = $_REQUEST['kaltura_admin_tags'];
-  $rc->partnerId = variable_get('kaltura_partner_id', '');
-  $rc->editorType = KalturaEditorType::SIMPLE;
-  $result = $kaltura_client->mixing->add($rc);
+  $rc->admin_tags = $_REQUEST['kaltura_admin_tags'];
+  $rc->partnerData = $partner_data;
+  $result = $kaltura_client->addRoughcutEntry( $session_user, -2, $rc );
   return $result;
-}
-
-/**
- *
- * CM TO DO: Document this
- *
- *
- */
-function kaltura_clone_mix_confirm(&$form_state) {
-	
-	$entry_id = arg(2);
-	$content_type = arg(3);
-	  
-	$content_type = isset($content_type) ? $content_type : 'kaltura_mix';
-
-	$entry_metadata = katlura_get_metadata_for_mix($entry_id);
-	$entry_thumb = $entry_metadata -> kaltura_thumbnail_url;
-
-	$form['preview'] = array('#value' => '<br /><img src='.$entry_thumb.'><br />');
-	$form['entry_id'] = array('#type' => 'value', '#value' => $entry_id);
-	$form['content_type'] = array('#type' => 'value', '#value' => $content_type);
-  	
-
-  	return confirm_form($form,"Would you like to create a new remix based on this content?",referer_uri(),"","Yes, create a new remix","No, thank you."); 
-}
-
-function kaltura_clone_mix_confirm_submit($form, &$form_state) {
-
-	drupal_goto('kaltura/clone/'.$form_state['values']['entry_id'] .'/'.$form_state['values']['content_type']);
-}
-
- 
-function kaltura_clone_mix() {
-
-  $op = arg(2);
-  $content_type = arg(3);
-  $entry_id = arg(2);
-  $confirm = arg(4);
-
-
-  //If we are asking for confirmation from the user....
-  if (isset($confirm) && $confirm == 'confirm' && isset($entry_id) && $entry_id != '') {  
-  	return drupal_get_form('kaltura_clone_mix_confirm');		 		
-
-  }
-  //If we're not asking for confirmation, check to see that the user has access to clone
-  else if ((!isset($confirm) || $confirm === '') && user_access('clone kaltura mixes')) {
-
-	  $kaltura_client = KalturaHelpers::getKalturaClient();
-	  $session_user = KalturaHelpers::getSessionUser();
-	 
-	  if (!$kaltura_client) {
-		drupal_set_message('Failed to start Kaltura session. Please check your settings.', 'warning');
-		echo theme_kaltura_maintenance_page("<br /><a href=\"#\" onclick=\"window.top.kalturaCloseModalBox()\">Close</a>", TRUE);
-		exit;
-	  }
-
-		// create roughcut at this point by API call,
-		$rc = new KalturaMixEntry;
-		$rc->name = $title;
-		
-				
-		$session_user = KalturaHelpers::getSessionUser();
-		$result = $kaltura_client->mixing->cloneAction($entry_id);
-
-		
-		if ($content_type == 'kaltura_mix' || !isset($content_type)) {
-			$nid = kaltura_create_node_from_roughcut($result);
-			drupal_goto('node/'.$nid.'/edit');
-		} else {
-			$cloned_entry_id = $result->id;
-			$content_type_url = str_replace('_','-',$content_type);
-			drupal_goto('node/add/'.$content_type_url.'/'.$cloned_entry_id);
-		}
-	} else {
-		drupal_set_message('You do not have access to remix this content.','error');
-		drupal_goto('');
-	}
-
 }
 
 /**
@@ -691,25 +471,8 @@ function kaltura_clone_mix() {
  * In edit mode we do not change the form
  */
 function node_kaltura_mix_form_alter(&$form, &$form_state, $form_id) {
- if (!empty($_REQUEST["entries"]) && ($form_id == 'kaltura_mix_node_form') &&
-	 !empty($form['kaltura_entryId']['#default_value']))
- {
- 	$arrEntries = explode(',',$_REQUEST['entries']);
-
-	$kaltura_client = KalturaHelpers::getKalturaClient($admin);
-
-	foreach($arrEntries as $index => $entryId)
-	{
-		if (!empty($entryId))
-		{
-			$kaltura_client ->mixing->appendMediaEntry($form['kaltura_entryId']['#default_value'], $entryId);
-		}
-	}
-
- }
   if ($form_id == 'kaltura_mix_node_form' && !$form['nid']['#value']) {
     if (isset($form["type"]) && $form["type"]["#value"] ."_node_form" == $form_id) {
-    
       unset($form['buttons']['submit']);
       unset($form['buttons']['preview']);
       unset($form['menu']);
@@ -722,11 +485,11 @@ function node_kaltura_mix_form_alter(&$form, &$form_state, $form_id) {
       //unset($form["body_filter"]["kaltura"]);
       //unset($form["options"]);
       $form_state['storage']['continue'] = TRUE;
-      /*$form['buttons']['continue'] = array(    
+      $form['buttons']['continue'] = array(    
         "#type" => "button",
         "#value" => "Continue",
         "#weight" => 40
-      );*/
+      );
     }
   }
 }
@@ -757,7 +520,6 @@ function node_kaltura_mix_theme() {
  * Implementation of hook_insert().
  */
 function node_kaltura_mix_insert(&$node) {
-
   $sql = 'INSERT INTO {node_kaltura} (vid, nid, kaltura_entryId, kaltura_tags, kaltura_admin_tags, kstatus, kaltura_media_type, kaltura_duration, '.
     'kaltura_thumbnail_url, kaltura_partner_data, kaltura_source, kaltura_source_id, kaltura_source_link, kaltura_width, kaltura_height, '.
     'kaltura_download_url, kaltura_media_date, kaltura_views, kaltura_plays, kaltura_votes, kaltura_rank, kaltura_total_rank, kaltura_entry_data)'.
@@ -807,7 +569,7 @@ function node_kaltura_mix_update($node) {
     watchdog('upd mix', $node->kaltura_tags);
     
     if ($node->notification_update !== TRUE) {
-      kaltura_update_mix_tags($node->kaltura_entryId, $node->title, $node->body, $node->kaltura_tags, $node->kaltura_admin_tags);
+      kaltura_update_mix_tags($node->kaltura_entryId, $node->title, $node->kaltura_tags, $node->kaltura_admin_tags);
     }
     else {
       watchdog('mix update', 'updating taxonomy from tags '. $node->kaltura_tags);
@@ -826,7 +588,6 @@ function kaltura_update_mix_tags_from_taxonomy(&$node) {
   //echo $voc;
   if ($voc != '') {
     $tags = $node->taxonomy['tags'][$voc];
-//    $node->kaltura_tags .= " " . $tags;
     $node->kaltura_tags = $tags;
   }
   $voc = variable_get('kaltura_mix_admin_tags_voc', '');
@@ -876,14 +637,10 @@ function node_kaltura_mix_view($node, $teaser = FALSE, $page = FALSE) {
       '#weight' => 7,
     );
   }
-  //remove this condition if you wan the thumbnaill to show on the video page
-  if ($teaser == 1)
-  {
-	  $node->content['kaltura_thumbnail_url'] = array(
-		'#value' => theme('node_kaltura_mix_thumbnail_url', $node, $teaser),
-		'#weight' => 0,
-	  );  
-  }
+  $node->content['kaltura_thumbnail_url'] = array(
+    '#value' => theme('node_kaltura_mix_thumbnail_url', $node, $teaser),
+    '#weight' => 0,
+  );  
   return $node;
 }
 
@@ -923,8 +680,8 @@ function theme_node_kaltura_mix_thumbnail_url($node, $teaser, $nosize = FALSE, $
   }  
   if ($node->link_thumb || $teaser)
     return '<div class="kaltura_thumb"><a href="'. url('node/'. $node->nid) .'"><img src="'. $node->kaltura_thumbnail_url . $size_str .'" '. $extra .' /></a></div>';
-  else   
-   return '<div class="kaltura_thumb"><img src="'. $node->kaltura_thumbnail_url . $size_str .'" '. $extra .' /></div>';
+  else
+    return '<div class="kaltura_thumb"><img src="'. $node->kaltura_thumbnail_url . $size_str .'" '. $extra .' /></div>';
 }
 
 /*
@@ -953,21 +710,13 @@ function theme_node_kaltura_mix_tags($node) {
 
 /*
  * This function calls Kaltura API to update metadata of a mix in the kaltura DB
- * TODO
- * CMAC
- * changes
- * entry type to KalturaMediaEntry
- * api call changed to new version
- * questions
- * ignored the WORK_WITH_KSHOW section
  */
-function kaltura_update_mix_tags($eid, $name, $body, $tags, $admin_tags) {
+function kaltura_update_mix_tags($eid, $name, $tags, $admin_tags) {
   $admin = 0;
-  $need_admin = 1; //who should init this? Anyway since we update admin_tags the answer is yes we need
   if ($need_admin) {
     $admin = 1;
   }
-  $kaltura_client = KalturaHelpers::getKalturaClient($admin);
+  $kaltura_client = KalturaHelpers::getKalturaClient();
   $session_user = KalturaHelpers::getSessionUser();
   if ( WORK_WITH_KSHOW ) {
     // update kshow
@@ -975,19 +724,27 @@ function kaltura_update_mix_tags($eid, $name, $body, $tags, $admin_tags) {
     $kshow->tags = $tags;
     $kshow->admin_tags = $admin_tags;
     $kshow->name = $name;
-    $kshow->description = $body;
     $result = $kaltura_client->updateKShow($session_user, $eid, $kshow, 1);
   }
   else {
     // update entry
-    $entry = new KalturaMixEntry();
+    $entry = new KalturaEntry;
     $entry->tags = $tags;
     $entry->admin_tags = $admin_tags;
     $entry->name = $name;
-    $entry->description = $body;
-    $result = $kaltura_client->mixing->update($eid, $entry);
+    $result = $kaltura_client->updateEntry($session_user, $eid, $entry);
   }
   
   // If we want to collect more data, we can call this function with 3rd parameter FALSE:
-  kaltura_add_result_to_entry_data($eid, $result);
+  kaltura_add_result_to_entry_data($eid, $result['result']);
+}
+
+/*
+ * helper function to get a node id for a given entryId/kshowId
+ */
+function kaltura_get_node_for_mix($show_id) {
+  $get_q = 'SELECT nid FROM {node_kaltura} WHERE kaltura_entryId = \'%s\'';
+  $result = db_query($get_q, $show_id);
+  $obj = db_fetch_object($result);
+  return $obj->nid;
 }

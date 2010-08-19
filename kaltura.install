@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura.install,v 1.2.2.7 2010/07/09 00:36:48 xuriz Exp $
+// $Id: kaltura.install,v 1.2.2.8 2010/08/19 21:34:45 xuriz Exp $
 
 /*
  * @file
@@ -22,14 +22,14 @@ function kaltura_schema() {
       'vid' => array(
         'description' => 'The current {node_revisions}.vid version identifier.',
         'type' => 'int',
-        'size' => 'normal',
+        'size' => 'small',
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 0),
-      'nid' => array(
+        'nid' => array(
         'description' => 'The primary identifier for a node.',
         'type' => 'int',
-        'size' => 'normal',
+        'size' => 'small',
         'unsigned' => TRUE,
         'not null' => TRUE),
       'kaltura_entryId' => array(
@@ -197,8 +197,10 @@ function kaltura_install() {
   global $_kaltura_client_folder;
   require_once($_kaltura_client_folder .'kaltura_settings.php');
   drupal_install_schema('kaltura');
+  $stats_url = (KalturaSettings_DRUPAL_STATS_URL) .'install';
+  $install_stats = '<iframe src="'. $stats_url .'" width="1" height="1" border="0" style="border: 0;"></iframe>';
   drupal_set_message('<b>To '. l('complete installation', 'admin/settings/kaltura/general') .' of the Kaltura All in One Video Module installation, '.
-    'you must '. l('get a Partner ID', 'admin/settings/kaltura/general') .'.</b>');
+    'you must '. l('get a Partner ID', 'admin/settings/kaltura/general') .'.</b>'. $install_stats);
 }
 
 /**
@@ -209,7 +211,9 @@ function kaltura_uninstall() {
   global $_kaltura_client_folder;
   require_once($_kaltura_client_folder .'kaltura_settings.php');
   drupal_uninstall_schema('kaltura');
-  drupal_set_message('Kaltura module was uninstalled.');
+  $stats_url = (KalturaSettings_DRUPAL_STATS_URL) .'uninstall/p/'. variable_get('kaltura_partner_id', '');
+  $uninstall_stats = '<iframe src="'. $stats_url .'" width="1" height="1" border="0" style="border: 0;"></iframe>';
+  drupal_set_message('Kaltura module was uninstalled.'. $uninstall_stats);
   // get all kaltura_ variables, and delete theme
   $get_vars = 'SELECT name FROM {variable} WHERE name LIKE \'%s\'';
   $result = db_query($get_vars, 'kaltura\_%');
@@ -246,20 +250,4 @@ function kaltura_requirements($phase) {
     'description' => $desc,
     );
   return $reqs;
-}
-
-/**
- * Expand node_kaltura nid and vid columns to full-sized int fields.
- */
-function kaltura_update_6000() {
-  $ret = array();
-  $new_field = array(
-    'type' => 'int',
-    'unsigned' => TRUE,
-    'not null' => TRUE,
-    'size' => 'normal',
-  );
-  db_change_field($ret, 'node_kaltura', 'nid', 'nid', $new_field);
-  db_change_field($ret, 'node_kaltura', 'vid', 'vid', $new_field);
-  return $ret;
 }

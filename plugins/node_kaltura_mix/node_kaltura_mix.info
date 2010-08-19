@@ -1,4 +1,4 @@
-; $Id: node_kaltura_mix.info,v 1.1.2.5 2010/07/07 09:34:53 kaltura Exp $: node_kaltura_mix
+; $Id: node_kaltura_mix.info,v 1.1.2.6 2010/08/19 21:34:46 xuriz Exp $: node_kaltura_mix
 name = Kaltura Media Remix Node
 package = Kaltura Media Management
 core = 6.x

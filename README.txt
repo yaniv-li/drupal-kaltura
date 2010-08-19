@@ -1,4 +1,4 @@
-// $Id: README.txt,v 1.2.2.3 2010/07/07 09:34:53 kaltura Exp $
+// $Id: README.txt,v 1.2.2.4 2010/08/19 21:34:45 xuriz Exp $
 
 Kaltura All in One Video Module – add full video capabilities to your Drupal site with our open source video module
 ------------------------
