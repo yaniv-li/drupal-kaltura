@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura.admin.inc,v 1.1.2.8 2010/08/19 21:42:58 xuriz Exp $
+// $Id: kaltura.admin.inc,v 1.1.2.9 2010/08/19 22:12:11 xuriz Exp $
 
 /*
  * @file
@@ -554,7 +554,7 @@ function kaltura_import_entries($entries) {
   foreach ($my_entries as $entry => $details) {
     kaltura_import_entry($details);
   }
-  drupat_set_message('<b>Please Note: All imported nodes are not yet published (node status 0)</b>');
+  drupal_set_message('<b>Please Note: All imported nodes are not yet published (node status 0)</b>');
 }
 
 /*
