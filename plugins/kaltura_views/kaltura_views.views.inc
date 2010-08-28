@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura_views.views.inc,v 1.1.2.1 2010/08/09 04:33:33 univate Exp $
+// $Id: kaltura_views.views.inc,v 1.1.2.2 2010/08/28 10:21:00 xuriz Exp $
 
 /*
  * Implementation of hook_views_data().
@@ -41,7 +41,7 @@ function kaltura_views_data() {
         'click_sortable' => FALSE,
       ),
       'filter' => array(
-        'handler' => 'views_handler_filter_media_type',
+        'handler' => 'kaltura_views_handler_filter_media_type',
       ),
       'sort' => array(
         'handler' => 'views_handler_sort',
@@ -107,7 +107,7 @@ function kaltura_views_data() {
       'title' => t('kaltura item duration'),
       'help' => t(''),
       'field' => array(
-        'handler' => 'views_handler_field_kaltura_duration',
+        'handler' => 'kaltura_views_handler_field_kaltura_duration',
         'click_sortable' => FALSE,
       ),
       'filter' => array(
@@ -135,7 +135,7 @@ function kaltura_views_data() {
       'title' => t('kaltura item number of votes'),
       'help' => t('see kaltura documentation for values'),
       'field' => array(
-        'handler' => 'views_handler_field_kaltura_votes',
+        'handler' => 'kaltura_views_handler_field_kaltura_votes',
         'click_sortable' => FALSE,
       ),
       'filter' => array(
@@ -163,7 +163,7 @@ function kaltura_views_data() {
       'title' => t('kaltura item thumbnail'),
       'help' => t(''),
       'field' => array(
-        'handler' => 'views_handler_field_kaltura_thumb',
+        'handler' => 'kaltura_views_handler_field_kaltura_thumb',
       ),
     ),
     'kaltura_source_link' => array(
@@ -177,7 +177,7 @@ function kaltura_views_data() {
       'title' => t('kaltura item download link'),
       'help' => t(''),
       'field' => array(
-        'handler' => 'views_handler_field_url',
+        'handler' => 'kaltura_views_handler_field_url',
       ),
     ),
     'kaltura_media_date' => array(
@@ -201,7 +201,7 @@ function kaltura_views_data() {
         'handler' => 'views_handler_field',
       ),
       'filter' => array(
-        'handler' => 'views_handler_filter_is_comment',
+        'handler' => 'kaltura_views_handler_filter_is_comment',
       ),
     ),
   );
