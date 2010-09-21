@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura.module,v 1.2.2.8 2010/08/19 21:34:45 xuriz Exp $
+// $Id: kaltura.module,v 1.2.2.9 2010/09/21 23:20:19 xuriz Exp $
 
 /**
  * @file
@@ -585,4 +585,14 @@ function kaltura_upload_block() {
 function kaltura_format_cw_vars($vars = array()) {
   $str = urlencode(serialize($vars));
   return $str;
+}
+
+/*
+ * helper function to get a node id for a given entryId/kshowId
+ */
+function kaltura_get_node_for_mix($show_id) {
+  $get_q = 'SELECT nid FROM {node_kaltura} WHERE kaltura_entryId = \'%s\'';
+  $result = db_query($get_q, $show_id);
+  $obj = db_fetch_object($result);
+  return $obj->nid;
 }

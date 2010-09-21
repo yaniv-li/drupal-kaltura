@@ -1,5 +1,5 @@
 <?php
-// $Id: node_kaltura_mix.module,v 1.2.2.7 2010/08/19 21:34:46 xuriz Exp $
+// $Id: node_kaltura_mix.module,v 1.2.2.8 2010/09/21 23:20:19 xuriz Exp $
 
 /*
  * @file
@@ -737,14 +737,4 @@ function kaltura_update_mix_tags($eid, $name, $tags, $admin_tags) {
   
   // If we want to collect more data, we can call this function with 3rd parameter FALSE:
   kaltura_add_result_to_entry_data($eid, $result['result']);
-}
-
-/*
- * helper function to get a node id for a given entryId/kshowId
- */
-function kaltura_get_node_for_mix($show_id) {
-  $get_q = 'SELECT nid FROM {node_kaltura} WHERE kaltura_entryId = \'%s\'';
-  $result = db_query($get_q, $show_id);
-  $obj = db_fetch_object($result);
-  return $obj->nid;
 }
