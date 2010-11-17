@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura.admin.inc,v 1.1.2.5.2.4 2010/11/17 01:08:05 xuriz Exp $
+// $Id: kaltura.admin.inc,v 1.1.2.5.2.5 2010/11/17 01:14:57 xuriz Exp $
 
 /*
  * @file
@@ -19,7 +19,7 @@
  * removed references to categories
  * questions: this method created problems within getServiceConfiguration wrt the Logger
  */
-function register_kaltura_partner() {
+function kaltura_register_partner() {
 	global $base_url;
 	$partner = new KalturaPartner();
 	$partner->name =              $_REQUEST['partner_name'];
@@ -302,7 +302,8 @@ function kaltura_settings_form() {
 	$register_visible = FALSE;
 	if ($_REQUEST['partner_name'] && $_REQUEST['op'] == 'Complete Installation') {
 		if ($_REQUEST['kaltura_agree_terms'] == 1) {
-			register_kaltura_partner();
+      // no test or error handling?
+      kaltura_register_partner();
 		}
 		else {
 			drupal_set_message('You must agree to the terms of use', 'error');

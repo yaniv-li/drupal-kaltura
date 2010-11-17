@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura.notification.inc,v 1.1.2.5 2010/07/07 09:34:53 kaltura Exp $
+// $Id: kaltura.notification.inc,v 1.1.2.5.2.1 2010/11/17 01:14:57 xuriz Exp $
 
 /*
  * @file
@@ -138,7 +138,7 @@ function kaltura_notify_node_update($notification) {
   if (count($node_ids) == 1) {
     $updated_node = node_load($node_ids[0]);
     $updated_node->notification_update = TRUE;
-    $updated_node->body = get_entry_description($notification['media_type'], $notification['entry_id']);
+    $updated_node->body = kaltura_get_entry_description($notification['media_type'], $notification['entry_id']);
     foreach ($updatable_data as $notification_key => $node_key) {
       if ($updated_node->$node_key != $notification[$notification_key]) {
         $updated_node->$node_key = $notification[$notification_key];
@@ -165,7 +165,7 @@ function kaltura_notify_node_entry_add($type, $notification_data) {
   }
   $node->title = $notification_data['name'];
 //  $node->body = '';//'test '. time(); // print_r($notification_data,TRUE).PHP_EOL.print_r($_REQUEST,TRUE);
-  $node->body = get_entry_description($notification_data['media_type'], $notification_data['entry_id']);
+  $node->body = kaltura_get_entry_description($notification_data['media_type'], $notification_data['entry_id']);
 
   $node->type = 'kaltura_'. $type;
   $node->uid = ($notification_data['puser_id'])? $notification_data['puser_id']: FALSE;

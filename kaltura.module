@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura.module,v 1.2.2.7.2.2 2010/08/10 02:59:53 univate Exp $
+// $Id: kaltura.module,v 1.2.2.7.2.3 2010/11/17 01:14:57 xuriz Exp $
 
 /**
  * @file
@@ -152,31 +152,31 @@ function kaltura_menu() {
  */
 function kaltura_theme() {
 	$themes = array(
-    'contribution_wizard' => array(
+    'kaltura_contribution_wizard' => array(
       'arguments' => array('themeParams' => NULL),
 	),
-    'contribution_wizard_add' => array(
+    'kaltura_contribution_wizard_add' => array(
       'arguments' => array('themeParams' => NULL),
 	),
-    'contribution_wizard_simple' => array(
+    'kaltura_contribution_wizard_simple' => array(
       'arguments' => array('themeParams' => NULL),
 	),
-    'simple_editor' => array(
+    'kaltura_simple_editor' => array(
       'arguments' => array('element' => NULL),
 	),
-	'advanced_editor' => array(
+    'kaltura_advanced_editor' => array(
       'arguments' => array('element' => NULL),
 	),
     'kaltura_modal' => array(
       'arguments' => array('element' => NULL),
 	),
-    'list_of_entries' => array(
+    'kaltura_list_of_entries' => array(
       'arguments' => array('element' => NULL),
 	),
     'kaltura_server_status' => array(
       'arguments' => array('element' => NULL),
 	),
-    'contribution_wizard_field' => array(
+    'kaltura_contribution_wizard_field' => array(
       'arguments' => array('themeParams' => NULL),
 	),
     'kaltura_maintenance_page' => array(
@@ -362,7 +362,7 @@ function kaltura_list_entries() {
 		$nodes[$node_nid->nid] = $node_nid;
 
 	}
-	$html = theme("list_of_entries", $nodes, $allow_insert, $field_name);
+  $html = theme("kaltura_list_of_entries", $nodes, $allow_insert, $field_name);
 	$pager = '';
 	if (ceil($node_count->c/20) > 1) {
 		$pager = theme('pager', NULL, 20, 0, array(), ceil($node_count->c/20));
@@ -389,8 +389,10 @@ function kaltura_list_entries() {
 
 /*
  * function to render the HTML for the kaltura/entries page
+ *
+ * @TODO move to theme file
  */
-function theme_list_of_entries($arr_nodes_nids, $allow_insert = FALSE, $field_name = '') {
+function theme_kaltura_list_of_entries($arr_nodes_nids, $allow_insert = FALSE, $field_name = '') {
 	$url_option = array('query' => array('cwurl' => $_GET['cwurl']));
 	$filter = 'Show only: '. l('All', $_GET['q'], $url_option) .' | '. l('Videos', $_GET['q'], array('query' => array('filter' => '1', 'cwurl' => $_GET['cwurl']))) .' | ';
 	$filter .= l('Photos', $_GET['q'], array('query' => array('filter' => '2', 'cwurl' => $_GET['cwurl']))) .' | '.
@@ -521,10 +523,10 @@ function kaltura_get_entries($entries, $totalEntries, $isAdmin = false) {
 	return FALSE;
 }
 
-/*
-   *** helper function to get the description field from kaltura after notification
+/**
+ * helper function to get the description field from kaltura after notification
    */
-function get_entry_description($type, $entryId)
+function kaltura_get_entry_description($type, $entryId)
 {
 	$kaltura_client = KalturaHelpers::getKalturaClient(true);
 
@@ -543,7 +545,7 @@ function get_entry_description($type, $entryId)
 /*
  * helper function that gets a widgetId, calls Kaltura's getWidget service and returns the embed code of the widget
  */
-function katura_fetch_widget_html($widget_id) {
+function kaltura_fetch_widget_html($widget_id) {
 	$session_user = KalturaHelpers::getSessionUser();
 	$kaltura_client = KalturaHelpers::getKalturaClient();
 	$result = $kaltura_client->getWidget($session_user, $widget_id, 1);
@@ -748,7 +750,7 @@ function kaltura_choose_player($as_single_form, $type, $node_type, $return_widge
 
 	foreach ($widgets->kdp_widgets[$type] as $skins => $confs) {
 		if ($return_widget_html) {
-			$embbed = katura_fetch_widget_html('_'. $pid .'_'. $confs['remix_uiconf']);
+      $embbed = kaltura_fetch_widget_html('_'. $pid .'_'. $confs['remix_uiconf']);
 		}
 		$options[$skins] = $skins .': '. (($return_widget_html)? $embbed: '<br /><img src="'. $base_path . drupal_get_path('module', 'kaltura') .'/images/'. $confs['preview_image'] .'" />');
 	}
@@ -888,7 +890,7 @@ function kaltura_get_node_for_mix($entry_id) {
 	return $obj->nid;
 }
 
-function katlura_get_metadata_for_mix($entry_id) {
+function kaltura_get_metadata_for_mix($entry_id) {
 	$get_q = 'SELECT vid, nid, kaltura_thumbnail_url FROM {node_kaltura} WHERE kaltura_entryId = \'%s\'';
 
 	$result = db_query($get_q, $entry_id);

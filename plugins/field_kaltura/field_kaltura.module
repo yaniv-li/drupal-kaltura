@@ -1,5 +1,5 @@
 <?php
-// $Id: field_kaltura.module,v 1.2.2.6 2010/07/07 09:34:53 kaltura Exp $
+// $Id: field_kaltura.module,v 1.2.2.6.2.1 2010/11/17 01:14:57 xuriz Exp $
 
 /**
  * @file
@@ -356,7 +356,7 @@ function kaltura_get_thumbnail_display($item, $teaser, $field) {
         }
       }
       */
-      $kaltura_metadata = katlura_get_metadata_for_mix($entry_id);
+      $kaltura_metadata = kaltura_get_metadata_for_mix($entry_id);
       if($kaltura_metadata) {
       	$all_field .= '<div class="field-entry-'. $entry_id .'">'. theme('node_kaltura_mix_thumbnail_url', $kaltura_metadata, $teaser, FALSE, $size) .'</div>';
       }
@@ -713,7 +713,7 @@ function field_kaltura_remix_textfield_process($element, $edit, $form_state, $fo
   //Does this user have access to update the node associated with this entry? If so, it's ok to add it via URL parameter
   
   if (isset($entry_id)) {
-	  $entry_metadata = katlura_get_metadata_for_mix($entry_id);
+    $entry_metadata = kaltura_get_metadata_for_mix($entry_id);
 	  $entry_access = node_access('update',node_load($entry_metadata->nid));
 	  
 	  //If the user has access to edit this node OR this entry has no node associated with it (and hence no owner)

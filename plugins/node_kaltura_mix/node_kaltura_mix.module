@@ -1,5 +1,5 @@
 <?php
-// $Id: node_kaltura_mix.module,v 1.2.2.6.2.1 2010/08/10 02:29:13 univate Exp $
+// $Id: node_kaltura_mix.module,v 1.2.2.6.2.2 2010/11/17 01:14:57 xuriz Exp $
 
 /*
  * @file
@@ -614,7 +614,7 @@ function kaltura_clone_mix_confirm(&$form_state) {
 	  
 	$content_type = isset($content_type) ? $content_type : 'kaltura_mix';
 
-	$entry_metadata = katlura_get_metadata_for_mix($entry_id);
+  $entry_metadata = kaltura_get_metadata_for_mix($entry_id);
 	$entry_thumb = $entry_metadata -> kaltura_thumbnail_url;
 
 	$form['preview'] = array('#value' => '<br /><img src='.$entry_thumb.'><br />');
