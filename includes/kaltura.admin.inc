@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura.admin.inc,v 1.1.2.5.2.3 2010/08/10 02:59:53 univate Exp $
+// $Id: kaltura.admin.inc,v 1.1.2.5.2.4 2010/11/17 01:08:05 xuriz Exp $
 
 /*
  * @file
@@ -1043,47 +1043,63 @@ function alternate_xml_verification($filename) {
 	t('crossdomain.xml is in place and seems to be OK')
 	);
 }
-/*
+
+/**
  * helper function that checks if crossdomain.xml is in the right place
  */
 function kaltura_test_crossdomain() {
-	$filename = $_SERVER['DOCUMENT_ROOT'] .'/crossdomain.xml';
-	$cd_xml = @fopen($filename, 'r');
-	if ($cd_xml && filesize($filename) > 0 && file_exists($filename)) {
-		if (!function_exists('simplexml_load_file')) {
-			$result = alternate_xml_verification($filename);
-			return $result;
-		}
-		$cd_xml_content = simplexml_load_file($filename);
-		foreach ($cd_xml_content->children() as $child) {
-			$atts = $child->attributes();
-			if ($atts['domain'] == '*' || $atts['domain'] == '*.kaltura.com') {
-				$kaltura_ok = TRUE;
-			}
-			if ($atts['headers'] == '*' && ($atts['domain'] == '*' || $atts['domain'] == '*.kaltura.com')) {
-				$headers_ok = TRUE;
-			}
-		}
-		if ($kaltura_ok && $headers_ok) {
-			return array(
-			TRUE,
-			t('crossdomain.xml is in place and seems to be OK')
-			);
-		}
-		else {
-			return array(
-			FALSE,
-			t('crossdomain.xml is in place, but it is probably not configured properly') .'<br />'.
-			t('Please read ') . l('here', 'admin/help/kaltura')
-			);
-		}
-	}
-	else {
-		return array(
-		FALSE,
-		t('crossdomain.xml file could not be found in your site\'s root directory') .' ['. $filename .']'
-		);
-	}
+  global $base_url ;
+  $cd_req = drupal_http_request($base_url .'/crossdomain.xml');
+  if ( $cd_req->code == '200' ) {
+    return kaltura_parse_crossdomain($cd_req->data);
+  }
+  else {
+    // fall back to fetching and retrieving file contents (should we
+    // succeed if HTTP request has failed, though?
+    $filename = $_SERVER['DOCUMENT_ROOT'] .'/crossdomain.xml';
+    if ( $cd_xml = file_get_contents($filename) ) {
+      return kaltura_parse_crossdomain($cd_xml) ;
+    }
+    else {
+      return array(
+        FALSE,
+        t('crossdomain.xml file could not be found in your site\'s root directory') .' ['. $filename .']' .
+        t('Please read ') . l('here', 'admin/help/kaltura')
+      );
+    }
+  }
+}
+
+/**
+ * helper function that checks if crossdomain.xml says the right things
+ */
+function kaltura_parse_crossdomain($crossdomain_xml) {
+  if (!function_exists('simplexml_load_string')) {
+    return kaltura_alternate_xml_verification($filename);
+  }
+  $cd_xml_content = simplexml_load_string($crossdomain_xml);
+  foreach ($cd_xml_content->children() as $child) {
+    $atts = $child->attributes();
+    if ($atts['domain'] == '*' || $atts['domain'] == '*.kaltura.com') {
+      $kaltura_ok = TRUE;
+    }
+    if ($atts['headers'] == '*' && ($atts['domain'] == '*' || $atts['domain'] == '*.kaltura.com')) {
+      $headers_ok = TRUE;
+    }
+  }
+  if ($kaltura_ok && $headers_ok) {
+    return array(
+      TRUE,
+      t('crossdomain.xml is in place and seems to be OK')
+    );
+  }
+  else {
+    return array(
+      FALSE,
+      t('crossdomain.xml is in place, but it is probably not configured properly') .'<br />'.
+      t('Please read ') . l('here', 'admin/help/kaltura')
+    );
+  }
 }
 
 /*
