@@ -131,11 +131,10 @@ function import_ce()
 //		kaltura_create_widgets_for_partner($partner->id, $secret);
 		drupal_set_message('Congratulations!  You have successfully installed the All in One Video Module and registered for the Kaltura Partner Program.');
 		drupal_goto('admin/settings/kaltura/general');
-	
 	}
 	catch(Exception $ex)
 	{
-		drupal_set_message($ex->Message(), 'error');	
+		drupal_set_message(t('Kaltura client exception: @message', array('@message' => $ex->getMessage())), 'error');	
 	}
 }
 
@@ -312,6 +311,8 @@ function kaltura_settings_form() {
 
 	if ($_REQUEST['op'] == 'Complete Installation' && $_REQUEST['ce_url']) 
 	{
+    // TODO: If this fails, we need to display the server registration
+    // form again.
 		import_ce();
 	}
 
