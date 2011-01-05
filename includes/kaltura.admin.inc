@@ -98,7 +98,7 @@ function kaltura_register_partner() {
  * and a configuration test which says that the configuraion works
  */
 
-function import_ce()
+function kaltura_import_ce()
 {
   try
   {
@@ -313,7 +313,7 @@ function kaltura_settings_form() {
   {
     // TODO: If this fails, we need to display the server registration
     // form again.
-    import_ce();
+    kaltura_import_ce();
   }
 
   /**
