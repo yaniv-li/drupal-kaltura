@@ -8,11 +8,11 @@
  */
 
 /*
- * helper function that process the partner registration with kaltura
+ * helper function that processes the partner registration with kaltura
  *
  * if registration successful, the partner details are saved as system variables (drupal DB) and
  * the user is being redirected to the modules settings page where he should see the details inserted
- * and a configuration test which says that the configuraion works
+ * and a configuration test which says that the configuration works
  * TODO set up for new API
  * CMAC
  * changes:
@@ -222,13 +222,13 @@ function kaltura_create_widgets_for_partner($partner_id, $secret) {
 function kaltura_settings_form() {
   global $base_url;
 
-  if (!module_exists('advanced_help')) {
-    $form['kaltura_help'] = array(
-      '#value' => t('For more detailed help enable the advanced help module.'),
-    );
-  }
-
   if (variable_get('kaltura_partner_id', '') != '') {
+    if (!module_exists('advanced_help')) {
+      $form['kaltura_help'] = array(
+        '#value' => t('For more detailed help enable the advanced help module.'),
+      );
+    }
+
     $notification_settings = kaltura_notifications_settings_form();
     $form['kaltura_notification_settings'] = array(
       '#type' => 'fieldset',
