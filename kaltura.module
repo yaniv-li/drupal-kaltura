@@ -372,8 +372,7 @@ function kaltura_list_entries() {
 	<ul id="sidemenu">
 	<li id="tab-kaltura"><a href="'. $_GET['cwurl'] .'">Add Interactive Video</a></li>
 	<li id="tab-kaltura_browse"><a class="current" href="'. url('kaltura/entries/allow-insert/'. $field_id) .'">Browse Interactive Videos</a></li>
-          <li><span>xzczczczcxxz</span></li>
-          <li><span class="close" href="#" onclick="window.top.kalturaCloseModalBox();return false;">&nbsp;&nbsp;&nbsp;&nbsp;</span></li>
+          <li class="close"><span class="close" href="#" onclick="window.top.kalturaCloseModalBox();return false;">&nbsp;&nbsp;&nbsp;&nbsp;</span></li>
         </ul>
     </div><div class="ktitle"><h3>'. $title .'</h3></div>'. $html;
 		$js = '$(document).ready(function() { '. PHP_EOL .'window.top.document.getElementById("kaltura_modal_iframe").className += " remove_overflow"; ';

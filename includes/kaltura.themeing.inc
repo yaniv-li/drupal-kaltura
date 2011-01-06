@@ -672,8 +672,7 @@ function theme_kaltura_contribution_wizard_field($theme_params, $field_id, $no_c
           <ul id="sidemenu">
           <li id="tab-kaltura"><a class="current" href="'. url($_GET['q']) .'">Add Interactive Video</a></li>
           <li id="tab-kaltura_browse"><a href="'. url('kaltura/entries/allow-insert/'. $field_id, array( 'query' => array( 'filter' => $add_filter, 'cwurl' => url($_GET['q']) ) )) .'">Browse Interactive Videos</a></li>
-          <li><span>xzczczczcxxz</span></li>
-          <li><span class="close" href="#" onclick="window.top.kalturaCloseModalBox();return false;">&nbsp;&nbsp;&nbsp;&nbsp;</span></li>
+          <li class="close"><span class="close" href="#" onclick="window.top.kalturaCloseModalBox();return false;">&nbsp;&nbsp;&nbsp;&nbsp;</span></li>
           </ul>
       </div>';
   }
