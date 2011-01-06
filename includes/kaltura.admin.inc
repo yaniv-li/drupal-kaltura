@@ -210,6 +210,151 @@ function kaltura_create_widgets_for_partner($partner_id, $secret) {
   }
 }
 
+/**
+ * Form builder function. Used when site has not yet been initialised.
+ */
+function kaltura_installation_form() {
+  global $user ;
+
+  drupal_add_js(drupal_get_path('module', 'kaltura') . '/js/admin.js');
+
+  $step = isset($form_state['values']) ? (int)$form_state['storage']['step'] : 0 ;
+  $form_state['storage']['step'] = $step+1 ;
+
+  switch ( $step ) {
+    case '0' :
+      drupal_set_title(t('Kaltura Installation - Select Platform'));
+
+      /* Initial form. Allows user to select the Kaltura service they will be using, which allows us to decide whether
+       * we need to display Kaltura TOS and allow remote registration, or request existing partner details.
+       */
+      $saasText = "<b>Kaltura SaaS (Hosted solution)</b><br/>" .
+        "Kaltura service is responsible for transcoding your content to FLV, hosting it in a first grade CDN and streaming it to your viewers.<br/>" .
+        "Kaltura SaaS has cost effective pricing and <b>10 GB of free trial</b>.<br />" .
+        l('To learn more about Kaltura SaaS offering and pricing, click here.', 'http://www.kaltura.com', array( 'target' => '_blank' ));
+      $ceText = "<b>Kaltura CE (Community Edition)</b>" .
+        "<br/>Kaltura Comunity Edition will allow you to host, transcode and stream everything out of a server you provide.<br />" .
+        "<b>This requires you download, installation and configure the Kaltura CE server before you continue.</b><br/>" .
+        l('To learn more about Kaltura CE, click here.', 'http://www.kaltura.org/project/community_edition_video_platform', array('target' => '_blank' )) ;
+
+      /** 
+       * At http://corp.kaltura.com/solutions/kaltura_platform_editions
+       * there is a third option, Kaltura Commercial Edition, which
+       * also reduces to Kaltura CE.
+       *
+       * In order to connect to a Commercial Edition server here, the
+       * user would need to select Community Edition, which is a
+       * source of potential confusion.
+       */
+      $form['kaltura_registration_mode'] = array(
+        '#type' => 'radios',
+        '#title' => t('Select Kaltura platform'),
+        '#options' => array(
+          1 => $saasText, 
+          0 => $ceText
+        ),
+        '#default_value' => 1,
+      );
+
+      $form['kaltura_ce'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Kaltura CE'),
+        '#attributes' => array( 'id' => 'fieldset-kaltura-ce' ),
+      ) ;
+      
+      $form['kaltura_ce']['server_url'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Kaltura Server URL'),
+        '#default_value' => 'http://www.kaltura.com',
+        '#description' => t('Use "http://www.kaltura.com" to register with Kaltura, or enter the URL of your own Kaltura CE server here.'),
+        '#size' => 100,
+        '#maxlength' => 512
+      );
+
+      $form['kaltura_saas'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Kaltura SaaS'),
+        '#attributes' => array( 'id' => 'fieldset-kaltura-saas' ),
+      ) ;
+
+      $form['kaltura_saas']['register_or_login'] = array(
+        '#type' => 'radios',
+        '#title' => t('Do you have an existing account with Kaltura?'),
+        '#options' => array(
+          'yes' => t('Yes, I have my Kaltura.com login and password.'),
+          'no'  => t('No, I would like to register a new account.'),
+        ),
+      ) ;
+
+      $form['continue'] = array(
+        '#type' => 'submit',
+        '#value' => 'Continue',
+      ) ;
+      break ;
+
+    case '1' :
+      
+  }
+  
+  $form['intro'] = array(
+    '#type' => 'markup',
+    '#prefix' => '<p>',
+    '#suffix' => '</p>',
+    '#value' => t("First, we need to connect your Drupal installation and a Kaltura server."),
+  ) ;
+  
+  $form['kaltura_registration'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Kaltura Registration'),
+    '#description' => t('Your details to register with a remote Kaltura instance.'),
+  ) ;
+
+  $form['kaltura_registration']['partner_name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Website Name'),
+    '#default_value' => variable_get('site_name', ''),
+    '#size' => 100,
+    '#maxlength' => 256
+  );
+
+  $form['kaltura_registration']['partner_url1'] = array(
+    '#type' => 'value',
+    '#default_value' => $base_url,
+  );
+  
+  $form['kaltura_registration']['partner_adminName'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Administrator Name'),
+    '#default_value' => $user->name,
+    '#size' => 100,
+    '#maxlength' => 50
+  );
+
+  $kaltura_server_text = t('You may either use the hosted service provided by Kaltura.com or your own Kaltura CE server.') .
+    theme('item_list', array($saasText, $ceText));
+
+  $form['kaltura_server'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Kaltura Server'),
+    '#description' => $kaltura_server_text,
+  ) ;
+
+  $form['kaltura_server']['kaltura_agree_terms'] = array(
+    '#type' => 'checkbox',
+    '#title' => l('I agree to comply with the Kaltura Terms of Use</a>', array('!terms' => l('Kaltura Terms of Use', 'http://www.kaltura.com/index.php/corp/tandc', array('target' => '_blank')))),
+    '#options' => 'Agree',
+    '#description' => t('If registering with Kaltura.com, this is required.'),
+  );
+
+  $form['kaltura_registration']['buttons']['import_partner'] = array(
+    '#type' => 'button',
+    '#value' => 'Continue >>',
+    '#weight' => 40,
+  );
+  
+  return $form ;
+}
+
 /*
  * determine how the general settings form will look like.
  *
@@ -221,6 +366,11 @@ function kaltura_create_widgets_for_partner($partner_id, $secret) {
  */
 function kaltura_settings_form() {
   global $base_url;
+
+  // redirect to installation form if we aren't installed yet
+  if ( variable_get('kaltura_partner_id', '') == '' ) {
+    // drupal_goto('admin/settings/kaltura/install');
+  }
 
   if (variable_get('kaltura_partner_id', '') != '') {
     if (!module_exists('advanced_help')) {
@@ -344,30 +494,11 @@ function kaltura_settings_form() {
   if (variable_get('kaltura_partner_id', '') == '') {
     $register_visible = TRUE;
       
-    if ( empty($_REQUEST['op']))
-    {
+    if ( empty($_REQUEST['op'])) {
       if ($_GET['register'] !== 'no') {
         drupal_set_title('All in One Video Module by Kaltura Installation');
         // registration form
         $showing_reg = TRUE;
-      $saasText = '<b>Using Kaltura SaaS hosted solution</b><br/> Kaltura service is responsible for transcoding your content
-            to FLV, hosting it in a first grade CDN and streaming it to your viewers.<br/><br/>Kaltura Service has cost effective pricing and <b>10 GB of free trial</b>
-            <br/><a href="http://www.kaltura.com" target="_blank">To learn more about the Kaltura SaaS offering and pricing click here</a><br/><br/>';
-      $ceText ='<b>Using Kaltura Community Edition Beta</b><br/>Kaltua Comunity Edition will allow you to host, transcode and stream everything out of your own server for free.
-             <br/><br/><b>This requires download, installation and configuration of the Kaltura CE server.</b><br/><br/><br/>';
-      $form['kaltura_registration_mode'] = array(
-      '#type' => 'radios',
-      '#title' => t('Kaltura module has two modes of work'),
-      '#options' => array(1 => $saasText, 0 => $ceText),
-      '#default_value' => 1,
-        );
-      $form['kaltura_registration']['buttons']['import_partner'] = array(
-          '#type' => 'button',
-        '#title' => 'Continue >>',
-      '#value' => 'Continue >>',
-      '#default_value' => 'Continue >>',
-      '#weight' => 40,
-      );
       }   
         
 
@@ -460,24 +591,24 @@ function kaltura_settings_form() {
         '#collapsed' => FALSE
           );
           $form['kaltura_registration']['partner_name'] = array(
-        '#type' => 'textfield',
-        '#title' => t('Website Name'),
-        '#default_value' => variable_get('site_name', ''),
-        '#size' => 100,
-        '#maxlength' => 256
+            '#type' => 'textfield',
+            '#title' => t('Website Name'),
+            '#default_value' => variable_get('site_name', ''),
+            '#size' => 100,
+            '#maxlength' => 256
           );
           $form['kaltura_registration']['partner_url1'] = array(
-          '#type' => 'hidden',
-          '#title' => t('Your Website Address'),
-          '#default_value' => $base_url,
-          '#size' => 100,
-          '#maxlength' => 1024
+            '#type' => 'hidden',
+            '#title' => t('Your Website Address'),
+            '#default_value' => $base_url,
+            '#size' => 100,
+            '#maxlength' => 1024
           );
           $form['kaltura_registration']['partner_url2'] = array(
-          '#type' => 'hidden',
-          '#title' => t('URL 2'),
-          '#default_value' => $base_url,
-          '#maxlength' => 1024
+            '#type' => 'hidden',
+            '#title' => t('URL 2'),
+            '#default_value' => $base_url,
+            '#maxlength' => 1024
           );
           $form['kaltura_registration']['partner_adminName'] = array(
           '#type' => 'textfield',
