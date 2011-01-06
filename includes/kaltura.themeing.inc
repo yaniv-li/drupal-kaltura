@@ -743,10 +743,10 @@ function kaltura_simple_editor() {
   exit;
 }
 
-/*
- * theme for kaltura/simple_editor 
+/**
+ * Theme for kaltura/simple_editor 
  */
-function theme_simple_editor($theme_params, $no_refresh) {
+function theme_kaltura_simple_editor($theme_params, $no_refresh) {
   $javascript =' 
   function onSimpleEditorBackClick(modified) {
     if (modified == 0) { 
