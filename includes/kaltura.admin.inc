@@ -1038,11 +1038,13 @@ function kaltura_variable_get_real($var, $default) {
   return unserialize($result->value);
 }
 
-function alternate_xml_verification($filename) {
-
+/**
+ * Used when SimpleXML is not available; just assume everything looks OK and hope for the best.
+ */
+function kaltura_alternate_xml_verification($filename) {
   return array(
-  TRUE,
-  t('crossdomain.xml is in place and seems to be OK')
+    TRUE,
+    t('crossdomain.xml is in place and seems to be OK')
   );
 }
 
