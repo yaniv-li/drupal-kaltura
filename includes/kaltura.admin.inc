@@ -1,5 +1,5 @@
 <?php
-// $Id: kaltura.admin.inc,v 1.1.2.5.2.5 2010/11/17 01:14:57 xuriz Exp $
+// $Id: kaltura.admin.inc,v 1.1.2.5.2.8 2011/01/06 03:32:58 xuriz Exp $
 
 /*
  * @file
@@ -1046,13 +1046,11 @@ function kaltura_variable_get_real($var, $default) {
   return unserialize($result->value);
 }
 
-/**
- * Used when SimpleXML is not available; just assume everything looks OK and hope for the best.
- */
-function kaltura_alternate_xml_verification($filename) {
+function alternate_xml_verification($filename) {
+
   return array(
-    TRUE,
-    t('crossdomain.xml is in place and seems to be OK')
+  TRUE,
+  t('crossdomain.xml is in place and seems to be OK')
   );
 }
 
