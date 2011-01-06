@@ -109,26 +109,34 @@ function kaltura_import_ce()
     $kConfig = new KalturaConfiguration(0);
     $kConfig->serviceUrl = $url;
     $kClient = new KalturaClient($kConfig);
-    $res = $kClient -> partner -> getSecrets(1, $email, $password);
+    $res = $kClient->partner->getSecrets(1, $email, $password);
     
     $partner = 1;
-    $secret = $kPartner -> secret;
-    $adminSecret = $kPartner -> adminSecret;  
+    /**
+     * FIXME: $kPartner is not set, and these variables aren't used anyway? remove.
+     */
+    $secret = $kPartner->secret;
+    $adminSecret = $kPartner->adminSecret;  
   
-    variable_set('kaltura_partner_id',         $res->id);
-    variable_set('kaltura_subp_id',            $res->id."00");
-    variable_set('kaltura_secret',             $res->secret);
-    variable_set('kaltura_admin_secret',       $res->adminSecret);
-    variable_set('kaltura_local_registration', 1);
-    variable_set('kaltura_server_url',    $url);
-    variable_set('kaltura_partner_cms_email', $res->adminEmail);
+    variable_set('kaltura_partner_id',           $res->id);
+    variable_set('kaltura_subp_id',              $res->id."00");
+    variable_set('kaltura_secret',               $res->secret);
+    variable_set('kaltura_admin_secret',         $res->adminSecret);
+    variable_set('kaltura_local_registration',   1);
+    variable_set('kaltura_server_url',           $url);
+    variable_set('kaltura_partner_cms_email',    $res->adminEmail);
     variable_set('kaltura_partner_cms_password', $password);
-    variable_set('kaltura_partner_url2', $_REQUEST['partner_url2']);
-    variable_set('kaltura_notification_type', 0);
+    variable_set('kaltura_partner_url2',         $_REQUEST['partner_url2']);
+    variable_set('kaltura_notification_type',    0);
 //    variable_set('kaltura_content_categories', implode(',', $_REQUEST['kaltura_content_categories']));
 
+    /**
+     * FIXME: $partner is an integer, not an object, this should be
+     * $kClient->partner->notificationUrl ?
+     */
     kaltura_update_kaltura_partner(2, $partner->notificationUrl);
 //    kaltura_create_widgets_for_partner($partner->id, $secret);
+
     drupal_set_message('Congratulations!  You have successfully installed the All in One Video Module and registered for the Kaltura Partner Program.');
     drupal_goto('admin/settings/kaltura/general');
   }
