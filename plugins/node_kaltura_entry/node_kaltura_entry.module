@@ -497,6 +497,33 @@ function node_kaltura_entry_insert(&$node) {
 }
 
 /**
+ * Implementation of hook_validate().
+ *
+ * We don't do this validation if 
+ * (1) this update is an update_notification from Kaltura anyway
+ * (2) we're deleting the node
+ */
+function node_kaltura_entry_validate($node, &$form) {
+  if ($node->notification_update !== TRUE && $form['#post']['op'] != t('Delete')) {
+    // check that the Kaltura Entry exists on the server
+    $kaltura_client = KalturaHelpers::getKalturaClient($admin);
+    try {
+      $result = $kaltura_client->baseEntry->get($form['kaltura_entryId']['#value']);   
+    }
+    catch ( Exception $ex ) {
+      watchdog('node_kaltura_entry', t('Kaltura Exception: %message, backtrace: <pre>!trace</pre>'), array('%message' => $ex->getMessage(), '!trace' => $ex->getTrace()));
+      switch ( $ex->getCode() ) {
+        case 'ENTRY_ID_NOT_FOUND' :
+          form_set_error('kaltura_entryId', t('Entry not found on Kaltura server: @message', array('@message' => $ex->getMessage())));
+          break ;
+        default :
+          form_set_error('kaltura_entryId', t('Kaltura client exception: @message', array('@message' => $ex->getMessage()))); 
+      }
+    }
+  }
+}
+
+/**
  * Implementation of hook_update().
  *
  * This hook can be initiated in two cases:
@@ -512,7 +539,7 @@ function node_kaltura_entry_update($node) {
     require_once(drupal_get_path('module', 'kaltura') .'/kaltura.install');
     $fields = kaltura_schema();
     $first = '';
-    watchdog('node', print_r($node, TRUE));
+    watchdog('kaltura_node_entry', print_r($node, TRUE));
     foreach ($fields['node_kaltura']['fields'] as $field => $structure) {
       if ($field == 'vid' || $field == 'nid' || $field == 'kaltura_entryId' || $field == 'kaltura_video_comment' || $field == 'kaltura_entry_data') continue;
       $update_str .= $first . $field .' = '. (($structure['type'] == 'int')? "%d": "'%s'");
@@ -520,10 +547,9 @@ function node_kaltura_entry_update($node) {
     }
     // we don't expose the tags and admin tags fields, to no need to update taxonomy by hand.
 //    update_entry_node_taxonomy($node);
-    if ($node->notification_update !== TRUE)
-      {
-        kaltura_update_entry_tags_from_taxonomy($node);
-      }
+    if ($node->notification_update !== TRUE) {
+      kaltura_update_entry_tags_from_taxonomy($node);
+    }
         
     $sql = 'UPDATE {node_kaltura} SET '. $update_str .' WHERE vid = %d';
     db_query($sql, $node->kaltura_tags, $node->kaltura_admin_tags, $node->kstatus, $node->kaltura_media_type, $node->kaltura_duration,
@@ -533,6 +559,7 @@ function node_kaltura_entry_update($node) {
     // in case the update was done in drupal, and not by notification, we want to update
     // the metadata in kaltura's DB
     if ($node->notification_update !== TRUE) {
+      // @TODO: Handle exceptions etc with Kaltura
       kaltura_update_entry_tags($node->kaltura_entryId, $node->kaltura_tags, $node->kaltura_admin_tags);
     }
     else {
@@ -709,20 +736,24 @@ function theme_node_kaltura_entry_duration($durationoutput) {
  * changed :
  * changed KalturaEntry to KalturaMediaEntry
  * update to new update function
- * result paramater to object
+ * result parameter to object
  * entry name in parameter to $_REQUEST
  * questions:
  * correct values for media entry name, tags, should we be getting these from the drupal form or the simple editor
+ *
+ * @TODO return meaningful value so calling function can detect
+ * failures (eg, media has been deleted from Kaltura)
+ *
  */
 function kaltura_update_entry_tags($eid, $tags, $admin_tags) {
-
   $admin = 0;
   $need_admin = 1; //who should init this? Anyway since we update admin_tags the answer is yes we need  
   if ($need_admin) {
     $admin = 1;
   }
+
   $kaltura_client = KalturaHelpers::getKalturaClient($admin);
-  $session_user = KalturaHelpers::getSessionUser();
+  $session_user = KalturaHelpers::getSessionUser(); // ?
   
   $entry = new KalturaMediaEntry;
   $entry->tags = $tags;
@@ -730,7 +761,15 @@ function kaltura_update_entry_tags($eid, $tags, $admin_tags) {
   $entry->name = $_REQUEST['title'];
   $entry->description = $_REQUEST['body'];
 
-  $result = $kaltura_client->media->update($eid, $entry);
-  // If we want to collect more data, we can call this function with 3rd parameter FALSE:
-  kaltura_add_result_to_entry_data($eid, $result);
+  try {
+    $result = $kaltura_client->media->update($eid, $entry);
+    // If we want to collect more data, we can call this function with 3rd parameter FALSE:
+    kaltura_add_result_to_entry_data($eid, $result);
+  }
+  catch ( Exception $ex ) {
+    // we catch the exception here, but typically this would be caught
+    // in hook_validate() already. 
+    watchdog('node_kaltura_entry', t('Kaltura Exception: %message, backtrace: <pre>!trace</pre>'), array('%message' => $ex->getMessage(), '!trace' => $ex->getTrace()));
+    drupal_set_message(t('Kaltura client exception: @message', array('@message' => $ex->getMessage())), 'error'); 
+  }
 }
