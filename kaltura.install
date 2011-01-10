@@ -7,8 +7,6 @@
  *
  */
 
-$GLOBALS['_kaltura_client_folder'] = drupal_get_path('module', 'kaltura') .'/kaltura_client/';
-
 /**
  * Implementation of hook_schema().
  *
@@ -194,7 +192,7 @@ function kaltura_schema() {
  * Implementation of hook_install().
  */
 function kaltura_install() {
-  global $_kaltura_client_folder;
+  $_kaltura_client_folder  = drupal_get_path('module', 'kaltura') .'/kaltura_client/';
   require_once($_kaltura_client_folder .'kaltura_settings.php');
   drupal_install_schema('kaltura');
   drupal_set_message('<b>To '. l('complete installation', 'admin/settings/kaltura/general') .' of the Kaltura All in One Video Module installation, '.
@@ -206,7 +204,7 @@ function kaltura_install() {
  */
 function kaltura_uninstall() {
   // Remove tables.
-  global $_kaltura_client_folder;
+  $_kaltura_client_folder  = drupal_get_path('module', 'kaltura') .'/kaltura_client/';
   require_once($_kaltura_client_folder .'kaltura_settings.php');
   drupal_uninstall_schema('kaltura');
   drupal_set_message('Kaltura module was uninstalled.');
