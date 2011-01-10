@@ -294,38 +294,38 @@ function kaltura_installation_form($form_state = NULL) {
         '#type' => 'textfield',
         '#title' => t('Website Name'),
         '#default_value' => ( isset($form_state['storage']['partner_site_name']) ? $form_state['storage']['partner_site_name'] : variable_get('site_name', '') ),
-        '#size' => 100,
+        '#size' => 60,
         '#maxlength' => 256
       );
 
+      global $base_url ;
       $form['partner_url1'] = array(
-        '#type' => 'hidden',
+        '#type' => 'textfield',
         '#title' => t('Your Website Address'),
-        '#default_value' => $base_url,
-        '#size' => 100,
-        '#maxlength' => 1024
+        '#default_value' =>  ( isset($form_state['storage']['partner_url1']) ? $form_state['storage']['partner_url1'] : $base_url ),
+        '#size' => 60,
       );
 
       $form['partner_url2'] = array(
-        '#type' => 'hidden',
+        '#type' => 'value',
         '#title' => t('URL 2'),
-        '#default_value' => $base_url,
+        '#default_value' =>  ( isset($form_state['storage']['partner_url2']) ? $form_state['storage']['partner_url2'] : $base_url ),
         '#maxlength' => 1024
       );
 
       $form['partner_administrator_name'] = array(
         '#type' => 'textfield',
         '#title' => t('Administrator Name'),
-        '#default_value' => $user->name,
-        '#size' => 100,
+        '#default_value' => ( isset($form_state['storage']['partner_administrator_name']) ? $form_state['storage']['partner_administrator_name'] : $user->name  ),
+        '#size' => 40,
         '#maxlength' => 50
       );
 
       $form['partner_administrator_email'] = array(
         '#type' => 'textfield',
         '#title' => t('Administrator Email'),
-        '#default_value' => $user->mail,
-        '#size' => 100,
+        '#default_value' => ( isset($form_state['storage']['partner_administrator_email']) ? $form_state['storage']['partner_administrator_email'] : $user->mail ),
+        '#size' => 40,
         '#maxlength' => 100  
       );
 
@@ -336,35 +336,60 @@ function kaltura_installation_form($form_state = NULL) {
         '#multiple' => TRUE,
         '#size' => 8,
         '#options' => $categories->categories,
+        '#default_value' => ( isset($form_state['storage']['kaltura_content_categories']) ? $form_state['storage']['kaltura_content_categories'] : array() ),
       );
 
-      $form['kaltura_registration']['kaltura_adult_content'] = array(
+      $form['kaltura_adult_content'] = array(
         '#type' => 'radios',
         '#title' => t('Do you plan to display adult content?'),
-        '#options' => array(1 => 'Yes', 0 => 'No'),
-        '#default_value' => (variable_get('kaltura_adult_content', 0) == 0)? 0: 1,
+        '#options' => array(
+          1 => 'Yes',
+          0 => 'No'
+        ),
+        '#default_value' => ( isset($form_state['storage']['kaltura_adult_content']) ? $form_state['storage']['kaltura_adult_content'] : 0 ),
       );
 
-      $form['kaltura_registration']['partner_description'] = array(
-        //'#type' => 'textarea',
-        '#type' => 'hidden',
+      // Use update.module to extract kaltura module version info if
+      // available. 
+      // 
+      // @TODO: move to separate function and report this version info
+      // elsewhere for improved debugging / error reports
+      if ( module_exists('update') ) {
+        module_load_include('inc', 'update', 'update.compare');
+        $projects = update_project_cache('update_project_projects');
+        _update_process_info_list($projects, module_rebuild_cache(), 'module');
+      }
+      else {
+        $projects = array() ;
+      }
+      $dargs = array(
+        '!drupal_version' => VERSION,
+        '!kaltura_version' => ( isset($projects['Kaltura']['info']['version']) ) ? $projects['Kaltura']['info']['version'] : 'unknown',
+        '!datestamp' => ( isset($projects['Kaltura']['info']['datestamp']) ) ? $projects['Kaltura']['info']['datestamp'] : 'unknown',
+      ) ;
+      // Drupal module|6.20|6.x-2.0-dev|1274334388
+      $partner_description = t('Drupal module|!drupal_version|!kaltura_version|!datestamp', $dargs);
+
+      $form['partner_description'] = array(
+        '#type' => 'value',
         '#title' => t('Partner Description'),
-        '#default_value' => 'Drupal module|'. VERSION,
+        '#default_value' => $partner_description,
       );
 
-      $form['kaltura_registration']['cms_password'] = array(
-        '#type' => 'hidden',
+      $form['cms_password'] = array(
+        '#type' => 'value',
         '#title' => t('CMS password'),
         '#default_value' => kaltura_generate_cms_password(),
         '#size' => 20,
         '#maxlength' => 60  
       );
 
-      $form['kaltura_registration']['kaltura_agree_terms'] = array(
+      $form['kaltura_agree_terms'] = array(
         '#type' => 'checkbox',
         '#title' => 'I agree to comply with the <a href="http://www.kaltura.com/index.php/corp/tandc" target="_blank">Kaltura Terms of Use</a>',
         '#options' => 'Agree',
         '#required' => TRUE,
+        '#default_value' => ( isset($form_state['storage']['kaltura_agree_terms']) ? $form_state['storage']['kaltura_agree_terms'] : FALSE ),
       );
 
       $form_state['storage']['submit'] = 'Register';
@@ -388,7 +413,6 @@ function kaltura_installation_form($form_state = NULL) {
             '#description' => t('The base URL of your Kaltura CE server (eg !example_url).', array( '!example_url' => $example_url )),
           ) ;
       }
-
 
       $form['kaltura_partner_id'] = array(
         '#type' => 'textfield',
@@ -562,6 +586,9 @@ function kaltura_installation_form_validate($form, &$form_state) {
       if ( !valid_email_address($form_state['values']['partner_administrator_email']) ) {
         form_set_error('partner_administrator_email', t('Administrator email must be a valid email address.'));
       }
+      if ( !$form_state['values']['kaltura_agree_terms'] ) {
+        form_set_error('kaltura_agree_terms', t("You must agree to Kaltura's Terms and Conditions in order to use the service."));
+      }
       break ;
     case 2 :
       $vc = TRUE ; // whether to attempt client validation as well
@@ -622,9 +649,63 @@ function kaltura_installation_form_submit($form, &$form_state) {
           drupal_set_message('CE detected, skipping step 1.');
           $form_state['storage']['step']++ ;
         }
+        break ;
+      case 1 :
+        /* register a new partner */
+        global $base_url ;
+        $partner = new KalturaPartner() ;
+        $partner->name = $form_state['storage']['partner_site_name'] ;
+        $partner->website = $form_state['storage']['partner_url1'] ;
+        $partner->notificationUrl = url($form_state['storage']['partner_url2'], array('query' => array('q' => 'kaltura/notification_handler'))) ;
+        $partner->adminName = $form_state['storage']['partner_administrator_name'] ;
+        $partner->adminEmail = $form_state['storage']['partner_administrator_email'] ;
+        $partner->description = $form_state['storage']['partner_description'] ;
+        $partner->commercialUse = 'non-commercial_use' ; // odd that this is hard-coded, must ask ZB
+        $partner->type = 102 ; // likewise, what is this?
+        $partner->appearInSearch = 1 ;
+        $content_categories = new KalturaContentCategories();
+        foreach ( $form_state['storage']['kaltura_content_categories'] as $category ) {
+          $categories[] = $content_categories->categories[$category] ;
+        }
+        $partner->contentCategories = ( !empty($categories) ) ? implode(',', $categories) : 'N/A' ;
+        $partner->adultContent = (boolean)$form_state['storage']['kaltura_adult_content'] ;
+
+        $session_user = KalturaHelpers::getSessionUser() ;
+        $kconfig = KalturaHelpers::getServiceConfiguration() ;
+        $kconfig->serviceUrl = 'http://www.kaltura.com' ; // [#1018042]
+        $client = new KalturaClient($kconfig);
+        watchdog('kaltura', 'Registering Kaltura partner: <pre>!partner</pre>', array('!partner' => print_r($partner,1)));
+        try {
+          $res = $client->partner->register($partner, $form_state['storage']['cms_password']);
+          if ( $res->id ) {
+            variable_set('kaltura_partner_id',           $res->id);
+            variable_set('kaltura_subp_id',              $res->id .'00');
+            variable_set('kaltura_secret',               $res->secret);
+            variable_set('kaltura_admin_secret',         $res->adminSecret);
+            variable_set('kaltura_local_registration',   1);
+            variable_set('kaltura_server_url',           KalturaHelpers::getKalturaServerUrl());
+            variable_set('kaltura_partner_cms_email',    $res->adminEmail);
+            variable_set('kaltura_partner_cms_password', $res->cmsPassword);
+            variable_set('kaltura_partner_url2',         $form_state['storage']['partner_url2']);
+            variable_set('kaltura_notification_type',    0);
+            variable_set('kaltura_content_categories',   $res->categories);
+            kaltura_update_kaltura_partner(2, $partner->notificationUrl);
+            drupal_set_message('Congratulations! You have successfully installed the Kaltura Video Module and registered for the Kaltura Partner Program.');
+          }
+          else {
+            // 
+            form_set_error('', t('Error registering for the Kaltura Partner Program: @message', array('@message' => $res['error'][0]['desc'])));
+            drupal_set_message(t('Error registering for the Kaltura Partner Program: @message', array('@message' => $res['error'][0]['desc'])), 'error');
+          }
+        }
+        catch ( Exception $ex ) {
+          watchdog('kaltura', 'Registration error: @message', array('@message' => $ex->getMessage()));
+          form_set_error('', t('Registration error: @message', array('@message' => $ex->getMessage())), 'error'); 
+        }
       default :
-        $form_state['storage']['step']++ ;  
+        
     }
+    $form_state['storage']['step']++ ;  
     drupal_set_message(t('Forward (!from » !to)', array('!from' => $step_from, '!to' => $form_state['storage']['step'])));
   }
 
