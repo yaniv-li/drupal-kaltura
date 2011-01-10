@@ -4,6 +4,7 @@
 define('KALTURA_INSTALL_BACKBUTTON', 'Back');
 define('KALTURA_INSTALL_FWDBUTTON', 'Continue');
 define('KALTURA_INSTALL_SKIPREGBUTTON', 'Skip Registration');
+define('KALTURACE_ACCEPTS_REGISTRATION', TRUE);
 
 /*
  * @file
@@ -227,7 +228,7 @@ function kaltura_installation_form($form_state = NULL) {
   global $user ;
 
   if ( $form_state['submitted'] ) {
-    dpm($form_state, 'form_state (submitted)');
+//    dpm($form_state, 'form_state (submitted)');
   }
 
   $steps = 3 ;
@@ -289,6 +290,23 @@ function kaltura_installation_form($form_state = NULL) {
         '#type' => 'submit',
         '#value' => t(KALTURA_INSTALL_SKIPREGBUTTON),
       ) ;
+
+      switch ( $form_state['storage']['saas_or_ce'] ) {
+        case 'saas' :
+          $form['kaltura_url'] = array(
+            '#type' => 'value',
+            '#value' => 'http://www.kaltura.com/',
+          ) ;
+          break ;
+        case 'ce' :
+          $example_url = 'http://kaltura.example.org' ;
+          $form['kaltura_url'] = array(
+            '#type' => 'textfield',
+            '#title' => 'Kaltura Server URL',
+            '#default_value' => ( isset($form_state['storage']['kaltura_url']) ) ? $form_state['storage']['kaltura_url'] : $example_url,
+            '#description' => t('The base URL of your Kaltura CE server (eg !example_url).', array( '!example_url' => $example_url )),
+          ) ;
+      }
 
       $form['partner_site_name'] = array(
         '#type' => 'textfield',
@@ -384,36 +402,21 @@ function kaltura_installation_form($form_state = NULL) {
         '#maxlength' => 60  
       );
 
-      $form['kaltura_agree_terms'] = array(
-        '#type' => 'checkbox',
-        '#title' => 'I agree to comply with the <a href="http://www.kaltura.com/index.php/corp/tandc" target="_blank">Kaltura Terms of Use</a>',
-        '#options' => 'Agree',
-        '#required' => TRUE,
-        '#default_value' => ( isset($form_state['storage']['kaltura_agree_terms']) ? $form_state['storage']['kaltura_agree_terms'] : FALSE ),
-      );
+      if ( $form_state['storage']['saas_or_ce'] == 'saas' ) {
+        $form['kaltura_agree_terms'] = array(
+          '#type' => 'checkbox',
+          '#title' => 'I agree to comply with the <a href="http://www.kaltura.com/index.php/corp/tandc" target="_blank">Kaltura Terms of Use</a>',
+          '#options' => 'Agree',
+          '#required' => TRUE,
+          '#default_value' => ( isset($form_state['storage']['kaltura_agree_terms']) ? $form_state['storage']['kaltura_agree_terms'] : FALSE ),
+        );
+      }
 
       $form_state['storage']['submit'] = 'Register';
 
       break ;
 
     case '2' :
-      switch ( $form_state['storage']['saas_or_ce'] ) {
-        case 'saas' :
-          $form['kaltura_url'] = array(
-            '#type' => 'value',
-            '#value' => 'http://www.kaltura.com/',
-          ) ;
-          break ;
-        case 'ce' :
-          $example_url = 'http://kaltura.example.org' ;
-          $form['kaltura_url'] = array(
-            '#type' => 'textfield',
-            '#title' => 'Kaltura Server URL',
-            '#default_value' => ( isset($form_state['storage']['kaltura_url']) ) ? $form_state['storage']['kaltura_url'] : $example_url,
-            '#description' => t('The base URL of your Kaltura CE server (eg !example_url).', array( '!example_url' => $example_url )),
-          ) ;
-      }
-
       $form['kaltura_partner_id'] = array(
         '#type' => 'textfield',
         '#size' => 8,
@@ -556,21 +559,23 @@ function kaltura_installation_form_validate($form, &$form_state) {
   if ( $form_state['clicked_button']['#value'] == KALTURA_INSTALL_BACKBUTTON ) {
     switch ( $form_state['storage']['step'] ) {
       case 2 : 
-        /* skip step 1 if CE selected and going back from 2 */
-        if ( $form_state['storage']['saas_or_ce'] == 'ce' ) {
-          drupal_set_message('CE detected, skipping step 1 going back.');
-          $form_state['storage']['step']-- ;
+        if ( !KALTURACE_ACCEPTS_REGISTRATION ) {
+          /* skip step 1 if CE selected and going back from 2 */
+          if ( $form_state['storage']['saas_or_ce'] == 'ce' ) {
+            drupal_set_message('CE detected, skipping step 1 going back.');
+            $form_state['storage']['step']-- ;
+          }
         }
       default :
         $form_state['storage']['step']-- ;
     }
-    drupal_set_message(t('Back (!from » !to)', array('!from' => $step_from, '!to' => $form_state['storage']['step'])));
+//    drupal_set_message(t('Back (!from » !to)', array('!from' => $step_from, '!to' => $form_state['storage']['step'])));
     return ; // don't validate further
   }
 
   /* actual form validation */
-  drupal_set_message('Validating step '. $form_state['storage']['step']);
-  dpm($form_state, 'form_state (validation)');
+//  drupal_set_message('Validating step '. $form_state['storage']['step']);
+//  dpm($form_state, 'form_state (validation)');
   switch ( $form_state['storage']['step'] ) {
     case 0 :
       // nothing to validate, move on
@@ -586,8 +591,11 @@ function kaltura_installation_form_validate($form, &$form_state) {
       if ( !valid_email_address($form_state['values']['partner_administrator_email']) ) {
         form_set_error('partner_administrator_email', t('Administrator email must be a valid email address.'));
       }
-      if ( !$form_state['values']['kaltura_agree_terms'] ) {
-        form_set_error('kaltura_agree_terms', t("You must agree to Kaltura's Terms and Conditions in order to use the service."));
+
+      if ( $form_state['storage']['saas_or_ce'] == 'saas' ) { /* if SaaS, check T&C requirement too */
+        if ( !$form_state['values']['kaltura_agree_terms'] ) { 
+          form_set_error('kaltura_agree_terms', t("You must agree to Kaltura's Terms and Conditions in order to use the service."));
+        }
       }
       break ;
     case 2 :
@@ -644,10 +652,12 @@ function kaltura_installation_form_submit($form, &$form_state) {
   if ( $form_state['clicked_button']['#value'] == KALTURA_INSTALL_FWDBUTTON || $form_state['clicked_button']['#value'] == KALTURA_INSTALL_SKIPREGBUTTON ) {
     switch ( $form_state['storage']['step'] ) {
       case 0 :
-        /* skip step 1 if CE selected on step 0 */
-        if ( $form_state['values']['saas_or_ce'] == 'ce' ) {
-          drupal_set_message('CE detected, skipping step 1.');
-          $form_state['storage']['step']++ ;
+        if ( !KALTURACE_ACCEPTS_REGISTRATION ) {
+          /* skip step 1 if CE selected on step 0 */
+          if ( $form_state['values']['saas_or_ce'] == 'ce' ) {
+            drupal_set_message('CE detected, skipping step 1.');
+            $form_state['storage']['step']++ ;
+          }
         }
         break ;
       case 1 :
@@ -656,7 +666,9 @@ function kaltura_installation_form_submit($form, &$form_state) {
         $partner = new KalturaPartner() ;
         $partner->name = $form_state['storage']['partner_site_name'] ;
         $partner->website = $form_state['storage']['partner_url1'] ;
-        $partner->notificationUrl = url($form_state['storage']['partner_url2'], array('query' => array('q' => 'kaltura/notification_handler'))) ;
+        // would be nice to respect clean URLs here too.
+        // $partner->notificationUrl = url($form_state['storage']['partner_url2'], array('query' => array('q' => 'kaltura/notification_handler'))) ;
+        $partner->notificationUrl = $form_state['storage']['partner_url2'] . '?q=kaltura/notification_handler' ;
         $partner->adminName = $form_state['storage']['partner_administrator_name'] ;
         $partner->adminEmail = $form_state['storage']['partner_administrator_email'] ;
         $partner->description = $form_state['storage']['partner_description'] ;
@@ -672,7 +684,7 @@ function kaltura_installation_form_submit($form, &$form_state) {
 
         $session_user = KalturaHelpers::getSessionUser() ;
         $kconfig = KalturaHelpers::getServiceConfiguration() ;
-        $kconfig->serviceUrl = 'http://www.kaltura.com' ; // [#1018042]
+        $kconfig->serviceUrl = $form_state['storage']['kaltura_url'] ; // also [#1018042]
         $client = new KalturaClient($kconfig);
         watchdog('kaltura', 'Registering Kaltura partner: <pre>!partner</pre>', array('!partner' => print_r($partner,1)));
         try {
@@ -706,7 +718,7 @@ function kaltura_installation_form_submit($form, &$form_state) {
         
     }
     $form_state['storage']['step']++ ;  
-    drupal_set_message(t('Forward (!from » !to)', array('!from' => $step_from, '!to' => $form_state['storage']['step'])));
+//    drupal_set_message(t('Forward (!from » !to)', array('!from' => $step_from, '!to' => $form_state['storage']['step'])));
   }
 
 }
