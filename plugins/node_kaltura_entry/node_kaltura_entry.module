@@ -505,10 +505,8 @@ function node_kaltura_entry_insert(&$node) {
  */
 function node_kaltura_entry_validate($node, &$form) {
   if ($node->notification_update !== TRUE && $form['#post']['op'] != t('Delete')) {
-    // check that the Kaltura Entry exists on the server
-    $kaltura_client = KalturaHelpers::getKalturaClient($admin);
     try {
-      $result = $kaltura_client->baseEntry->get($form['kaltura_entryId']['#value']);   
+      $entry = kaltura_get_entry($form['kaltura_entryId']['#value']) ;
     }
     catch ( Exception $ex ) {
       watchdog('node_kaltura_entry', t('Kaltura Exception: %message, backtrace: <pre>!trace</pre>'), array('%message' => $ex->getMessage(), '!trace' => $ex->getTrace()));

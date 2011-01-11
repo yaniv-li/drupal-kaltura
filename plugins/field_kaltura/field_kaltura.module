@@ -175,17 +175,34 @@ function field_kaltura_field($op, &$node, $field, &$items, $teaser, $page) {
   //    var_dump($field); var_dump($items);
       create_node_kaltura($node, $items, $field['type']);
     case 'validate':
+      dpm( array( 'op' => $op, 'node' => $node, 'field' => $field, 'items' => $items, 'teaser' => $teaser, 'page' => $page ), 'validation' );
       $allowed_values = content_allowed_values($field);
       if (is_array($items)) {
         foreach ($items as $delta => $item) {
           $error_element = isset($item['_error_element']) ? $item['_error_element'] : '';
           if (is_array($item) && isset($item['_error_element'])) unset($item['_error_element']);
           if (!empty($item['value'])) {
+            // allowed values validation
             if (count($allowed_values) && !array_key_exists($item['value'], $allowed_values)) {
               form_set_error($error_element, t('%name: illegal value.', array('%name' => t($field['widget']['label']))));
             }
+            // max length validation
             if (!empty($field['max_length']) && drupal_strlen($item['value']) > $field['max_length']) {
               form_set_error($error_element, t('%name: the value may not be longer than %max characters.', array('%name' => $field['widget']['label'], '%max' => $field['max_length'])));
+            }
+          }
+          // validation that entry exists on Kaltura server
+          try {
+            $entry = kaltura_get_entry($item['value']) ;
+          }
+          catch ( Exception $ex ) {
+            watchdog('field_kaltura', t('Kaltura Exception: %message, backtrace: <pre>!trace</pre>'), array('%message' => $ex->getMessage(), '!trace' => $ex->getTrace()));
+            switch ( $ex->getCode() ) {
+              case 'ENTRY_ID_NOT_FOUND' :
+                form_set_error($error_element, t('Entry not found on Kaltura server: @message', array('@message' => $ex->getMessage())));
+                break ;
+              default :
+                form_set_error($error_element, t('Kaltura client exception: @message', array('@message' => $ex->getMessage()))); 
             }
           }
         }

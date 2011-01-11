@@ -896,3 +896,21 @@ function kaltura_get_metadata_for_mix($entry_id) {
 	$obj = db_fetch_object($result);
 	return $obj;
 }
+
+
+/**
+ * Wrapper to retrieve a Kaltura Entry.
+ *
+ * Used in node_kaltura_entry and field_kaltura to validate that the
+ * entry exists on the Kaltura server.
+ *
+ * Must be wrapped in try...catch blocks, in order to handle Kaltura
+ * exceptions.
+ *
+ * @TODO consider a static cache to reduce API hits against Kaltura
+ */
+function kaltura_get_entry($entry_id) {
+  $kaltura_client = KalturaHelpers::getKalturaClient(0);
+  $result = $kaltura_client->baseEntry->get($entry_id);
+  return $result ;
+}
