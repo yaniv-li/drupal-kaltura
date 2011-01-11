@@ -174,8 +174,8 @@ function field_kaltura_field($op, &$node, $field, &$items, $teaser, $page) {
     case 'insert' :
   //    var_dump($field); var_dump($items);
       create_node_kaltura($node, $items, $field['type']);
+      break ; 
     case 'validate':
-      dpm( array( 'op' => $op, 'node' => $node, 'field' => $field, 'items' => $items, 'teaser' => $teaser, 'page' => $page ), 'validation' );
       $allowed_values = content_allowed_values($field);
       if (is_array($items)) {
         foreach ($items as $delta => $item) {
@@ -193,7 +193,12 @@ function field_kaltura_field($op, &$node, $field, &$items, $teaser, $page) {
           }
           // validation that entry exists on Kaltura server
           try {
-            $entry = kaltura_get_entry($item['value']) ;
+            $entries = explode(',', $item['value']);
+            foreach ( $entries as $entry_id ) {
+              if ( !empty($entry_id) ) {
+                $entry = kaltura_get_entry($entry_id) ;
+              }
+            }
           }
           catch ( Exception $ex ) {
             watchdog('field_kaltura', t('Kaltura Exception: %message, backtrace: <pre>!trace</pre>'), array('%message' => $ex->getMessage(), '!trace' => $ex->getTrace()));
@@ -226,18 +231,26 @@ function create_node_kaltura($node, $items, $type) {
   
   if ($kaltura_client) {
     foreach($items as $item) {
-  //    $entries = $item['value'];
-  //var_dump(debug_backtrace());
       $entries = explode(',', rtrim($item['value'], ','));
       foreach ($entries as $entry_id) {
         //TO DO: CM  - add Kaltura error handling
-        if ($type == 'Kaltura_Media')
-        {
-          $result = $kaltura_client->media->get($entry_id);
+        try {
+          if ($type == 'Kaltura_Media') {
+            $result = $kaltura_client->media->get($entry_id);
+          }
+          else { // Mix
+            $result = $kaltura_client->mixing->get($entry_id);
+          }
         }
-        else //Mix
-        {
-          $result = $kaltura_client->mixing->get($entry_id);
+        catch ( Exception $ex ) {
+          watchdog('field_kaltura', t('Kaltura Exception: %message, backtrace: <pre>!trace</pre>'), array('%message' => $ex->getMessage(), '!trace' => $ex->getTrace()));
+          switch ( $ex->getCode() ) {
+            case 'ENTRY_ID_NOT_FOUND' :
+              form_set_error($error_element, t('Entry not found on Kaltura server: @message', array('@message' => $ex->getMessage())));
+              break ;
+            default :
+              form_set_error($error_element, t('Kaltura client exception: @message', array('@message' => $ex->getMessage()))); 
+          }
         }
         $node_kaltura->nid = $node->nid;
         $node_kaltura->vid = $node->vid;
