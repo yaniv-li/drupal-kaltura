@@ -885,7 +885,6 @@ function kaltura_get_node_for_mix($entry_id) {
 
 function kaltura_get_metadata_for_mix($entry_id) {
   $get_q = 'SELECT vid, nid, kaltura_thumbnail_url FROM {node_kaltura} WHERE kaltura_entryId = \'%s\'';
-
   $result = db_query($get_q, $entry_id);
   $obj = db_fetch_object($result);
   return $obj;
@@ -907,7 +906,6 @@ function kaltura_get_entry($entry_id) {
   $result = $kaltura_client->baseEntry->get($entry_id);
   return $result ;
 }
-
 
 /**
  * Wrapper to retrieve a Kaltura Entry.
