@@ -80,7 +80,7 @@ function kaltura_mix_settings_form() {
     '#weight' => 0,
   );
 
-  list($regular, $custom) = 	kaltura_choose_cw('kaltura_mix_roughcut_cw_type', 'kaltura_mix_roughcut_cw_custom');
+  list($regular, $custom) =   kaltura_choose_cw('kaltura_mix_roughcut_cw_type', 'kaltura_mix_roughcut_cw_custom');
   $form['entry_wizards']['kaltura_mix_roughcut_cw_type'] = $regular;
   $form['entry_wizards']['kaltura_mix_roughcut_cw_custom'] = $custom;
 
@@ -96,14 +96,14 @@ function kaltura_mix_settings_form() {
   );
   
   $pre_edit_custom = '<script type="text/javascript">
-				function change_editor(val) 
-				{
-					div = document.getElementById("editor_custom");
-					if (val == 1  || val == 2) div.style.display="block";
-					else  div.style.display="none";
-				}</script>';
-	
-  $custom_editor_display = (($default_editor != '1' && $default_editor != '2')? 'style="display:none"' : '');					
+        function change_editor(val) 
+        {
+          div = document.getElementById("editor_custom");
+          if (val == 1  || val == 2) div.style.display="block";
+          else  div.style.display="none";
+        }</script>';
+  
+  $custom_editor_display = (($default_editor != '1' && $default_editor != '2')? 'style="display:none"' : '');         
   $form['entry_wizards']['kaltura_mix_roughcut_editor_custom'] = array(
     '#type' => 'textfield',
     '#size' => 10,
@@ -425,9 +425,9 @@ function node_kaltura_mix_form(&$node, $form_state) {
           'type' => 'entry',
           'context' => 'kaltura_mix',
         ));
-    	  $prefix = "<div class=\"add_video_to_node\"><script>jQuery(document).ready(function(){ 
-    	  	kalturaInitModalBox('". url("kaltura/contribution_wizard/". $cw_vars)."/'+get_title()); 
-    	  });</script>";
+        $prefix = "<div class=\"add_video_to_node\"><script>jQuery(document).ready(function(){ 
+          kalturaInitModalBox('". url("kaltura/contribution_wizard/". $cw_vars)."/'+get_title()); 
+        });</script>";
       // $prefix = "<div class=\"add_video_to_node\"><script>jQuery(document).ready(function(){ alert(get_title()); });</script>";
 
         kaltura_create_node_from_roughcut($result);
@@ -608,26 +608,26 @@ function kaltura_add_roughcut($session_user, $kaltura_client) {
  *
  */
 function kaltura_clone_mix_confirm(&$form_state) {
-	
-	$entry_id = arg(2);
-	$content_type = arg(3);
-	  
-	$content_type = isset($content_type) ? $content_type : 'kaltura_mix';
+  
+  $entry_id = arg(2);
+  $content_type = arg(3);
+    
+  $content_type = isset($content_type) ? $content_type : 'kaltura_mix';
 
   $entry_metadata = kaltura_get_metadata_for_mix($entry_id);
-	$entry_thumb = $entry_metadata -> kaltura_thumbnail_url;
+  $entry_thumb = $entry_metadata -> kaltura_thumbnail_url;
 
-	$form['preview'] = array('#value' => '<br /><img src='.$entry_thumb.'><br />');
-	$form['entry_id'] = array('#type' => 'value', '#value' => $entry_id);
-	$form['content_type'] = array('#type' => 'value', '#value' => $content_type);
-  	
+  $form['preview'] = array('#value' => '<br /><img src='.$entry_thumb.'><br />');
+  $form['entry_id'] = array('#type' => 'value', '#value' => $entry_id);
+  $form['content_type'] = array('#type' => 'value', '#value' => $content_type);
+    
 
-  	return confirm_form($form,"Would you like to create a new remix based on this content?",referer_uri(),"","Yes, create a new remix","No, thank you."); 
+    return confirm_form($form,"Would you like to create a new remix based on this content?",referer_uri(),"","Yes, create a new remix","No, thank you."); 
 }
 
 function kaltura_clone_mix_confirm_submit($form, &$form_state) {
 
-	drupal_goto('kaltura/clone/'.$form_state['values']['entry_id'] .'/'.$form_state['values']['content_type']);
+  drupal_goto('kaltura/clone/'.$form_state['values']['entry_id'] .'/'.$form_state['values']['content_type']);
 }
 
  
@@ -641,42 +641,42 @@ function kaltura_clone_mix() {
 
   //If we are asking for confirmation from the user....
   if (isset($confirm) && $confirm == 'confirm' && isset($entry_id) && $entry_id != '') {  
-  	return drupal_get_form('kaltura_clone_mix_confirm');		 		
+    return drupal_get_form('kaltura_clone_mix_confirm');        
 
   }
   //If we're not asking for confirmation, check to see that the user has access to clone
   else if ((!isset($confirm) || $confirm === '') && user_access('clone kaltura mixes')) {
 
-	  $kaltura_client = KalturaHelpers::getKalturaClient();
-	  $session_user = KalturaHelpers::getSessionUser();
-	 
-	  if (!$kaltura_client) {
-		drupal_set_message('Failed to start Kaltura session. Please check your settings.', 'warning');
-		echo theme_kaltura_maintenance_page("<br /><a href=\"#\" onclick=\"window.top.kalturaCloseModalBox()\">Close</a>", TRUE);
-		exit;
-	  }
+    $kaltura_client = KalturaHelpers::getKalturaClient();
+    $session_user = KalturaHelpers::getSessionUser();
+   
+    if (!$kaltura_client) {
+    drupal_set_message('Failed to start Kaltura session. Please check your settings.', 'warning');
+    echo theme_kaltura_maintenance_page("<br /><a href=\"#\" onclick=\"window.top.kalturaCloseModalBox()\">Close</a>", TRUE);
+    exit;
+    }
 
-		// create roughcut at this point by API call,
-		$rc = new KalturaMixEntry;
-		$rc->name = $title;
-		
-				
-		$session_user = KalturaHelpers::getSessionUser();
-		$result = $kaltura_client->mixing->cloneAction($entry_id);
+    // create roughcut at this point by API call,
+    $rc = new KalturaMixEntry;
+    $rc->name = $title;
+    
+        
+    $session_user = KalturaHelpers::getSessionUser();
+    $result = $kaltura_client->mixing->cloneAction($entry_id);
 
-		
-		if ($content_type == 'kaltura_mix' || !isset($content_type)) {
-			$nid = kaltura_create_node_from_roughcut($result);
-			drupal_goto('node/'.$nid.'/edit');
-		} else {
-			$cloned_entry_id = $result->id;
-			$content_type_url = str_replace('_','-',$content_type);
-			drupal_goto('node/add/'.$content_type_url.'/'.$cloned_entry_id);
-		}
-	} else {
-		drupal_set_message('You do not have access to remix this content.','error');
-		drupal_goto('');
-	}
+    
+    if ($content_type == 'kaltura_mix' || !isset($content_type)) {
+      $nid = kaltura_create_node_from_roughcut($result);
+      drupal_goto('node/'.$nid.'/edit');
+    } else {
+      $cloned_entry_id = $result->id;
+      $content_type_url = str_replace('_','-',$content_type);
+      drupal_goto('node/add/'.$content_type_url.'/'.$cloned_entry_id);
+    }
+  } else {
+    drupal_set_message('You do not have access to remix this content.','error');
+    drupal_goto('');
+  }
 
 }
 
@@ -692,19 +692,19 @@ function kaltura_clone_mix() {
  */
 function node_kaltura_mix_form_alter(&$form, &$form_state, $form_id) {
  if (!empty($_REQUEST["entries"]) && ($form_id == 'kaltura_mix_node_form') &&
-	 !empty($form['kaltura_entryId']['#default_value']))
+   !empty($form['kaltura_entryId']['#default_value']))
  {
- 	$arrEntries = explode(',',$_REQUEST['entries']);
+  $arrEntries = explode(',',$_REQUEST['entries']);
 
-	$kaltura_client = KalturaHelpers::getKalturaClient($admin);
+  $kaltura_client = KalturaHelpers::getKalturaClient($admin);
 
-	foreach($arrEntries as $index => $entryId)
-	{
-		if (!empty($entryId))
-		{
-			$kaltura_client ->mixing->appendMediaEntry($form['kaltura_entryId']['#default_value'], $entryId);
-		}
-	}
+  foreach($arrEntries as $index => $entryId)
+  {
+    if (!empty($entryId))
+    {
+      $kaltura_client ->mixing->appendMediaEntry($form['kaltura_entryId']['#default_value'], $entryId);
+    }
+  }
 
  }
   if ($form_id == 'kaltura_mix_node_form' && !$form['nid']['#value']) {
@@ -817,7 +817,32 @@ function node_kaltura_mix_update($node) {
   }
 }
 
-/*
+/**
+ * Implementation of hook_validate().
+ *
+ * We don't do this validation if 
+ * (1) this update is an update_notification from Kaltura anyway
+ * (2) we're deleting the node
+ */
+function node_kaltura_mix_validate($node, &$form) {
+  if ($node->notification_update !== TRUE && $form['#post']['op'] != t('Delete')) {
+    try {
+      $entry = kaltura_get_entry($form['kaltura_entryId']['#value']) ;
+    }
+    catch ( Exception $ex ) {
+      watchdog('node_kaltura_mix', t('Kaltura Exception: %message, backtrace: <pre>!trace</pre>'), array('%message' => $ex->getMessage(), '!trace' => $ex->getTrace()));
+      switch ( $ex->getCode() ) {
+        case 'ENTRY_ID_NOT_FOUND' :
+          form_set_error('kaltura_entryId', t('Entry not found on Kaltura server: @message', array('@message' => $ex->getMessage())));
+          break ;
+        default :
+          form_set_error('kaltura_entryId', t('Kaltura client exception: @message', array('@message' => $ex->getMessage()))); 
+      }
+    }
+  }
+}
+
+/**
  * helper function that takes the node's taxonomy tags
  * and pushes them into the kaltura tags fields
  */
@@ -879,10 +904,10 @@ function node_kaltura_mix_view($node, $teaser = FALSE, $page = FALSE) {
   //remove this condition if you wan the thumbnaill to show on the video page
   if ($teaser == 1)
   {
-	  $node->content['kaltura_thumbnail_url'] = array(
-		'#value' => theme('node_kaltura_mix_thumbnail_url', $node, $teaser),
-		'#weight' => 0,
-	  );  
+    $node->content['kaltura_thumbnail_url'] = array(
+    '#value' => theme('node_kaltura_mix_thumbnail_url', $node, $teaser),
+    '#weight' => 0,
+    );  
   }
   return $node;
 }
