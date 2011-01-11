@@ -20,6 +20,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
+#kaltura-installation-form div#saas-or-ce-wrapper div.form-item {
+    margin-bottom: 0 ;
+}
+
+#kaltura-installation-form #edit-kaltura-url-wrapper {
+    margin-top: 0 ;
+}
 
 #modalbox{ position: fixed; left: 50%; top:50%; margin:-180px 0 0 -340px; background:#262626; border:3px solid #666; width: 680px; z-index: 100; }
 
@@ -218,3 +225,4 @@ div.playlist-item.playing { background:#E5E5E5;}
 .kaltura_embed_code {color: #333; }
 .kaltura_embed_code textarea { color: #555; border-color: #ccc; border-style: solid; border-width: 1px; background-color: #efefef; overflow: hidden; height: 50px; width: 405px;}
 }
+
