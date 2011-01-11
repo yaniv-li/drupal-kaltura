@@ -463,6 +463,13 @@ function kaltura_installation_form($form_state = NULL) {
   return $form ;
 }
 
+/**
+ * Validation handler for kaltura_installation_form()
+ *
+ * @TODO validate that the supplied kaltura_url actually looks like a
+ * Kaltura server before proceeding. We need to stop them if the
+ * supplied URL isn't going to work.
+ */
 function kaltura_installation_form_validate($form, &$form_state) {
   dpm($form_state, 'form state (validate)');
   // BACK goes in validate because we ALWAYS need to be able to go
@@ -565,6 +572,9 @@ function kaltura_installation_form_validate($form, &$form_state) {
   }
 }
 
+/**
+ * Submit handler for kaltura_installation_form()
+ */
 function kaltura_installation_form_submit($form, &$form_state) {
   dpm($form_state, 'form state (submit)');
   $form_state['storage'] = array_merge($form_state['storage'], $form_state['values']);
