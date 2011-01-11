@@ -161,7 +161,7 @@ function kaltura_schema() {
         'not null' => FALSE,
       ),
     ),
-    'primary key' => array('vid'),
+    'primary key' => array('vid'), /* [#1022310] */
     );
   $schema['kaltura_notifications'] = array(
     'description' => 'table to "log" kaltura notifications, to ignore double notifications',
