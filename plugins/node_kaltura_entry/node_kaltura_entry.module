@@ -678,8 +678,8 @@ function theme_node_kaltura_entry_admin_tags($node) {
   return $admin_tags;
 }
 
-/*
- * function to render the thumbnail_url field into HTML
+/**
+ * Render thumbnail_url as HTML.
  */
 function theme_node_kaltura_entry_thumbnail_url($node, $teaser, $nosize = FALSE, $size = array()) {
   $skip = FALSE;
@@ -696,21 +696,26 @@ function theme_node_kaltura_entry_thumbnail_url($node, $teaser, $nosize = FALSE,
     $width = variable_get('kaltura_image_entry_thumb_width', '120');
     $height = variable_get('kaltura_image_entry_thumb_height', '90');
   }
+  $img_attr = array() ;
   if ($node->kaltura_media_type == 1 && $node->kstatus == 2 && variable_get('kaltura_entry_rotate_thumb', 1) == 1) {
-    $extra = 'onmouseover="KalturaThumbRotator.start(this)" onmouseout="KalturaThumbRotator.end(this)"';
+    $img_attr['onmouseover'] = "KalturaThumbRotator.start(this)" ;
+    $img_attr['onmouseout']  = "KalturaThumbRotator.end(this)" ;
   }
   $size_str = '';
   if ($nosize == FALSE) {
     $size_str = '/width/'. $width .'/height/'. $height;
+    /* this would make sense, but the sizes are actually max dimensions - eg 100x100 not 100x75 for 4:3 image */
+    //    $img_attr['width'] = $width ;
+    //    $img_attr['height'] = $height ;
   }
   if ($node->link_thumb || $teaser) {
     if (!empty($node->kaltura_thumbnail_url)) {
-      return '<div class="kaltura_thumb"><a href="'. url('node/'. $node->nid) .'"><img src="'. $node->kaltura_thumbnail_url . $size_str .'" '. $extra .' /></a></div>';
+      return '<div class="kaltura_thumb">' . l(theme('image', $node->kaltura_thumbnail_url . $size_str, '', '', $img_attr, FALSE), 'node/'. $node->nid, array('html' => TRUE)) . '</div>';
     }
   }
   else {
     if (!empty($node->kaltura_thumbnail_url)) {
-      return '<div class="kaltura_thumb"><img src="'. $node->kaltura_thumbnail_url . $size_str .'" '. $extra .' /></div>';
+      return '<div class="kaltura_thumb">'. theme('image', $node->kaltura_thumbnail_url . $size_str, '', '', $img_attr, FALSE) .'</div>';
     }
   }
 }

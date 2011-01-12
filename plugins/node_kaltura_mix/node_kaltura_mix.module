@@ -948,12 +948,12 @@ function theme_node_kaltura_mix_thumbnail_url($node, $teaser, $nosize = FALSE, $
   }  
   if ($node->link_thumb || $teaser) {
     if (!empty($node->kaltura_thumbnail_url)) {
-      return '<div class="kaltura_thumb"><a href="'. url('node/'. $node->nid) .'"><img src="'. $node->kaltura_thumbnail_url . $size_str .'" '. $extra .' /></a></div>';
+      return '<div class="kaltura_thumb">' . l(theme('image', $node->kaltura_thumbnail_url . $size_str, '', '', $img_attr, FALSE), 'node/'. $node->nid, array('html' => TRUE)) . '</div>';
     }
   }
   else {
     if (!empty($node->kaltura_thumbnail_url)) {
-      return '<div class="kaltura_thumb"><img src="'. $node->kaltura_thumbnail_url . $size_str .'" '. $extra .' /></div>';
+      return '<div class="kaltura_thumb">'. theme('image', $node->kaltura_thumbnail_url . $size_str, '', '', $img_attr, FALSE) .'</div>';
     }
   }
 }
