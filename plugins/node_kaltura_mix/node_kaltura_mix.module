@@ -946,10 +946,16 @@ function theme_node_kaltura_mix_thumbnail_url($node, $teaser, $nosize = FALSE, $
   if ($nosize == FALSE) {
     $size_str = '/width/'. $width .'/height/'. $height;
   }  
-  if ($node->link_thumb || $teaser)
-    return '<div class="kaltura_thumb"><a href="'. url('node/'. $node->nid) .'"><img src="'. $node->kaltura_thumbnail_url . $size_str .'" '. $extra .' /></a></div>';
-  else   
-   return '<div class="kaltura_thumb"><img src="'. $node->kaltura_thumbnail_url . $size_str .'" '. $extra .' /></div>';
+  if ($node->link_thumb || $teaser) {
+    if (!empty($node->kaltura_thumbnail_url)) {
+      return '<div class="kaltura_thumb"><a href="'. url('node/'. $node->nid) .'"><img src="'. $node->kaltura_thumbnail_url . $size_str .'" '. $extra .' /></a></div>';
+    }
+  }
+  else {
+    if (!empty($node->kaltura_thumbnail_url)) {
+      return '<div class="kaltura_thumb"><img src="'. $node->kaltura_thumbnail_url . $size_str .'" '. $extra .' /></div>';
+    }
+  }
 }
 
 /*

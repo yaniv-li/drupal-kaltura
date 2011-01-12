@@ -177,14 +177,14 @@ function kaltura_views_data() {
       'title' => t('kaltura item download link'),
       'help' => t(''),
       'field' => array(
-        'handler' => 'kaltura_views_handler_field_url',
+        'handler' => 'views_handler_field_url',
       ),
     ),
     'kaltura_media_date' => array(
       'title' => t('kaltura image item media date (EXIF data)'),
       'help' => t(''),
       'field' => array(
-        'handler' => 'views_handler_field',
+        'handler' => 'kaltura_views_handler_field_kaltura_media_date',
       ),
     ),
     'kaltura_entryId' => array(
@@ -219,7 +219,9 @@ function kaltura_views_views_handlers() {
     'handlers' => array(
       // fields
       'kaltura_views_handler_field_kaltura_thumb' => array( 'parent' => 'views_handler_field',),
+      'kaltura_views_handler_field_kaltura_url' => array( 'parent' => 'views_handler_field',),
       'kaltura_views_handler_field_kaltura_duration' => array( 'parent' => 'views_handler_field',),
+      'kaltura_views_handler_field_kaltura_media_date' => array( 'parent' => 'views_handler_field',),
       'kaltura_views_handler_field_kaltura_votes' => array( 'parent' => 'views_handler_field',),
       // fiters
       'kaltura_views_handler_filter_media_type' => array('parent' => 'views_handler_filter_in_operator',),

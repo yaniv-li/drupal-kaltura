@@ -682,7 +682,6 @@ function theme_node_kaltura_entry_admin_tags($node) {
  * function to render the thumbnail_url field into HTML
  */
 function theme_node_kaltura_entry_thumbnail_url($node, $teaser, $nosize = FALSE, $size = array()) {
-
   $skip = FALSE;
   if (isset($size['width']) && isset($size['height'])) {
     $width = $size['width'];
@@ -704,10 +703,16 @@ function theme_node_kaltura_entry_thumbnail_url($node, $teaser, $nosize = FALSE,
   if ($nosize == FALSE) {
     $size_str = '/width/'. $width .'/height/'. $height;
   }
-  if ($node->link_thumb || $teaser)
-    return '<div class="kaltura_thumb"><a href="'. url('node/'. $node->nid) .'"><img src="'. $node->kaltura_thumbnail_url . $size_str .'" '. $extra .' /></a></div>';
-  else
-    return '<div class="kaltura_thumb"><img src="'. $node->kaltura_thumbnail_url . $size_str .'" '. $extra .' /></div>';
+  if ($node->link_thumb || $teaser) {
+    if (!empty($node->kaltura_thumbnail_url)) {
+      return '<div class="kaltura_thumb"><a href="'. url('node/'. $node->nid) .'"><img src="'. $node->kaltura_thumbnail_url . $size_str .'" '. $extra .' /></a></div>';
+    }
+  }
+  else {
+    if (!empty($node->kaltura_thumbnail_url)) {
+      return '<div class="kaltura_thumb"><img src="'. $node->kaltura_thumbnail_url . $size_str .'" '. $extra .' /></div>';
+    }
+  }
 }
 
 /*
