@@ -118,9 +118,9 @@ function kaltura_import_ce() {
     $kClient = new KalturaClient($kConfig);
     $res = $kClient -> partner -> getSecrets(1, $email, $password);
     
-    $partner = 1;
-    $secret = $kPartner->secret;
-    $adminSecret = $kPartner->adminSecret;  
+    $partner = 1; /* not used (but $partner->notificationUrl is referenced */
+    $secret = $kPartner->secret; /* undefined */
+    $adminSecret = $kPartner->adminSecret; /* undefined */
   
     variable_set('kaltura_partner_id',         $res->id);
     variable_set('kaltura_subp_id',            $res->id."00");
@@ -271,9 +271,9 @@ function kaltura_installation_form($form_state = NULL) {
         "<br/>Kaltura Commercial and Comunity Editions will allow you to host, " .
         "transcode and stream everything on your own server." .
         "<br />" .
-        "<b>This requires you download, installation and configure the Kaltura CE server before you continue.</b>" . 
+        "<b>This requires an installed and configured Kaltura CE server before continuing.</b>" . 
         "<br/>" .
-        l('To learn more about Kaltura CE, click here.', 
+        l('To learn more or download Kaltura CE, click here.', 
           'http://www.kaltura.org/project/community_edition_video_platform', 
           array('target' => '_blank' )) ;
 
@@ -422,6 +422,8 @@ function kaltura_installation_form($form_state = NULL) {
       break ;
 
     case '2' :
+      $targs = array('!kaltura_url' => $form_state['storage']['kaltura_url']) ;
+      drupal_set_title(t('Kaltura Installation - Login details for !kaltura_url', $targs));
       $form['kaltura_partner_id'] = array(
         '#type' => 'textfield',
         '#size' => 8,
@@ -522,11 +524,13 @@ function kaltura_installation_form_validate($form, &$form_state) {
       break ;
     case 2 :
       $vc = TRUE ; // whether to attempt client validation as well
+      /* Kaltura client will prepend slash, so let's trim it here */
+      $form['storage']['kaltura_url'] = trim($form_state['storage']['kaltura_url'], ' /');
       /* throws exceptions if trailing slash is missing from kaltura_url */
-      if ( substr($form_state['values']['kaltura_url'], -1) != '/' ) {
-        $form_state['values']['kaltura_url'] .= '/' ;
-      }
-      if ( !valid_url( $form_state['values']['kaltura_url']) ) {
+      //if ( substr($form_state['storage']['kaltura_url'], -1) != '/' ) {
+      //$form_state['storage']['kaltura_url'] .= '/' ;
+      //}
+      if ( !valid_url( $form_state['storage']['kaltura_url']) ) {
         form_set_error('kaltura_url', t('Kaltura URL must be a valid URL.'));
         $vc = FALSE ;
       }
@@ -535,10 +539,12 @@ function kaltura_installation_form_validate($form, &$form_state) {
         form_set_error('kaltura_partner_id', t('Kaltura Partner ID must be provided.'));
         $vc = FALSE ;
       }
+
       if ( !valid_email_address($form_state['values']['kaltura_login_email']) ) {
         form_set_error('kaltura_login_password', t('You must provide a valid Kaltura login email.'));
         $vc = FALSE ;
       }
+
       if ( empty($form_state['values']['kaltura_login_password']) ) {
         form_set_error('kaltura_login_password', t('You must enter a Kaltura login password.'));
         $vc = FALSE ;
@@ -548,15 +554,15 @@ function kaltura_installation_form_validate($form, &$form_state) {
         try {
           // test access credentials
           $config = Kalturahelpers::getServiceConfiguration();
-          $config->partnerId =  $form_state['values']['kaltura_partner_id'] ;
-          $config->serviceUrl = $form_state['values']['kaltura_url'] ;
+          $config->partnerId =  $form_state['storage']['kaltura_partner_id'] ;
+          $config->serviceUrl = $form_state['storage']['kaltura_url'] ;
           $client = new KalturaClient($config);
           $result = $client->partner->getSecrets(
-            $form_state['values']['kaltura_partner_id'], 
-            $form_state['values']['kaltura_login_email'], 
-            $form_state['values']['kaltura_login_password']
+            $form_state['storage']['kaltura_partner_id'], 
+            $form_state['storage']['kaltura_login_email'], 
+            $form_state['storage']['kaltura_login_password']
           );
-          drupal_set_message('Kaltura credentials verified.');
+          drupal_set_message(t('Kaltura credentials verified against !kaltura_url.', array('!kaltura_url' => $form_state['storage']['kaltura_url'])));
           // do we want to store these details and re-use them?
           $form['storage']['secret'] = $result['secret'] ;
           $form['storage']['adminSecret'] = $result['adminSecret'] ;
@@ -663,7 +669,43 @@ function kaltura_installation_form_submit($form, &$form_state) {
           // Redirect back to step 0 to avoid confusion.
           drupal_goto('admin/settings/kaltura/install');
         }
-      default :
+        break ;
+    case 2 :
+      // import an existing partner
+      $config = Kalturahelpers::getServiceConfiguration();
+      $config->partnerId =  $form_state['storage']['kaltura_partner_id'] ;
+      $config->serviceUrl = $form_state['storage']['kaltura_url'] ;
+      $client = new KalturaClient($config);
+      dpm($form_state, 'fstate');
+      dpm($config, 'config');
+      try {
+        $result = $client->partner->getSecrets(
+          $form_state['storage']['kaltura_partner_id'], 
+          $form_state['storage']['kaltura_login_email'], 
+          $form_state['storage']['kaltura_login_password']
+        );
+        dpm($result, 'result');
+        variable_set('kaltura_partner_id',           $result->id);
+        variable_set('kaltura_subp_id',              $result->id."00");
+        variable_set('kaltura_secret',               $result->secret);
+        variable_set('kaltura_admin_secret',         $result->adminSecret);
+        variable_set('kaltura_local_registration',   1);
+        variable_set('kaltura_server_url',           $form_state['storage']['kaltura_url']);
+        variable_set('kaltura_partner_cms_email',    $result->adminEmail);
+        variable_set('kaltura_partner_cms_password', $password);
+        variable_set('kaltura_partner_url2', $_REQUEST['partner_url2']);
+        variable_set('kaltura_notification_type', 0);
+        kaltura_update_kaltura_partner(2, $partner->notificationUrl);
+        // kaltura_create_widgets_for_partner($partner->id, $secret);
+        drupal_set_message('Congratulations!  You have successfully installed the All in One Video Module and registered for the Kaltura Partner Program.');
+        drupal_goto('admin/settings/kaltura/general');
+      }
+      catch(Exception $ex) {
+        drupal_set_message(t('Kaltura client exception: @message', array('@message' => $ex->getMessage())), 'error'); 
+      }
+        
+      break ;
+    default :
         
     }
     $form_state['storage']['step']++ ;  
