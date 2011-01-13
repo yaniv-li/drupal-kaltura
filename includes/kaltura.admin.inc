@@ -564,8 +564,8 @@ function kaltura_installation_form_submit($form, &$form_state) {
         variable_set('kaltura_admin_secret',         $result->adminSecret);
         variable_set('kaltura_local_registration',   1);
         variable_set('kaltura_server_url',           $form_state['storage']['kaltura_url']);
-        variable_set('kaltura_partner_cms_email',    $result->adminEmail);
-        variable_set('kaltura_partner_cms_password', $password);
+        variable_set('kaltura_partner_cms_email',    $form_state['storage']['kaltura_login_email']);
+        variable_set('kaltura_partner_cms_password', $form_state['storage']['kaltura_login_password']);
         variable_set('kaltura_partner_url2',         $form_state['storage']['partner_url2']);
         variable_set('kaltura_notification_type',    0);
         kaltura_update_kaltura_partner(2, $partner->notificationUrl);
@@ -701,10 +701,10 @@ function kaltura_settings_form() {
   
   $partner_exist = variable_get('kaltura_partner_id', '');
   $readonly_attr = array();
+
   if (!empty($partner_exist)) {
     $readonly_attr = array('readonly' => 'readonly');
-  }
-  
+  }  
   $form['kaltura_partner_settings']['kaltura_partner_id'] = array(
     '#type' => 'textfield', 
     '#title' => t('Partner ID'),
@@ -714,18 +714,20 @@ function kaltura_settings_form() {
     '#attributes' => $readonly_attr
   );
   
-  $form['kaltura_partner_settings']['cms_email'] = array(
+  $form['kaltura_partner_settings']['kaltura_partner_cms_email'] = array(
     '#type' => 'textfield',
     '#title' => t('Email'),
     '#default_value' => variable_get('kaltura_partner_cms_email', ''),
-    '#attributes' => $readonly_attr,      
+//    '#attributes' => $readonly_attr,      
+    '#description' => t('This value must match your Kaltura server settings.'),
   );
   
-  $form['kaltura_partner_settings']['cms_password'] = array(
+  $form['kaltura_partner_settings']['kaltura_partner_cms_password'] = array(
     '#type' => 'textfield',
     '#title' => t('Password'),
     '#default_value' => variable_get('kaltura_partner_cms_password', ''),
-    '#attributes' => $readonly_attr,    
+//    '#attributes' => $readonly_attr,    
+    '#description' => t('This value must match your Kaltura server settings.'),
   );
   
   if (!empty($partner_exist)) {
@@ -839,7 +841,26 @@ function kaltura_settings_form_validate($form, &$form_state) {
   if ( !valid_url($form_state['values']['kaltura_partner_url2'], TRUE) ) {
     form_set_error('kaltura_partner_url2', t('Notification URL should be a valid URL, but %partner_url is not.', array('%partner_url' => $form_state['values']['kaltura_partner_url2'])));
   }
-  
+  try {
+    // test access credentials
+    $config = Kalturahelpers::getServiceConfiguration();
+    // we're still in validate, so the changed values aren't
+    // committed to $form_state['storage'] yet
+    $config->partnerId =  variable_get('kaltura_partner_id', '') ;
+    $config->serviceUrl = variable_get('kaltura_server_url', '');
+    $client = new KalturaClient($config);
+    $result = $client->partner->getSecrets(
+      $config->partnerId, 
+      $form_state['values']['kaltura_partner_cms_email'], 
+      $form_state['values']['kaltura_partner_cms_password']
+    );
+    drupal_set_message(t('Kaltura credentials verified against !kaltura_url.', array('!kaltura_url' => $config->serviceUrl)));
+  }
+  catch ( Exception $ex ) {          
+    $targs = array('%message' => $ex->getMessage(), '%file' => $ex->getFile(), '%line' => $ex->getLine(), '%code' => $ex->getCode() );
+    form_set_error('', t('Kaltura credentials failed login: %message', $targs ));
+    watchdog('kaltura', 'Unable to verify Kaltura credentials: %message', $targs, WATCHDOG_ERROR);
+  }
 }
 
 /**
