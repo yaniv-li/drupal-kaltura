@@ -70,7 +70,7 @@ function kaltura_register_partner() {
   $kaltura_client = new KalturaClient($config);
 //  $kaltura_client->setConfig($config);
 
-  watchdog('regis', print_r($partner, TRUE));
+  // watchdog('regis', print_r($partner, TRUE));
   $res = $kaltura_client->partner->register($partner, $_REQUEST['cms_password']);
 
   $result = $res->id;
@@ -83,7 +83,7 @@ function kaltura_register_partner() {
     variable_set('kaltura_server_url',    KalturaHelpers::getKalturaServerUrl());
     variable_set('kaltura_partner_cms_email', $partner->adminEmail);
     variable_set('kaltura_partner_cms_password', $_REQUEST['cms_password']);
-    variable_set('kaltura_partner_url2', $_REQUEST['partner_url2']);
+    variable_set('kaltura_partner_url2',       $_REQUEST['partner_url2']);
     variable_set('kaltura_notification_type', 0);
     variable_set('kaltura_content_categories', $categories);
 
@@ -160,7 +160,6 @@ function kaltura_get_partner_details($partner_id, $cms_email, $cms_password) {
   
   $config = KalturaHelpers::getServiceConfiguration();
   $config->partnerId = $partner_id;
-  dpm($config, 'config');
   $kaltura_client = new KalturaClient($config);
   /**
    * here we are trying to retrieve the partner details from the kaltura server
@@ -173,9 +172,9 @@ function kaltura_get_partner_details($partner_id, $cms_email, $cms_password) {
   }
   catch ( Exception $ex ) {
     drupal_set_message(t('Kaltura client exception: @message', array('@message' => $ex->getMessage())), 'error'); 
-    if ( module_exists('devel') ) {
-      dpm( $ex->getTrace(), 'Exception stack trace' );
-    }
+    //if ( module_exists('devel') ) {
+    //  dpm( $ex->getTrace(), 'Exception stack trace' );
+    //}
     $result['error'] = $ex->getMessage();
   }
 
@@ -230,7 +229,7 @@ function kaltura_create_widgets_for_partner($partner_id, $secret) {
  * Form builder function. Used when site has not yet been initialised.
  */
 function kaltura_installation_form($form_state = NULL) {
-  dpm($form_state, 'form (build)');
+  //dpm($form_state, 'form (build)');
   global $user ;
 
   $steps = 3 ;
@@ -473,7 +472,7 @@ function kaltura_installation_form($form_state = NULL) {
  * supplied URL isn't going to work.
  */
 function kaltura_installation_form_validate($form, &$form_state) {
-  dpm($form_state, 'form state (validate)');
+  //dpm($form_state, 'form state (validate)');
   // BACK goes in validate because we ALWAYS need to be able to go
   // back a step, even if we don't pass validation.
   $step_from = $form_state['storage']['step'] ;
@@ -507,7 +506,10 @@ function kaltura_installation_form_validate($form, &$form_state) {
     case 1 :
       // website name, admin name must not be empty
       if ( empty($form_state['values']['partner_site_name']) ) {
-        form_set_error('partner_name', t('Website Name is a required field.'));
+        form_set_error('partner_site_name', t('Website Name is a required field.'));
+      }
+      if ( !valid_url($form_state['values']['partner_url1']) ) {
+        form_set_error('partner_url1', t('Website address must be a valid URL.'));
       }
       if ( empty($form_state['values']['partner_administrator_name']) ) {
         form_set_error('partner_administrator_name', t('Administrator name is required.'));
@@ -554,25 +556,27 @@ function kaltura_installation_form_validate($form, &$form_state) {
         try {
           // test access credentials
           $config = Kalturahelpers::getServiceConfiguration();
-          $config->partnerId =  $form_state['storage']['kaltura_partner_id'] ;
+          // we're still in validate, so the changed values aren't
+          // committed to $form_state['storage'] yet
+          $config->partnerId =  $form_state['values']['kaltura_partner_id'] ;
           $config->serviceUrl = $form_state['storage']['kaltura_url'] ;
           $client = new KalturaClient($config);
           $result = $client->partner->getSecrets(
-            $form_state['storage']['kaltura_partner_id'], 
-            $form_state['storage']['kaltura_login_email'], 
-            $form_state['storage']['kaltura_login_password']
+            $form_state['values']['kaltura_partner_id'], 
+            $form_state['values']['kaltura_login_email'], 
+            $form_state['values']['kaltura_login_password']
           );
           drupal_set_message(t('Kaltura credentials verified against !kaltura_url.', array('!kaltura_url' => $form_state['storage']['kaltura_url'])));
           // do we want to store these details and re-use them?
+          //dpm($result, 'result');
           $form['storage']['secret'] = $result['secret'] ;
           $form['storage']['adminSecret'] = $result['adminSecret'] ;
         }
-        catch ( Exception $ex ) {
+        catch ( Exception $ex ) {          
           form_set_error('', t('Kaltura credentials failed login: %message', array('%message' => $ex->getMessage(), '%file' => $ex->getFile(), '%line' => $ex->getLine(), '%code' => $ex->getCode() ) ));
-          drupal_set_message( t('Kaltura %code Exception: %message<br /><small>%file ln %line</small>', array('%message' => $ex->getMessage(), '%file' => $ex->getFile(), '%line' => $ex->getLine(), '%code' => $ex->getCode() ) ), 'error' );
-          if ( module_exists('devel') ) {
-            dpm( $ex->getTrace(), 'Exception stack trace' );
-          }
+          //if ( module_exists('devel') ) {
+          //  dpm( $ex->getTrace(), 'Exception stack trace' );
+          //}
         }
       }
   }
@@ -582,7 +586,7 @@ function kaltura_installation_form_validate($form, &$form_state) {
  * Submit handler for kaltura_installation_form()
  */
 function kaltura_installation_form_submit($form, &$form_state) {
-  dpm($form_state, 'form state (submit)');
+  //dpm($form_state, 'form state (submit)');
   $form_state['storage'] = array_merge($form_state['storage'], $form_state['values']);
   $step_from = $form_state['storage']['step'] ;
   if ( $form_state['clicked_button']['#value'] == KALTURA_INSTALL_FWDBUTTON || $form_state['clicked_button']['#value'] == KALTURA_INSTALL_SKIPREGBUTTON ) {
@@ -622,7 +626,10 @@ function kaltura_installation_form_submit($form, &$form_state) {
           $categories[] = $content_categories->categories[$category] ;
         }
         $partner->contentCategories = ( !empty($categories) ) ? implode(',', $categories) : 'N/A' ;
-        $partner->adultContent = (boolean)$form_state['storage']['kaltura_adult_content'] ;
+        // in old form this was: $partner->adultContent = ($_REQUEST['kaltura_adult_content'] == 1)? true: false;
+        // but when testing, I always found that (regardless of submitted value), the Kaltura server then
+        // listed the registered account as FALSE for this value.
+        $partner->adultContent = ( $form_state['storage']['kaltura_adult_content'] ) ? TRUE : FALSE ;
 
         // is this needed? it's not used directly, but it's
         // everywhere.
@@ -660,9 +667,9 @@ function kaltura_installation_form_submit($form, &$form_state) {
         }
         catch ( Exception $ex ) {
           form_set_error('', t('Registration error: @message', array('@message' => $ex->getMessage())), 'error'); 
-          if ( module_exists('devel') ) {
-            dpm( $ex->getTrace(), 'Exception stack trace' );
-          }
+          //if ( module_exists('devel') ) {
+          //  dpm( $ex->getTrace(), 'Exception stack trace' );
+          //}
           watchdog('kaltura', 'Registration error: @message', array('@message' => $ex->getMessage()));
           watchdog('kaltura', 'Backtrace for failed registration: <pre>@trace</pre>', array('@trace' => $ex->getTrace()));
           // If we re-display the form here, we will lose $form['storage'].
@@ -676,15 +683,15 @@ function kaltura_installation_form_submit($form, &$form_state) {
       $config->partnerId =  $form_state['storage']['kaltura_partner_id'] ;
       $config->serviceUrl = $form_state['storage']['kaltura_url'] ;
       $client = new KalturaClient($config);
-      dpm($form_state, 'fstate');
-      dpm($config, 'config');
+      //dpm($form_state, 'fstate');
+      //dpm($config, 'config');
       try {
         $result = $client->partner->getSecrets(
           $form_state['storage']['kaltura_partner_id'], 
           $form_state['storage']['kaltura_login_email'], 
           $form_state['storage']['kaltura_login_password']
         );
-        dpm($result, 'result');
+        //dpm($result, 'result');
         variable_set('kaltura_partner_id',           $result->id);
         variable_set('kaltura_subp_id',              $result->id."00");
         variable_set('kaltura_secret',               $result->secret);
@@ -693,8 +700,8 @@ function kaltura_installation_form_submit($form, &$form_state) {
         variable_set('kaltura_server_url',           $form_state['storage']['kaltura_url']);
         variable_set('kaltura_partner_cms_email',    $result->adminEmail);
         variable_set('kaltura_partner_cms_password', $password);
-        variable_set('kaltura_partner_url2', $_REQUEST['partner_url2']);
-        variable_set('kaltura_notification_type', 0);
+        variable_set('kaltura_partner_url2',         $form_state['storage']['partner_url2']);
+        variable_set('kaltura_notification_type',    0);
         kaltura_update_kaltura_partner(2, $partner->notificationUrl);
         // kaltura_create_widgets_for_partner($partner->id, $secret);
         drupal_set_message('Congratulations!  You have successfully installed the All in One Video Module and registered for the Kaltura Partner Program.');
@@ -706,10 +713,10 @@ function kaltura_installation_form_submit($form, &$form_state) {
         
       break ;
     default :
-        
+      
     }
     $form_state['storage']['step']++ ;  
-    drupal_set_message(t('Forward (!from » !to)', array('!from' => $step_from, '!to' => $form_state['storage']['step'])));
+    //drupal_set_message(t('Forward (!from » !to)', array('!from' => $step_from, '!to' => $form_state['storage']['step'])));
   }
 
 }
@@ -731,7 +738,7 @@ function kaltura_settings_form() {
   global $base_url;
 
   if (variable_get('kaltura_partner_id', '') == '') {
-    drupal_goto('admin/settings/kaltura/install');
+    //drupal_goto('admin/settings/kaltura/install');
   }
 
   /**
@@ -1636,36 +1643,40 @@ function kaltura_parse_crossdomain($crossdomain_xml) {
   }
 }
 
-/*
- * helper function that updates partner notification settings in kaltura's server
- *
- * CMAC
- * changes
+/**
+ * Helper function that updates partner notification settings at
+ * Kaltura server.
  */
 function kaltura_update_kaltura_partner($notifications_config = 2, $notification_url = '') {
   $partner = new KalturaPartner();
+
+  if ( empty($notification_url) ) {
+    $partner->notificationUrl = url('kaltura/notification_handler', array('absolute' => TRUE));
+  }
+  else {
+    $partner->notificationUrl = $notification_url ;
+  }
+
   $partner->allowMultiNotification = '1';
   $partner->notify = 1;
   $partner->notificationsConfig = '*='. $notifications_config;
-//  $partner->id = variable_get('kaltura_partner_id', '');
+  //$partner->id = variable_get('kaltura_partner_id', '');
 
-  $url = url('kaltura/notification_handler', array('absolute' => TRUE));
-  $notification_url = ($notification_url == '') ? $url : $notification_url;
-  $partner->notificationUrl = $notification_url;
   $session_user = KalturaHelpers::getSessionUser();
   $kaltura_client = KalturaHelpers::getKalturaClient(1);
+  
   $cms_pass = variable_get('kaltura_partner_cms_password', '');
 
   if ($kaltura_client) {
     try {
-      watchdog('kaltura', 'Updating Kaltura Partner settings (!partner, !password).', array('!partner' => $partner, '!password' => $cms_pass), WATCHDOG_NOTICE);
+      watchdog('kaltura', 'Updating Kaltura Partner settings (!partner, !password).', array('!partner' => print_r($partner, 1), '!password' => $cms_pass), WATCHDOG_NOTICE);
       $result = $kaltura_client->partner->update($partner, $cms_pass);
       //$result = $kaltura_client->updatePartner($session_user, $partner);
     } catch ( Exception $ex ) {
       drupal_set_message( t('Kaltura %code Exception: %message<br /><small>%file ln %line</small>', array('%message' => $ex->getMessage(), '%file' => $ex->getFile(), '%line' => $ex->getLine(), '%code' => $ex->getCode() ) ), 'error' );
-      if ( module_exists('devel') ) {
-       dpm( $ex->getTrace(), 'Exception stack trace' );
-      }
+      //if ( module_exists('devel') ) {
+      // dpm( $ex->getTrace(), 'Exception stack trace' );
+      //}
       watchdog('kaltura', 'Registration error: @message', array('@message' => $ex->getMessage()));
       watchdog('kaltura', 'Backtrace for failed registration: <pre>@trace</pre>', array('@trace' => $ex->getTrace()));
     }
