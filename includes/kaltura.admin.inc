@@ -508,7 +508,7 @@ function kaltura_installation_form_validate($form, &$form_state) {
       if ( empty($form_state['values']['partner_site_name']) ) {
         form_set_error('partner_site_name', t('Website Name is a required field.'));
       }
-      if ( !valid_url($form_state['values']['partner_url1']) ) {
+      if ( !valid_url($form_state['values']['partner_url1'], TRUE) ) {
         form_set_error('partner_url1', t('Website address must be a valid URL.'));
       }
       if ( empty($form_state['values']['partner_administrator_name']) ) {
@@ -532,7 +532,7 @@ function kaltura_installation_form_validate($form, &$form_state) {
       //if ( substr($form_state['storage']['kaltura_url'], -1) != '/' ) {
       //$form_state['storage']['kaltura_url'] .= '/' ;
       //}
-      if ( !valid_url( $form_state['storage']['kaltura_url']) ) {
+      if ( !valid_url( $form_state['storage']['kaltura_url'], TRUE) ) {
         form_set_error('kaltura_url', t('Kaltura URL must be a valid URL.'));
         $vc = FALSE ;
       }
@@ -741,455 +741,204 @@ function kaltura_settings_form() {
     drupal_goto('admin/settings/kaltura/install');
   }
 
-  /**
-   * Show advanced help. But we don't need this on the installation form - there's no advanced help there.
-   */
   if (!module_exists('advanced_help')) {
     $form['kaltura_help'] = array(
       '#value' => t('For more detailed help enable the advanced help module.'),
     );
   }
 
-  /**
-   * If the Kaltura Partner ID is stored in the DB, then we don't need to run the installation.
-   */
-  if (variable_get('kaltura_partner_id', '') != '') {
-    $notification_settings = kaltura_notifications_settings_form();
-    $form['kaltura_notification_settings'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Kaltura to Drupal Notification Settings'),
-      '#collapsible' => TRUE,
-      '#collapsed' => TRUE,
-    );
-    foreach ($notification_settings as $name => $form_element) {
-      $form['kaltura_notification_settings'][$name] = $form_element;
-    }
-    $form['kaltura_server_status'] = array(
-      '#type' => 'fieldset', 
-      '#title' => t('Server Status'), 
-      '#collapsible' => TRUE, 
-      '#collapsed' => FALSE
-    );
-    list($admin_session_status, $admin_session_error) = kaltura_check_server_status($admin = 1);
-    list($normal_session_status, $normal_session_error) = kaltura_check_server_status($admin = 0);
-    $status_class = ($admin_session_status && $normal_session_status)? 'ok': 'bad';
-    $session_status = ($admin_session_status && $normal_session_status)? 'OK': 'ERROR';
+  /* status report */
+  $form['kaltura_server_status'] = array(
+    '#type' => 'fieldset', 
+    '#title' => t('Server Status'), 
+    '#collapsible' => TRUE, 
+    '#collapsed' => FALSE,
+  );
 
-    $error = ' kaltura_error: ';
-    if ($admin_session_error) {
-      $error .= '<br />admin session: '. $admin_session_error;
-      $error_status = TRUE;
-    }
-    if ($normal_session_error) {
-      $error .= '<br />normal session: '. $normal_session_error;
-      $error_status = TRUE;
-    }
-
-    $form['kaltura_server_status']['kaltura_Admin_test_server'] = array(
-      '#type' => 'item',
-      '#title' => t('Drupal to Kaltura Session Test'),
-      '#prefix' => '<div class="kaltura_status_'. $status_class .'">',
-      '#value' => 'Session status: '. $session_status . (($error_status)? $error: ''),
-      '#suffix' => '</div>'
-    );
-    if (kaltura_variable_get_real('kaltura_notification_type', 0) == 1) {
-      list($status, $text) = kaltura_test_notification_config();
-      $prefix = '<div class="kaltura_status_'. (($status)? 'ok': 'bad') .'">';
-      $form['kaltura_server_status']['kaltura_notification_status'] = array(
-        '#type' => 'item',
-        '#title' => t('Kaltura to Drupal Notification Status'),
-        '#prefix' => $prefix,
-        '#value' => $text,
-        '#suffix' => '</div>'
-      );
-    }
-    list($status, $text) = kaltura_test_cron_job_status();
+  list($admin_session_status, $admin_session_error) = kaltura_check_server_status($admin = 1);
+  list($normal_session_status, $normal_session_error) = kaltura_check_server_status($admin = 0);
+  $status_class = ($admin_session_status && $normal_session_status)? 'ok': 'bad';
+  $session_status = ($admin_session_status && $normal_session_status)? 'OK': 'ERROR';
+  $error = ' kaltura_error: ';
+  if ($admin_session_error) {
+    $error .= '<br />admin session: '. $admin_session_error;
+    $error_status = TRUE;
+  }
+  if ($normal_session_error) {
+    $error .= '<br />normal session: '. $normal_session_error;
+    $error_status = TRUE;
+  }
+  
+  $form['kaltura_server_status']['kaltura_Admin_test_server'] = array(
+    '#type' => 'item',
+    '#title' => t('Drupal to Kaltura Session Test'),
+    '#prefix' => '<div class="kaltura-status-'. $status_class .'">',
+    '#value' => 'Session status: '. $session_status . (($error_status)? $error: ''),
+    '#suffix' => '</div>'
+  );
+  if (kaltura_variable_get_real('kaltura_notification_type', 0) == 1) {
+    list($status, $text) = kaltura_test_notification_config();
     $prefix = '<div class="kaltura_status_'. (($status)? 'ok': 'bad') .'">';
-    $form['kaltura_server_status']['kaltura_cron_job_status'] = array(
+    $form['kaltura_server_status']['kaltura_notification_status'] = array(
       '#type' => 'item',
-      '#title' => t('Cron-Job Status'),
+      '#title' => t('Kaltura to Drupal Notification Status'),
       '#prefix' => $prefix,
       '#value' => $text,
       '#suffix' => '</div>'
     );
-    list($status, $text) = kaltura_test_crossdomain();
-    $prefix = '<div class="kaltura_status_'. (($status)? 'ok': 'bad') .'">';
-    $form['kaltura_server_status']['kaltura_crossdomain_status'] = array(
-      '#type' => 'item',
-      '#title' => t('CrossDomain.xml Status'),
-      '#prefix' => $prefix,
-      '#value' => $text,
-      '#suffix' => '</div>'
+  }
+
+  list($status, $text) = kaltura_test_cron_job_status();
+  $prefix = '<div class="kaltura-status-'. (($status)? 'ok': 'bad') .'">';
+  $form['kaltura_server_status']['kaltura_cron_job_status'] = array(
+    '#type' => 'item',
+    '#title' => t('Cron-Job Status'),
+    '#prefix' => $prefix,
+    '#value' => $text,
+    '#suffix' => '</div>'
+  );
+
+  list($status, $text) = kaltura_test_crossdomain();
+  $prefix = '<div class="kaltura-status-'. (($status)? 'ok': 'bad') .'">';
+  $form['kaltura_server_status']['kaltura_crossdomain_status'] = array(
+    '#type' => 'item',
+    '#title' => t('crossdomain.xml Status'),
+    '#prefix' => $prefix,
+    '#value' => $text,
+    '#suffix' => '</div>'
+  );
+  
+  /* The normal settings form. */
+  if (variable_get('kaltura_partner_id', '') == '') {
+    drupal_set_title('All in One Video Module by Kaltura Installation');
+    $forgot_link_attributes = array(
+      'attributes' => array(
+        'target' => '_blank'
+      )
     );
-  } /* if (variable_get('kaltura_partner_id', '') != '') */
-
-  $register_visible = FALSE;
-  if ($_REQUEST['partner_name'] && $_REQUEST['op'] == 'Complete Installation') {
-    /**
-     * should be moved to _validate().
-     */
-    if ($_REQUEST['kaltura_agree_terms'] == 1) {
-      // no test or error handling?
-      kaltura_register_partner();
-    }
-    else {
-      drupal_set_message('You must agree to the terms of use', 'error');
-    }
-  } /* if ($_REQUEST['partner_name'] && $_REQUEST['op'] == 'Complete Installation') */
-
-  if ($_REQUEST['op'] == 'Complete Installation' && $_REQUEST['ce_url']) {
-    // TODO: If this fails, we need to display the server registration
-    // form again.
-    kaltura_import_ce();
-  } /* if ($_REQUEST['op'] == 'Complete Installation' && $_REQUEST['ce_url']) */
-
-  /**
-   * if the user already has a partner id, the importing of partner details is done here
-   */
-  if ($_REQUEST['op'] == 'Complete Installation' && $_REQUEST['kaltura_partner_id']) {
-    list($pid, $subpid, $url2, $secret, $admin_secret) = kaltura_get_partner_details($_REQUEST['kaltura_partner_id'], $_REQUEST['cms_email'], $_REQUEST['cms_password']);
-    /**
-     * should be moved to _validate().
-     */
-    if ($pid) {
-      variable_set('kaltura_partner_id', $pid);
-      variable_set('kaltura_subp_id', $subpid);
-      variable_set('kaltura_secret', $secret);
-      variable_set('kaltura_admin_secret', $admin_secret);
-      variable_set('kaltura_partner_url2', str_replace('/?q=kaltura/notification_handler', '', $url2));
-      variable_set('kaltura_partner_cms_email', $_REQUEST['cms_email']);
-      variable_set('kaltura_partner_cms_password', $_REQUEST['cms_password']);
-      variable_set('kaltura_server_url',    KalturaHelpers::getKalturaServerUrl());
-      drupal_set_message('Your partner details were imported successfully. please check the '. l('notification settings', 'admin/settings/kaltura/general/notifications'));
-      drupal_set_message('You can '. l('import Kaltura Media from your existing partner', 'admin/settings/kaltura/import'));
-      kaltura_create_widgets_for_partner($pid, $secret);
-      kaltura_update_kaltura_partner(2, $url2);
-      drupal_goto('admin/settings/kaltura/general');
-    }
-    else {
-      drupal_set_message('Couldn\'t import partner details.<br />'. print_r($subpid, TRUE) . $subpid['code'] .': '. $subpid['desc'], 'error');
-    }
-  } /* if ($_REQUEST['op'] == 'Complete Installation' && $_REQUEST['kaltura_partner_id']) */
+    $information_text = 'Please enter your CMS email & password';
+    $information_text .= '<br />'. l('forgot password', 'http://www.kaltura.com/index.php/cms/login', $forgot_link_attributes);
+    $form['kaltura_settings_information']['#value'] = $information_text;
+  }
+  
+  $form['kaltura_partner_settings'] = array(
+    '#type' => 'fieldset', 
+    '#title' => t('Partner Info'), 
+    '#collapsible' => ($_GET['register'] === 'no')? FALSE: TRUE, 
+    '#collapsed' => ($_GET['register'] === 'no')? FALSE: TRUE,
+  );
+  
+  /*
+    $form['kaltura_partner_settings']['kaltura_exitss_switch'] = array(
+    '#value' => $not_registered,
+    );
+  */
+  
+  $partner_exist = variable_get('kaltura_partner_id', '');
+  $readonly_attr = array();
+  if (!empty($partner_exist)) {
+    $readonly_attr = array('readonly' => 'readonly');
+  }
+  
+  $form['kaltura_partner_settings']['kaltura_partner_id'] = array(
+    '#type' => 'textfield', 
+    '#title' => t('Partner ID'),
+    '#default_value' => variable_get('kaltura_partner_id', ''),
+    '#size' => 20,
+    '#maxlength' => 10,
+    '#attributes' => $readonly_attr
+  );
+  
+  $form['kaltura_partner_settings']['cms_email'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Email'),
+    '#default_value' => variable_get('kaltura_partner_cms_email', ''),
+    '#attributes' => $readonly_attr,      
+  );
+  
+  $form['kaltura_partner_settings']['cms_password'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Password'),
+    '#default_value' => variable_get('kaltura_partner_cms_password', ''),
+    '#attributes' => $readonly_attr,    
+  );
+  
+  if (!empty($partner_exist)) {
+    $kmc_url = trim(variable_get('kaltura_server_url', 'http://www.kaltura.com'), '/') .'/kmc' ;
+    $form['kaltura_partner_settings']['kaltura_upd_data'] = array(
+      '#type' => 'item',
+      '#value' => t('You can update your email and password via Kaltura Management Console here: ') . l($kmc_url, $kmc_url, array( 'attributes' => array( 'target' => '_blank' ) ))
+    );
+  }   
   
   if (variable_get('kaltura_partner_id', '') == '') {
-    $register_visible = TRUE;
-      
-    if ( empty($_REQUEST['op']))
-      {
-        if ($_GET['register'] !== 'no') {
-          drupal_set_title('All in One Video Module by Kaltura Installation');
-          // registration form
-          $showing_reg = TRUE;
-          $saasText = '<b>Using Kaltura SaaS hosted solution</b><br/> Kaltura service is responsible for transcoding your content
-            to FLV, hosting it in a first grade CDN and streaming it to your viewers.<br/><br/>Kaltura Service has cost effective pricing and <b>10 GB of free trial</b>
-            <br/><a href="http://www.kaltura.com" target="_blank">To learn more about the Kaltura SaaS offering and pricing click here</a><br/><br/>';
-          $ceText ='<b>Using Kaltura Community Edition Beta</b><br/>Kaltua Comunity Edition will allow you to host, transcode and stream everything out of your own server for free.
-             <br/><br/><b>This requires download, installation and configuration of the Kaltura CE server.</b><br/><br/><br/>';
-          $form['kaltura_registration_mode'] = array(
-            '#type' => 'radios',
-            '#title' => t('Kaltura module has two modes of work'),
-            '#options' => array(1 => $saasText, 0 => $ceText),
-            '#default_value' => 1,
-          );
-          $form['kaltura_registration']['buttons']['import_partner'] = array(
-            '#type' => 'button',
-            '#title' => 'Continue >>',
-            '#value' => 'Continue >>',
-            '#default_value' => 'Continue >>',
-            '#weight' => 40,
-          );
-        }   
-        
-    }
-    else {
-      if (!variable_get('kaltura_registration_first_load', FALSE)) {
-        variable_set('kaltura_registration_first_load', TRUE);
-      }
-      global $user;
-      if($_REQUEST['op'] == 'Continue >>' && $_REQUEST['kaltura_registration_mode'] == 0)
-        {
-          if ($_GET['register'] !== 'no') {
-            drupal_set_title('All in One Video Module by Kaltura Installation');
-            // registration form
-            $showing_reg = TRUE;
-            $information_text = 'For the Drupal module to work with your Kaltura CE installation you must fill in the following <br/>details regarding your kaltura CE server. ';
-            $notice_text = 'You must have a Kaltura Community Edition server(Kaltura CE) installed in order to continue.<br/><br/>1. Download Kaltura CE from <a href="http://www.kaltura.org/project/community_edition_video_platform" target="blank">Kaltura.org</a><br/><br/>2. Install Kaltura CE on your server based on the <a href="http://www.kaltura.org/kalturace-kaltura-community-edition-getting-started-guide" target="_blank">installation guide</a>';
-            $form['kaltura_settings_information'] = array(
-              '#prefix' => '<div class="kaltura_ce_notice">'.$notice_text.'</div>',
-              '#value' => t($information_text)
-            );
-          
-            $form['ce_url'] = array(
-              '#type' => 'textfield',
-              '#title' => t('Kaltura CE URL'),
-              '#default_value' => '',
-              '#size' => 100,
-              '#maxlength' => 512
-            );
-
-            $form['ce_admin_email'] = array(
-              '#type' => 'textfield',
-              '#title' => t('Kaltura CE Admin Email'),
-              '#default_value' => $user->mail,
-              '#size' => 100,
-              '#maxlength' => 100
-            );
-
-            $form['ce_cms_password'] = array(
-              '#type' => 'textfield',
-              '#title' => t('Kaltura CE Password'),
-              '#default_value' => '',
-              '#size' => 100,
-              '#maxlength' => 100
-            );
-            $form['partner_url2'] = array(
-              '#type' => 'hidden',
-              '#title' => t('URL 2'),
-              '#default_value' => $base_url,
-              '#maxlength' => 1024
-            );
-          
-            $form_state['storage']['submit'] = 'CE Register';
-            $form['buttons']['register'] = array(
-              '#type' => 'button',
-              '#title' => 'Complete Installation',
-              '#value' => 'Complete Installation',
-              '#default_value' => 'Complete Installation',
-              '#weight' => 40,
-            );  
-            
-            $switch_to_saas = '<a style="margin-left:50px;" href="#" onclick="switch_to_saas();return false;">Switch to Kaltura SaaS</a>';
-            $form['buttons']['switch_to_saas'] = array(
-              '#value' => t($switch_to_saas),
-              '#weight' => 60,
-            );
-          }
-        }
-      else
-        {     
-          $information_text = 'Once you complete the form below and click "Complete installation", '.
-            'the All in One Video Module will be fully installed and ready to use.<br />'. PHP_EOL ;
-          $registered = '<br /><a href="#" onclick="switch_to_exist_partner();return false;">Click here if you already have a Partner ID</a>';
-          $not_registered = 'If you are not registered as a Kaltura partner, and would like to register '.
-            '<input type="button" onclick="switch_to_register();" value="Click Here" />';
-
-          $form['kaltura_settings_information'] = array(
-            '#value' => t($information_text) . $registered
-          );
-
-          if ($_GET['register'] !== 'no') {
-            drupal_set_title('All in One Video Module by Kaltura Installation');
-            // registration form
-            $showing_reg = TRUE;
-            $form['kaltura_registration'] = array(
-              '#type' => 'fieldset', 
-              '#title' => t('Registration'),
-              '#collapsible' => FALSE, 
-              '#collapsed' => FALSE
-            );
-            $form['kaltura_registration']['partner_name'] = array(
-              '#type' => 'textfield',
-              '#title' => t('Website Name'),
-              '#default_value' => variable_get('site_name', ''),
-              '#size' => 100,
-              '#maxlength' => 256
-            );
-            $form['kaltura_registration']['partner_url1'] = array(
-              '#type' => 'hidden',
-              '#title' => t('Your Website Address'),
-              '#default_value' => $base_url,
-              '#size' => 100,
-              '#maxlength' => 1024
-            );
-            $form['kaltura_registration']['partner_url2'] = array(
-              '#type' => 'hidden',
-              '#title' => t('URL 2'),
-              '#default_value' => $base_url,
-              '#maxlength' => 1024
-            );
-            $form['kaltura_registration']['partner_adminName'] = array(
-              '#type' => 'textfield',
-              '#title' => t('Administrator Name'),
-              '#default_value' => $user->name,
-              '#size' => 100,
-              '#maxlength' => 50
-            );
-            $form['kaltura_registration']['partner_adminEmail'] = array(
-              '#type' => 'textfield',
-              '#title' => t('Administrator Email'),
-              '#default_value' => $user->mail,
-              '#size' => 100,
-              '#maxlength' => 100  
-            );
-            $categories = new KalturaContentCategories();
-
-            $form['kaltura_registration']['kaltura_content_categories'] = array(
-              '#type' => 'select',
-              '#title' => t('Content Categories'),
-              '#multiple' => TRUE,
-              '#size' => 8,
-              '#options' => $categories->categories,
-            );
-            $form['kaltura_registration']['kaltura_adult_content'] = array(
-              '#type' => 'radios',
-              '#title' => t('Do you plan to display adult content?'),
-              '#options' => array(1 => 'Yes', 0 => 'No'),
-              '#default_value' => (variable_get('kaltura_adult_content', 0) == 0)? 0: 1,
-            );
-            $form['kaltura_registration']['partner_description'] = array(
-              //'#type' => 'textarea',
-              '#type' => 'hidden',
-              '#title' => t('Partner Description'),
-              '#default_value' => 'Drupal module|'. VERSION,
-            );
-            $form['kaltura_registration']['cms_password'] = array(
-              '#type' => 'hidden',
-              '#title' => t('CMS password'),
-              '#default_value' => kaltura_generate_cms_password(),
-              '#size' => 20,
-              '#maxlength' => 60  
-            );
-            $form['kaltura_registration']['kaltura_agree_terms'] = array(
-              '#type' => 'checkbox',
-              '#title' => 'I agree to comply with the <a href="http://www.kaltura.com/index.php/corp/tandc" target="_blank">Kaltura Terms of Use</a>',
-              '#options' => 'Agree',
-              '#required' => TRUE,
-            );
-            $form_state['storage']['submit'] = 'Register';
-            $form['kaltura_registration']['buttons']['register'] = array(
-              '#type' => 'button',
-              '#title' => 'Complete Installation',
-              '#value' => 'Complete Installation',
-              '#default_value' => 'Complete Installation',
-              '#weight' => 40,
-            );
-          }
-        }
-    }
+    $form_state['storage']['submit'] = 'ImportPartner';
+    $form['kaltura_registration']['buttons']['import_partner'] = array(
+      '#type' => 'button',
+      '#title' => 'Complete Installation',
+      '#value' => 'Complete Installation',
+      '#default_value' => 'Complete Installation',
+      '#weight' => 40,
+    );
   } /* if (variable_get('kaltura_partner_id', '') == '') */
   
+  $form['kaltura_partner_settings']['kaltura_subp_id'] = array(
+    '#type' => 'hidden', 
+    '#title' => t('Kaltura Sub-Partner Id'),
+    '#default_value' => variable_get('kaltura_subp_id', ''),
+    '#size' => 20,
+    '#maxlength' => 10
+  );
+  
   /**
-   * The normal settings form.
+   * This test always returns true, right?
    */
-  if ($_GET['register'] === 'no' || (!$showing_reg && !isset($_GET['register']))) {
-    // normal settings form
-    if (variable_get('kaltura_partner_id', '') == '') {
-      drupal_set_title('All in One Video Module by Kaltura Installation');
-      $forgot_link_attributes = array(
-        'attributes' => array(
-          'target' => '_blank'
-        )
-      );
-      $information_text = 'Please enter your CMS email & password';
-      $information_text .= '<br />'. l('forgot password', 'http://www.kaltura.com/index.php/cms/login', $forgot_link_attributes);
-      $form['kaltura_settings_information']['#value'] = $information_text;
-    }
-
-    $form['kaltura_partner_settings'] = array(
-      '#type' => 'fieldset', 
-      '#title' => t('Partner Info'), 
-      '#collapsible' => ($_GET['register'] === 'no')? FALSE: TRUE, 
-      '#collapsed' => ($_GET['register'] === 'no')? FALSE: TRUE,
-    );
-
-    /*
-     $form['kaltura_partner_settings']['kaltura_exitss_switch'] = array(
-     '#value' => $not_registered,
-     );
-     */
-
-     $partner_exist = variable_get('kaltura_partner_id', '');
-     $readonly_attr = array();
-     if (!empty($partner_exist)) {
-      $readonly_attr = array('readonly' => 'readonly');
-     }
-     
-    $form['kaltura_partner_settings']['kaltura_partner_id'] = array(
-      '#type' => 'textfield', 
-      '#title' => t('Partner ID'),
-      '#default_value' => variable_get('kaltura_partner_id', ''),
-      '#size' => 20,
-      '#maxlength' => 10,
-      '#attributes' => $readonly_attr
-    );
-
-    $form['kaltura_partner_settings']['cms_email'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Email'),
-      '#default_value' => variable_get('kaltura_partner_cms_email', ''),
-      '#attributes' => $readonly_attr,      
-    );
-
-    $form['kaltura_partner_settings']['cms_password'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Password'),
-      '#default_value' => variable_get('kaltura_partner_cms_password', ''),
-      '#attributes' => $readonly_attr,    
-    );
-
-    if (!empty($partner_exist)) {
-      $form['kaltura_partner_settings']['kaltura_upd_data'] = array(
-      '#type' => 'item',
-      '#value' => t('You can update your email and password via Kaltura Management Console here: ') . l('http://www.kaltura.com/index.php/kmc', 'http://www.kaltura.com/index.php/kmc', array( 'attributes' => array( 'target' => '_blank' ) ))
-      );
-    }   
-    
-    if (variable_get('kaltura_partner_id', '') == '') {
-      $form_state['storage']['submit'] = 'ImportPartner';
-      $form['kaltura_registration']['buttons']['import_partner'] = array(
-        '#type' => 'button',
-        '#title' => 'Complete Installation',
-        '#value' => 'Complete Installation',
-        '#default_value' => 'Complete Installation',
-        '#weight' => 40,
-      );
-    } /* if (variable_get('kaltura_partner_id', '') == '') */
-    
-    $form['kaltura_partner_settings']['kaltura_subp_id'] = array(
+  if (variable_get('kaltura_local_registration', 0) != 1 || 1) {
+    $form['kaltura_partner_settings']['kaltura_secret'] = array(
       '#type' => 'hidden', 
-      '#title' => t('Kaltura Sub-Partner Id'),
-      '#default_value' => variable_get('kaltura_subp_id', ''),
-      '#size' => 20,
-      '#maxlength' => 10
-    );
-
-    /**
-     * This test always returns true, right?
-     */
-    if (variable_get('kaltura_local_registration', 0) != 1 || 1) {
-      $form['kaltura_partner_settings']['kaltura_secret'] = array(
-        '#type' => 'hidden', 
-        '#title' => t('Kaltura Secret'),
-        '#default_value' => variable_get('kaltura_secret', ''),
-        '#size' => 60,
-        '#maxlength' => 64
-      );
-
-      $form['kaltura_partner_settings']['kaltura_admin_secret'] = array(
-        '#type' => 'hidden', 
-        '#title' => t('Kaltura Admin Secret'),
-        '#default_value' => variable_get('kaltura_admin_secret', ''),
-        '#size' => 60,
-        '#maxlength' => 64
-      );
-    } /* ALWAYS TRUE: if (variable_get('kaltura_local_registration', 0) != 1 || 1) */
-    
-    $form['kaltura_partner_settings']['kaltura_server_url'] = array(
-      '#type' => 'hidden', 
-      '#title' => t('Kaltura Server URL'),
-      '#default_value' => variable_get('kaltura_server_url', KalturaHelpers::getKalturaServerUrl()),
-      '#size' => 100,
+      '#title' => t('Kaltura Secret'),
+      '#default_value' => variable_get('kaltura_secret', ''),
+      '#size' => 60,
       '#maxlength' => 64
     );
     
-  } /* if ($_GET['register'] === 'no' || (!$showing_reg && !isset($_GET['register']))) */
+    $form['kaltura_partner_settings']['kaltura_admin_secret'] = array(
+      '#type' => 'hidden', 
+      '#title' => t('Kaltura Admin Secret'),
+      '#default_value' => variable_get('kaltura_admin_secret', ''),
+      '#size' => 60,
+      '#maxlength' => 64
+    );
+  } /* ALWAYS TRUE: if (variable_get('kaltura_local_registration', 0) != 1 || 1) */
+  
+  $form['kaltura_partner_settings']['kaltura_server_url'] = array(
+    '#type' => 'hidden', 
+    '#title' => t('Kaltura Server URL'),
+    '#default_value' => variable_get('kaltura_server_url', KalturaHelpers::getKalturaServerUrl()),
+    '#size' => 100,
+    '#maxlength' => 64
+  );
+  
+  /* notification settings fieldset */
+  $notification_settings = kaltura_notifications_settings_form();
+  $form['kaltura_notification_settings'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Kaltura to Drupal Notification Settings'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+  foreach ($notification_settings as $name => $form_element) {
+    $form['kaltura_notification_settings'][$name] = $form_element;
+  }
 
+  /* credits / backlinks */
   $form['kaltura_credits'] = array(
      '#type' => 'fieldset',
      '#title' => 'Credits',
      '#collapsible' => TRUE,
      '#collapsed' => TRUE,
   );
+
   $text = '<b>Open Source Video Links</b>'. PHP_EOL;
   $text .= 'Kaltura invests a great deal of effort in the open source community, and specifically in the open source video movement.';
   $text .= 'The following two links will be included within the video player in order to further promote Kaltura and its efforts in the open video space. ';
@@ -1212,7 +961,25 @@ function kaltura_settings_form() {
     '#type' => 'item',
     '#value' => t('Please feel free to ') . l('contact us', 'http://corp.kaltura.com/support/form/project/16', array( 'attributes' => array( 'target' => '_blank' ) )) . t(' with any questions.')
   );
+
   return system_settings_form($form);
+}
+
+/**
+ * Validation handler for kaltura_settings_form() 
+ */
+function kaltura_settings_form_validate($form, &$form_state) {
+  if ( !valid_url($form_state['values']['kaltura_partner_url2'], TRUE) ) {
+    form_set_error('kaltura_partner_url2', t('Notification URL should be a valid URL, but %partner_url is not.', array('%partner_url' => $form_state['values']['kaltura_partner_url2'])));
+  }
+  
+}
+
+/**
+ * Submit handler for kaltura_settings_form()
+ */
+function kaltura_settings_form_submit($form, &$form_state) {
+  
 }
 
 /*
@@ -1513,14 +1280,16 @@ function kaltura_test_cron_job_status() {
   if (!$cron_last) {
     return array(
       FALSE,
-      'cron has not run. If you don\'t configure cron job, statistics about kaltura items will not be updated.'
+      t('cron has not run.') .
+      t('If you do not configure cron to run regularly, statistics about kaltura items will not be updated.')
     );
   }
   else {
     return array(
       TRUE,
-      'cron has run. Be sure that you have a cron job configured, so you don\'t need to run it manually.<br />'.
-      'Statistics about kaltura items will only be updated at cron run.'
+      t('cron has run.') .
+      t('Verify that you have a cron job configured, so you don\'t need to run it manually.') .'<br />'.
+      t('Statistics about kaltura items will only be updated at cron run.')
     );
   }
 }
@@ -1684,17 +1453,18 @@ function kaltura_update_kaltura_partner($notifications_config = 2, $notification
   return $result;
 }
 
-/*
- * TODO
- * Settings form in URL admin/settings/kaltura/general/notifications
+/**
+ * @TODO: Settings form in URL admin/settings/kaltura/general/notifications
  */
 function kaltura_notifications_settings_form() {
   global $base_url;
+
   $notification_types = array(
     //'1' => 'only server side notifications',
     '2' => 'only client side notifications',
     '3' => 'both server & client notifications'
   );
+
   if (isset($_REQUEST['kaltura_notification_type']) && $_REQUEST['kaltura_partner_url2']) {
     // TODO: update partner settings with notification type
     $url2 = $_REQUEST['kaltura_partner_url2'] .'/?q=kaltura/notification_handler';
@@ -1725,6 +1495,7 @@ function kaltura_notifications_settings_form() {
   $notification_type_description = t('Enabling server notifications allows the Kaltura video platform to update your Drupal server about the status of '.
                                    'the media content. This is especially useful when uploading content in various formats that needs to be transcoded. '.
                                    'In order to support server side notifications, your server must be publicly available on the internet.');
+
   $form['kaltura_notification_type'] = array(
     '#type' => 'checkbox',
     '#options' => 'Enable server side notifications',
@@ -1733,12 +1504,11 @@ function kaltura_notifications_settings_form() {
     '#default_value' => variable_get('kaltura_notification_type', 0),
   );
 
-  $not_url = (variable_get('kaltura_partner_url2', '') != '')? variable_get('kaltura_partner_url2', ''): $base_url;
   $form['kaltura_partner_url2'] = array(
     '#type' => 'textfield',
     '#title' => 'Notification URL',
-    '#description' => t('Your drupal base URL.') .' /?q=kaltura/notification_handler '. t('will be added to this base URL.'),
-    '#default_value' => $not_url,
+    '#description' => t('Your Drupal site base URL; !notification_path will be appended.', array('!notification_path' => '/?q=kaltura/notification_handler')),
+    '#default_value' => variable_get('kaltura_partner_url2', $base_url),
   );
 
   $form['last_notification_url'] = array(
