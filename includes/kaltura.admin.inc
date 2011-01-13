@@ -738,7 +738,7 @@ function kaltura_settings_form() {
   global $base_url;
 
   if (variable_get('kaltura_partner_id', '') == '') {
-    //drupal_goto('admin/settings/kaltura/install');
+    drupal_goto('admin/settings/kaltura/install');
   }
 
   /**
