@@ -108,11 +108,25 @@ kalturaCode { font-size: 20px; padding: 5px; }
 
 
 
-.kaltura_status_ok { border:1px solid #88FF99; margin:5px; padding-left:50px; background:url('../images/ok.png') no-repeat left 50%; }
+.kaltura-status-ok { 
+    border:1px solid #88FF99; 
+    margin:5px; 
+    padding-left:50px;
+    background:url('../images/ok.png') no-repeat 10px 50%; 
+}
 
-.kaltura_status_bad { border:1px solid #FF8899; margin:5px; padding-left:50px; background:url('../images/no.png') no-repeat left 50%;  }
+.kaltura-status-bad { 
+    border:1px solid #FF8899; 
+    margin:5px; 
+    padding-left:50px; 
+    background:url('../images/no.png') no-repeat 10px 50%;  
+}
 
-.kaltura_ce_notice { border:2px solid #FF1515;   padding-left:20px; background-color:#FFAEAE;}
+.kaltura-ce-notice { 
+    border:2px solid #FF1515;   
+    padding-left:20px; 
+    background-color:#FFAEAE;
+}
 
 
 .kaltura_tags label.field_title,

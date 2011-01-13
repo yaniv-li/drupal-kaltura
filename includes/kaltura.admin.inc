@@ -13,137 +13,6 @@ define('KALTURACE_ACCEPTS_REGISTRATION', FALSE);
  *
  */
 
-/**
- * helper function that processes the partner registration with kaltura
- *
- * if registration successful, the partner details are saved as system
- * variables (drupal DB) and the user is being redirected to the
- * modules settings page where he should see the details inserted and
- * a configuration test which says that the configuration works
- *
- * TODO set up for new API
- * CMAC
- * changes:
- * removed references to categories
- * questions: this method created problems within getServiceConfiguration wrt the Logger
- *
- * @TODO don't use $_REQUEST
- */
-function kaltura_register_partner() {
-  global $base_url;
-  $partner = new KalturaPartner();
-  $partner->name =              $_REQUEST['partner_name'];
-  $partner->website =           $_REQUEST['partner_url1'];
-  $partner->notificationUrl =   $_REQUEST['partner_url2'] .'/?q=kaltura/notification_handler';
-  $partner->adminName =         $_REQUEST['partner_adminName'];
-  $partner->adminEmail =        $_REQUEST['partner_adminEmail'];
-  $partner->description =       $_REQUEST['partner_description'];
-  $partner->commercialUse =     "non-commercial_use";
-  $partner->type =              102;
-  $partner->appearInSearch =    '1';
-
-  // update relevant field with $_REQUEST['kaltura_adult_content']
-  $content_categories = new KalturaContentCategories;
-  $categories = "";
-  if (!empty($_REQUEST['kaltura_content_categories'])) {
-    foreach ($_REQUEST['kaltura_content_categories'] as $selected) {
-      $categories .= $content_categories->categories[$selected] .',';
-    }
-  }
-  else {
-    $categories="N/A";
-  }
-  $partner->adultContent = ($_REQUEST['kaltura_adult_content'] == 1)? true: false;
-
-  $categories = rtrim($categories, ',');
-  if (empty($categories)) {
-    $categories="N/A";
-  }
-  $partner->contentCategories = $categories;
-  /** OLD API
-   $session_user = KalturaHelpers::getSessionUser();
-   $config = KalturaHelpers::getServiceConfiguration();
-   $kaltura_client = new KalturaClient($config);
-   */
-  $session_user = KalturaHelpers::getSessionUser();
-  $config = KalturaHelpers::getServiceConfiguration();
-  $kaltura_client = new KalturaClient($config);
-//  $kaltura_client->setConfig($config);
-
-  // watchdog('regis', print_r($partner, TRUE));
-  $res = $kaltura_client->partner->register($partner, $_REQUEST['cms_password']);
-
-  $result = $res->id;
-  if ($result) {
-    variable_set('kaltura_partner_id',         $res->id);
-    variable_set('kaltura_subp_id',            $res->id."00");
-    variable_set('kaltura_secret',             $res->secret);
-    variable_set('kaltura_admin_secret',       $res->adminSecret);
-    variable_set('kaltura_local_registration', 1);
-    variable_set('kaltura_server_url',    KalturaHelpers::getKalturaServerUrl());
-    variable_set('kaltura_partner_cms_email', $partner->adminEmail);
-    variable_set('kaltura_partner_cms_password', $_REQUEST['cms_password']);
-    variable_set('kaltura_partner_url2',       $_REQUEST['partner_url2']);
-    variable_set('kaltura_notification_type', 0);
-    variable_set('kaltura_content_categories', $categories);
-
-    kaltura_update_kaltura_partner(2, $partner->notificationUrl);
-    kaltura_create_widgets_for_partner($partner->id, $secret);
-    drupal_set_message('Congratulations!  You have successfully installed the All in One Video Module and registered for the Kaltura Partner Program.');
-    drupal_goto('admin/settings/kaltura/general');
-  }
-  else {
-//    $msg = 'The email address you entered already belongs to a registered Kaltura partner.<br />'.
-//      'Please register with another email or <a href="#" onclick="switch_to_exist_partner();return false;">click here</a> to import your existing partner details';
-    $msg = 'There was an error while trying to register new partner.<br />'. str_replace('_', ' ', $res['error'][0]['code']) .': '. $res['error'][0]['desc'];
-    drupal_set_message($msg, 'error');
-  }
-}
-
-/*
- * helper function that process the partner registration for kaltura CE
- *
- * if registration successful, the partner details are saved as system variables (drupal DB) and
- * the user is being redirected to the modules settings page where he should see the details inserted
- * and a configuration test which says that the configuraion works
- */
-function kaltura_import_ce() {
-  try {
-    $url = $_REQUEST['ce_url'];
-    $email = $_REQUEST['ce_admin_email'];
-    $password = $_REQUEST['ce_cms_password'];
-    
-    $kConfig = new KalturaConfiguration(0);
-    $kConfig->serviceUrl = $url;
-    $kClient = new KalturaClient($kConfig);
-    $res = $kClient -> partner -> getSecrets(1, $email, $password);
-    
-    $partner = 1; /* not used (but $partner->notificationUrl is referenced */
-    $secret = $kPartner->secret; /* undefined */
-    $adminSecret = $kPartner->adminSecret; /* undefined */
-  
-    variable_set('kaltura_partner_id',         $res->id);
-    variable_set('kaltura_subp_id',            $res->id."00");
-    variable_set('kaltura_secret',             $res->secret);
-    variable_set('kaltura_admin_secret',       $res->adminSecret);
-    variable_set('kaltura_local_registration', 1);
-    variable_set('kaltura_server_url',    $url);
-    variable_set('kaltura_partner_cms_email', $res->adminEmail);
-    variable_set('kaltura_partner_cms_password', $password);
-    variable_set('kaltura_partner_url2', $_REQUEST['partner_url2']);
-    variable_set('kaltura_notification_type', 0);
-//    variable_set('kaltura_content_categories', implode(',', $_REQUEST['kaltura_content_categories']));
-
-    kaltura_update_kaltura_partner(2, $partner->notificationUrl);
-//    kaltura_create_widgets_for_partner($partner->id, $secret);
-    drupal_set_message('Congratulations!  You have successfully installed the All in One Video Module and registered for the Kaltura Partner Program.');
-    drupal_goto('admin/settings/kaltura/general');
-  }
-  catch(Exception $ex) {
-    drupal_set_message(t('Kaltura client exception: @message', array('@message' => $ex->getMessage())), 'error'); 
-  }
-}
-
 /*
  * helper function to retrieve partner's details from kaltura
  * TODO: testing
@@ -154,7 +23,6 @@ function kaltura_import_ce() {
  *
  */
 function kaltura_get_partner_details($partner_id, $cms_email, $cms_password) {
-
   // $session_user is not actually used below. Remove?
   $session_user = KalturaHelpers::getSessionUser();
   
@@ -493,7 +361,7 @@ function kaltura_installation_form_validate($form, &$form_state) {
       default :
         $form_state['storage']['step']-- ;
     }
-    drupal_set_message(t('Back (!from » !to)', array('!from' => $step_from, '!to' => $form_state['storage']['step'])));
+    // drupal_set_message(t('Back (!from » !to)', array('!from' => $step_from, '!to' => $form_state['storage']['step'])));
     return ; // don't validate further
   }
 
@@ -568,9 +436,8 @@ function kaltura_installation_form_validate($form, &$form_state) {
           );
           drupal_set_message(t('Kaltura credentials verified against !kaltura_url.', array('!kaltura_url' => $form_state['storage']['kaltura_url'])));
           // do we want to store these details and re-use them?
-          //dpm($result, 'result');
-          $form['storage']['secret'] = $result['secret'] ;
-          $form['storage']['adminSecret'] = $result['adminSecret'] ;
+          $form['storage']['secret'] = $result->secret ;
+          $form['storage']['adminSecret'] = $result->adminSecret ;
         }
         catch ( Exception $ex ) {          
           form_set_error('', t('Kaltura credentials failed login: %message', array('%message' => $ex->getMessage(), '%file' => $ex->getFile(), '%line' => $ex->getLine(), '%code' => $ex->getCode() ) ));
@@ -607,7 +474,11 @@ function kaltura_installation_form_submit($form, &$form_state) {
         }
         break ;
       case 1 :
-        /* register a new partner */
+        if ( $form_state['clicked_button']['#value'] == KALTURA_INSTALL_SKIPREGBUTTON ) {
+          $form_state['storage']['step']++ ;
+          return ; // don't validate further
+        }
+        /* register a new partner (was kaltura_register_partner()) */
         global $base_url ;
         $partner = new KalturaPartner() ;
         $partner->name = $form_state['storage']['partner_site_name'] ;
@@ -637,10 +508,6 @@ function kaltura_installation_form_submit($form, &$form_state) {
         $config = KalturaHelpers::getServiceConfiguration() ;
         $config->serviceUrl = $form_state['storage']['kaltura_url'] ; // also [#1018042]
         $client = new KalturaClient($config);
-/*
-        dpm($config, 'config');
-        dpm($client, 'client');
-*/
         watchdog('kaltura', 'Registering Kaltura partner: <pre>!partner</pre>', array('!partner' => print_r($partner,1)));
         try {
           $res = $client->partner->register($partner, $form_state['storage']['cms_password']);
@@ -678,7 +545,7 @@ function kaltura_installation_form_submit($form, &$form_state) {
         }
         break ;
     case 2 :
-      // import an existing partner
+      // import an existing partner (was kaltura_import_ce())
       $config = Kalturahelpers::getServiceConfiguration();
       $config->partnerId =  $form_state['storage']['kaltura_partner_id'] ;
       $config->serviceUrl = $form_state['storage']['kaltura_url'] ;
@@ -691,7 +558,6 @@ function kaltura_installation_form_submit($form, &$form_state) {
           $form_state['storage']['kaltura_login_email'], 
           $form_state['storage']['kaltura_login_password']
         );
-        //dpm($result, 'result');
         variable_set('kaltura_partner_id',           $result->id);
         variable_set('kaltura_subp_id',              $result->id."00");
         variable_set('kaltura_secret',               $result->secret);
@@ -704,21 +570,19 @@ function kaltura_installation_form_submit($form, &$form_state) {
         variable_set('kaltura_notification_type',    0);
         kaltura_update_kaltura_partner(2, $partner->notificationUrl);
         // kaltura_create_widgets_for_partner($partner->id, $secret);
-        drupal_set_message('Congratulations!  You have successfully installed the All in One Video Module and registered for the Kaltura Partner Program.');
+        drupal_set_message('Congratulations!  You have successfully installed the Kaltura Module and connected to your Kaltura server.');
         drupal_goto('admin/settings/kaltura/general');
       }
       catch(Exception $ex) {
         drupal_set_message(t('Kaltura client exception: @message', array('@message' => $ex->getMessage())), 'error'); 
       }
-        
       break ;
     default :
-      
+      break ;
     }
     $form_state['storage']['step']++ ;  
     //drupal_set_message(t('Forward (!from » !to)', array('!from' => $step_from, '!to' => $form_state['storage']['step'])));
   }
-
 }
 
 /**
@@ -759,13 +623,13 @@ function kaltura_settings_form() {
   list($normal_session_status, $normal_session_error) = kaltura_check_server_status($admin = 0);
   $status_class = ($admin_session_status && $normal_session_status)? 'ok': 'bad';
   $session_status = ($admin_session_status && $normal_session_status)? 'OK': 'ERROR';
-  $error = ' kaltura_error: ';
+  $error = '';
   if ($admin_session_error) {
-    $error .= '<br />admin session: '. $admin_session_error;
+    $error .= '<br />Admin Session: '. $admin_session_error;
     $error_status = TRUE;
   }
   if ($normal_session_error) {
-    $error .= '<br />normal session: '. $normal_session_error;
+    $error .= '<br />Normal Session: '. $normal_session_error;
     $error_status = TRUE;
   }
   
@@ -773,12 +637,13 @@ function kaltura_settings_form() {
     '#type' => 'item',
     '#title' => t('Drupal to Kaltura Session Test'),
     '#prefix' => '<div class="kaltura-status-'. $status_class .'">',
-    '#value' => 'Session status: '. $session_status . (($error_status)? $error: ''),
+    '#value' => 'Session status: '. $session_status . (($error_status) ? $error: ''),
     '#suffix' => '</div>'
   );
+
   if (kaltura_variable_get_real('kaltura_notification_type', 0) == 1) {
     list($status, $text) = kaltura_test_notification_config();
-    $prefix = '<div class="kaltura_status_'. (($status)? 'ok': 'bad') .'">';
+    $prefix = '<div class="kaltura-status-'. (($status)? 'ok': 'bad') .'">';
     $form['kaltura_server_status']['kaltura_notification_status'] = array(
       '#type' => 'item',
       '#title' => t('Kaltura to Drupal Notification Status'),
@@ -961,6 +826,8 @@ function kaltura_settings_form() {
     '#type' => 'item',
     '#value' => t('Please feel free to ') . l('contact us', 'http://corp.kaltura.com/support/form/project/16', array( 'attributes' => array( 'target' => '_blank' ) )) . t(' with any questions.')
   );
+  
+  $form['#submit'][] = 'kaltura_settings_form_submit' ;
 
   return system_settings_form($form);
 }
@@ -979,7 +846,45 @@ function kaltura_settings_form_validate($form, &$form_state) {
  * Submit handler for kaltura_settings_form()
  */
 function kaltura_settings_form_submit($form, &$form_state) {
-  
+  if ( $form_state['values']['kaltura_notification_type'] ) {
+
+  }
+  if (isset($form_state['values']['kaltura_notification_type']) && $form_state['values']['kaltura_partner_url2']) {
+    // TODO: update partner settings with notification type
+    $url2 = $form_state['values']['kaltura_partner_url2'] .'/?q=kaltura/notification_handler';
+    if ($form_state['values']['kaltura_notification_type'] == 1) {
+      $not_type = 3;
+    }
+    else {
+      $not_type = 2;
+    }
+    try {
+      $result = kaltura_update_kaltura_partner($not_type, $url2);
+      if (!$result->id) {
+        if ( isset( $result['error']['code'] ) ) {
+          throw new Exception($result['error']['desc'], $result['error']['code']);
+        }
+        else {
+          throw new Exception('Updating notification settings on Kaltura server failed.');
+        }
+      }
+      /* if notification URL has changed, or notification type is 3 */
+      if ($form_state['values']['last_notification_url'] != $form_state['values']['kaltura_partner_url2'] || $not_type == 3) {
+        variable_set('kaltura_notification_status', 0);
+        list($status, $text) = kaltura_test_notification_config();
+        if ($status == FALSE) {
+          drupal_set_message(t('Notification test failed. The URL you specified is not valid. Please make sure it is correct and save the settings again.'), 'error');
+        }
+        else {
+          // drupal_set_message(t('Notification test was successful.')); /* Uncomment when [#1025090] is resolved. */
+        }
+      }
+    }
+    catch ( Exception $ex ) {
+      drupal_set_message(t('Error: %message when updating notification settings.', array('%message' => $ex->getMessage())), 'error');
+      watchdog('kaltura', 'Error @message updating notification settings.<br />Backtrace:<pre>!trace</pre>', array('@message' => $ex->getMessage(), '!trace' => $ex->getTrace()));
+    }
+  }  
 }
 
 /*
@@ -1280,33 +1185,44 @@ function kaltura_test_cron_job_status() {
   if (!$cron_last) {
     return array(
       FALSE,
-      t('cron has not run.') .
+      t('cron has not run.') .' '.
       t('If you do not configure cron to run regularly, statistics about kaltura items will not be updated.')
     );
   }
   else {
     return array(
       TRUE,
-      t('cron has run.') .
+      t('cron has run.') .' '.
       t('Verify that you have a cron job configured, so you don\'t need to run it manually.') .'<br />'.
       t('Statistics about kaltura items will only be updated at cron run.')
     );
   }
 }
 
-/*
+/**
  * helper function that tests the notification status of the module
  *
- * this function tries to close a loop with the kaltura sevrer in a "real-time" test.
- * The notification handler sets a variable in the DB before the this function run ends
- * therefore we need to use the kaltura_variable_get_real() function to check the variable status in the DB
- * and not in the $_GLOBALS which are set before this function even start
- * TODO
- * CMAC
- * not yet implemented
+ * this function tries to close a loop with the kaltura server in a
+ * "real-time" test.  The notification handler sets a variable in the
+ * DB before the this function run ends, therefore we need to use the
+ * kaltura_variable_get_real() function to check the variable status
+ * in the DB and not in the $_GLOBALS which are set before this
+ * function even start
+ *
+ * @TODO in KalturaClient we need a new method:
+ *
+ *  function testNotification($kalturaSessionUser)
+ *  {
+ *    $params = array();
+ *    $result = $this->hit("testnotification", $kalturaSessionUser, $params);
+ *    return $result;
+ *  }
+ * 
+ * @TODO http://drupal.org/node/1025090
  */
 function kaltura_test_notification_config() {
-  return array(TRUE, 'Test call not yet implemented, sorry');
+  return array(TRUE, t('Test call not yet implemented; see !test_call_issue', array('!test_call_issue' => l('[#1025090]', 'http://drupal.org/node/'. 1025090))));
+/*
   if (kaltura_variable_get_real('kaltura_notification_status', 0) == 0) {
     $session_user = KalturaHelpers::getSessionUser();
     $kaltura_client = KalturaHelpers::getKalturaClient();
@@ -1317,24 +1233,23 @@ function kaltura_test_notification_config() {
     return array(TRUE, 'Drupal server receives notification from Kaltura server.');
   }
   return array(FALSE, 'Drupal server fails to receive notifications from Kaltura. Please fix your configuration or disable server notifications.');
+*/
 }
 
 /*
  * Replace default Drupal's variable_get() function with a "real-time" one.
  *
- * This function checks a variable status in the DB and not in the $_GLOBALS
+ * This function checks a variable status in the DB (not from $_GLOBALS['conf']).
  * 
- * TODO: This smells funny.
- *
- * Presumably it's here because $conf is already set when
- * kaltura_test_notification_config() is called, and we need to allow
- * the Kaltura server to ping us back and
+ * TODO: This smells funny. Presumably it's here because $conf is
+ * already set when kaltura_test_notification_config() is called, and
+ * we need to allow the Kaltura server to ping us back and
  * variable_set('kaltura_notification_status',1), then read the stored
  * value. Check if it's used elsewhere, and why. Consider a straight
  * SQL check against the variables table to replace this.
  */
 function kaltura_variable_get_real($var, $default) {
-  $sql = 'SELECT * FROM {variable} WHERE name = \'%s\'';
+  $sql = "SELECT * FROM {variable} WHERE name = '%s'";
   $result = db_fetch_object(db_query($sql, $var));
   if (!$result) {
     return $default;
@@ -1465,33 +1380,6 @@ function kaltura_notifications_settings_form() {
     '3' => 'both server & client notifications'
   );
 
-  if (isset($_REQUEST['kaltura_notification_type']) && $_REQUEST['kaltura_partner_url2']) {
-    // TODO: update partner settings with notification type
-    $url2 = $_REQUEST['kaltura_partner_url2'] .'/?q=kaltura/notification_handler';
-    if ($_REQUEST['kaltura_notification_type'] == 1) {
-      $not_type = 3;
-    }
-    else {
-      $not_type = 2;
-    }
-    $result = kaltura_update_kaltura_partner($not_type, $url2);
-    if ($_REQUEST['last_notification_url'] != $_REQUEST['kaltura_partner_url2'] || $not_type == 3) {
-      variable_set('kaltura_notification_status', 0);
-      list($status, $text) = kaltura_test_notification_config();
-      if ($status == FALSE) {
-        drupal_set_message(t('Notification test failed. The URL you specified is not valid. Please make sure it is correct and save the settings again.'), 'error');
-      }
-      else {
-        drupal_set_message(t('Notification test was successful.'));
-      }
-    }
-    if (!$result->id) {
-      drupal_set_message('Updating kaltura\'s server faild.<br />'. $result['error']['code'] .': '. $result['error']['desc'], 'error');
-    }
-    else {
-      drupal_set_message('Updating kaltura\'s server was successful '. l($url2, $url2));
-    }
-  }
   $notification_type_description = t('Enabling server notifications allows the Kaltura video platform to update your Drupal server about the status of '.
                                    'the media content. This is especially useful when uploading content in various formats that needs to be transcoded. '.
                                    'In order to support server side notifications, your server must be publicly available on the internet.');
@@ -1517,6 +1405,10 @@ function kaltura_notifications_settings_form() {
   );
   return $form;
   return system_settings_form($form);
+}
+
+function kaltura_notifications_settings_form_submit() {
+
 }
 
 /*
