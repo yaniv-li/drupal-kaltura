@@ -169,7 +169,6 @@ function kaltura_installation_form($form_state = NULL) {
       break ;
 
     case '1' :
-      
       $targs = array('!kaltura_url' => parse_url($form_state['values']['kaltura_url'], PHP_URL_HOST));
       drupal_set_title(t('Kaltura Installation - Register with Kaltura server at !kaltura_url', $targs));
 
@@ -289,7 +288,7 @@ function kaltura_installation_form($form_state = NULL) {
       break ;
 
     case '2' :
-      $targs = array('!kaltura_url' => $form_state['storage']['kaltura_url']) ;
+      $targs = array('!kaltura_url' => parse_url($form_state['storage']['kaltura_url'], PHP_URL_HOST));
       drupal_set_title(t('Kaltura Installation - Login details for !kaltura_url', $targs));
       $form['kaltura_partner_id'] = array(
         '#type' => 'textfield',
@@ -468,7 +467,7 @@ function kaltura_installation_form_submit($form, &$form_state) {
         if ( !KALTURACE_ACCEPTS_REGISTRATION ) {
           /* skip step 1 if CE selected on step 0 */
           if ( $form_state['values']['saas_or_ce'] == 'ce' ) {
-            drupal_set_message('CE detected, skipping step 1.');
+            //drupal_set_message('CE detected, skipping step 1.');
             $form_state['storage']['step']++ ;
           }
         }
