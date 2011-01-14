@@ -354,7 +354,7 @@ function kaltura_installation_form_validate($form, &$form_state) {
         if ( !KALTURACE_ACCEPTS_REGISTRATION ) {
           /* skip step 1 if CE selected and going back from 2 */
           if ( $form_state['storage']['saas_or_ce'] == 'ce' ) {
-            drupal_set_message('CE detected, skipping step 1 going back.');
+            //drupal_set_message('CE detected, skipping step 1 going back.');
             $form_state['storage']['step']-- ;
           }
         }
@@ -366,7 +366,7 @@ function kaltura_installation_form_validate($form, &$form_state) {
   }
 
   /* actual form validation */
-//  drupal_set_message('Validating step '. $form_state['storage']['step']);
+  //  drupal_set_message('Validating step '. $form_state['storage']['step']);
   switch ( $form_state['storage']['step'] ) {
     case 0 :
       // nothing to validate, move on
