@@ -1,5 +1,5 @@
 <?php
-// $Id: field_kaltura.module,v 1.2.2.6.2.1 2010/11/17 01:14:57 xuriz Exp $
+// $Id: field_kaltura.module,v 1.2.2.6.2.2 2011/01/17 20:27:14 xuriz Exp $
 
 /**
  * @file
@@ -231,6 +231,7 @@ function create_node_kaltura($node, $items, $type) {
   
   if ($kaltura_client) {
     foreach($items as $item) {
+<<<<<<< HEAD:plugins/field_kaltura/field_kaltura.module
       $entries = explode(',', rtrim($item['value'], ','));
       foreach ($entries as $entry_id) {
         //TO DO: CM  - add Kaltura error handling
@@ -251,6 +252,20 @@ function create_node_kaltura($node, $items, $type) {
             default :
               form_set_error($error_element, t('Kaltura client exception: @message', array('@message' => $ex->getMessage()))); 
           }
+=======
+  //    $entries = $item['value'];
+  //var_dump(debug_backtrace());
+      $entries = explode(',', rtrim($item['value'], ','));
+      foreach ($entries as $entry_id) {
+        //TO DO: CM  - add Kaltura error handling
+        if ($type == 'Kaltura_Media')
+        {
+          $result = $kaltura_client->media->get($entry_id);
+        }
+        else //Mix
+        {
+          $result = $kaltura_client->mixing->get($entry_id);
+>>>>>>> Coding style cleanup in field_kaltura.module.:plugins/field_kaltura/field_kaltura.module
         }
         $node_kaltura->nid = $node->nid;
         $node_kaltura->vid = $node->vid;
