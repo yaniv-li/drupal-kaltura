@@ -1,5 +1,5 @@
 <?php
-// $Id: field_kaltura.module,v 1.2.2.6.2.2 2011/01/17 20:27:14 xuriz Exp $
+// $Id: field_kaltura.module,v 1.2.2.6.2.3 2011/01/17 20:29:33 xuriz Exp $
 
 /**
  * @file
@@ -176,6 +176,7 @@ function field_kaltura_field($op, &$node, $field, &$items, $teaser, $page) {
       create_node_kaltura($node, $items, $field['type']);
       break ; 
     case 'validate':
+      dpm( array( 'op' => $op, 'node' => $node, 'field' => $field, 'items' => $items, 'teaser' => $teaser, 'page' => $page ), 'validation' );
       $allowed_values = content_allowed_values($field);
       if (is_array($items)) {
         foreach ($items as $delta => $item) {
@@ -231,7 +232,6 @@ function create_node_kaltura($node, $items, $type) {
   
   if ($kaltura_client) {
     foreach($items as $item) {
-<<<<<<< HEAD:plugins/field_kaltura/field_kaltura.module
       $entries = explode(',', rtrim($item['value'], ','));
       foreach ($entries as $entry_id) {
         //TO DO: CM  - add Kaltura error handling
@@ -252,20 +252,6 @@ function create_node_kaltura($node, $items, $type) {
             default :
               form_set_error($error_element, t('Kaltura client exception: @message', array('@message' => $ex->getMessage()))); 
           }
-=======
-  //    $entries = $item['value'];
-  //var_dump(debug_backtrace());
-      $entries = explode(',', rtrim($item['value'], ','));
-      foreach ($entries as $entry_id) {
-        //TO DO: CM  - add Kaltura error handling
-        if ($type == 'Kaltura_Media')
-        {
-          $result = $kaltura_client->media->get($entry_id);
-        }
-        else //Mix
-        {
-          $result = $kaltura_client->mixing->get($entry_id);
->>>>>>> Coding style cleanup in field_kaltura.module.:plugins/field_kaltura/field_kaltura.module
         }
         $node_kaltura->nid = $node->nid;
         $node_kaltura->vid = $node->vid;
