@@ -1,5 +1,5 @@
 <?php
-// $Id: field_kaltura.module,v 1.2.2.6.2.3 2011/01/17 20:29:33 xuriz Exp $
+// $Id: field_kaltura.module,v 1.2.2.6.2.4 2011/01/17 20:45:23 xuriz Exp $
 
 /**
  * @file
@@ -176,7 +176,6 @@ function field_kaltura_field($op, &$node, $field, &$items, $teaser, $page) {
       create_node_kaltura($node, $items, $field['type']);
       break ; 
     case 'validate':
-      dpm( array( 'op' => $op, 'node' => $node, 'field' => $field, 'items' => $items, 'teaser' => $teaser, 'page' => $page ), 'validation' );
       $allowed_values = content_allowed_values($field);
       if (is_array($items)) {
         foreach ($items as $delta => $item) {
