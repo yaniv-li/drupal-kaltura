@@ -25,7 +25,7 @@ function kaltura_notification_handler() {
   $params = $_POST;
  /*   foreach($_POST as $key => $val)
   {
-	error_log($key . "=>" . $val);
+        error_log($key . "=>" . $val);
   }*/
   watchdog('kaltura NH', print_r($params, TRUE));
   unset($params['q']);
@@ -39,7 +39,7 @@ function kaltura_notification_handler() {
     return FALSE;
   }
   else {
-    watchdog('kaltura', 'hooray!!! notification signature valid');
+    watchdog('kaltura', 'Kaltura notification received: <pre>!notification</pre>', array( '!notification' => print_r($noti,1) ));
   }
   echo 'OK';
   foreach ($noti->data as $notification_data) {
@@ -50,7 +50,7 @@ function kaltura_notification_handler() {
       kaltura_invoke('notification_handler', $notification_data);
     }
     else {
-      watchdog('notification', 'This notification ('. $notification_data['notification_id'] .') was already received');
+      watchdog('kaltura', 'Ignoring already received notification #!notification_id.', array('!notification_id' => $notification_data['notification_id']));
     }
   }
 }
@@ -74,7 +74,7 @@ function kaltura_notification_received($notification_id) {
 }
 
 /*
- * This function check the notificatio type, and forwards the notification to the appropriate function
+ * This function check the notification type, and forwards the notification to the appropriate function
  *
  * Some notification types, as described in  kaltura API documentation, are not yet handled here
  */
@@ -82,24 +82,27 @@ function kaltura_forward_notification($noti) {
   watchdog('kaltura notification handler', print_r($noti, TRUE));
   switch ($noti['notification_type']) {
     case 'entry_add': 
-	  if ($noti['media_type'] == 6)
-	  {
-		kaltura_notify_node_entry_add('mix', $noti);
-	  }
-	  else
-	  {
-		kaltura_notify_node_entry_add('entry', $noti);
-	  }
+      if ($noti['media_type'] == 6) {
+        kaltura_notify_node_entry_add('mix', $noti);
+      }
+      else {
+        kaltura_notify_node_entry_add('entry', $noti);
+      }
       break;
-    case 'kshow_add': kaltura_notify_node_entry_add('mix', $noti);
+    case 'kshow_add':
+      kaltura_notify_node_entry_add('mix', $noti);
       break;
-    case 'kshow_update_info': watchdog('KNH', 'notification of type kshow_update_info received<br />'. serialize($noti));
+    case 'kshow_update_info': 
+      watchdog('kaltura', 'notification of type kshow_update_info received: <pre>!noti</pre>', array('!noti' => serialize($noti)), WATCHDOG_DEBUG);
       break;
-    case 'entry_update_thumbnail': kaltura_update_entry_thumbnail($noti);
+    case 'entry_update_thumbnail':
+      kaltura_update_entry_thumbnail($noti);
       break;
-    case 'entry_update': kaltura_notify_node_update($noti);
+    case 'entry_update':
+      kaltura_notify_node_update($noti);
       break;
-    case 'test': kaltura_test_notification_received();
+    case 'test':
+      kaltura_test_notification_received();
       break;
     default:
   }
@@ -148,7 +151,7 @@ function kaltura_notify_node_update($notification) {
     node_save($updated_node);
   }
   else {
-    //watchdog('nod', 'found more than 1 node '. count($node_ids));
+    //watchdog('kaltura', 'found more than 1 node '. count($node_ids));
   }
 }
 
