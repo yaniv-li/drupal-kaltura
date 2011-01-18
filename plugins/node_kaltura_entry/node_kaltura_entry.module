@@ -499,12 +499,13 @@ function node_kaltura_entry_insert(&$node) {
 /**
  * Implementation of hook_validate().
  *
- * We don't do this validation if 
+ * We don't do this validation if:
+ * (0) we're creating the node (it won't exist remotely yet)
  * (1) this update is an update_notification from Kaltura anyway
  * (2) we're deleting the node
  */
 function node_kaltura_entry_validate($node, &$form) {
-  if ($node->notification_update !== TRUE && $form['#post']['op'] != t('Delete')) {
+  if (!empty($node->nid) && $node->notification_update !== TRUE && $form['#post']['op'] != t('Delete')) {
     try {
       $entry = kaltura_get_entry($form['kaltura_entryId']['#value']) ;
     }
