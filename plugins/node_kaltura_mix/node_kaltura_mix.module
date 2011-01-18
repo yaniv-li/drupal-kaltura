@@ -777,7 +777,7 @@ function kaltura_update_mix_node_taxonomy(&$node) {
   $avoc_id = variable_get('kaltura_mix_admin_tags_voc', '');
   $terms['tags'] = array();
   if ($voc_id) {
-    watchdog('mix tags', print_r($node->kaltura_tags, TRUE));
+    watchdog('node_kaltura_mix', 'Mix tags: <pre>!tags</pre>', array('!tags' => print_r($node->kaltura_tags, TRUE)), WATCHDOG_DEBUG);
     $terms['tags'][$voc_id] = $node->kaltura_tags;
   }  
   if ($avoc_id) {
@@ -804,13 +804,13 @@ function node_kaltura_mix_update($node) {
     }
     $sql = 'UPDATE {node_kaltura} SET kaltura_tags = \'%s\', kaltura_admin_tags = \'%s\' WHERE vid = %d';
     db_query($sql, $node->kaltura_tags, $node->kaltura_admin_tags, $node->vid);
-    watchdog('upd mix', $node->kaltura_tags);
+    watchdog('node_kaltura_mix', 'Updating tags: !tags', array('!tags' => print_r($node->kaltura_tags,1)));
     
     if ($node->notification_update !== TRUE) {
       kaltura_update_mix_tags($node->kaltura_entryId, $node->title, $node->body, $node->kaltura_tags, $node->kaltura_admin_tags);
     }
     else {
-      watchdog('mix update', 'updating taxonomy from tags '. $node->kaltura_tags);
+      watchdog('node_kaltura_mix', 'Updating taxonomy from tags: <pre>!tags</pre>', array('!tags' => $node->kaltura_tags), WATCHDOG_DEBUG);
       kaltura_update_mix_node_taxonomy($node);
     }
     
@@ -830,7 +830,7 @@ function node_kaltura_mix_validate($node, &$form) {
       $entry = kaltura_get_entry($form['kaltura_entryId']['#value']) ;
     }
     catch ( Exception $ex ) {
-      watchdog('node_kaltura_mix', t('Kaltura Exception: %message, backtrace: <pre>!trace</pre>'), array('%message' => $ex->getMessage(), '!trace' => $ex->getTrace()));
+      watchdog('node_kaltura_mix', t('Kaltura Exception: %message, backtrace: <pre>!trace</pre>'), array('%message' => $ex->getMessage(), '!trace' => print_r($ex->getTrace(),1)));
       switch ( $ex->getCode() ) {
         case 'ENTRY_ID_NOT_FOUND' :
           form_set_error('kaltura_entryId', t('Entry not found on Kaltura server: @message', array('@message' => $ex->getMessage())));
