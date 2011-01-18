@@ -460,7 +460,7 @@ function theme_kaltura_contribution_wizard_add($theme_params, $navigate_back = T
   $javascript = '
     var kshowId = -1;
     var goto_url = "'. $goto_url .'";
-    var node_url = "'. (($theme_params->mix_id)? url("node/". $theme_params->mix_id): '') .'/edit";
+    var node_url = "'. ( ($theme_params->mix_id) ? url('node/'. $theme_params->mix_id .'/edit') : '') .'";
     function onContributionWizardAfterAddEntry(obj) {
     var entries = "&entries=";
                 if (obj && obj.length > 0)
@@ -509,7 +509,7 @@ function theme_kaltura_contribution_wizard_simple($theme_params, $navigate_back 
   $javascript = '
     var kshowId = -1;
     var goto_url = "'. $goto_url .'";
-    var node_url = "'. (($theme_params->mix_id)? url("node/". $theme_params->mix_id): '') .'/edit";     
+    var node_url = "'. ( ($theme_params->mix_id) ? url('node/'. $theme_params->mix_id) .'/edit' : '') .'";
         var flashObj;
         var delegate = {};
         var mediaTypeInput;
