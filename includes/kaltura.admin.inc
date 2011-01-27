@@ -98,10 +98,8 @@ function kaltura_register_partner() {
  * and a configuration test which says that the configuraion works
  */
 
-function kaltura_import_ce()
-{
-  try
-  {
+function kaltura_import_ce() {
+  try {
     $url = $_REQUEST['ce_url'];
     $email = $_REQUEST['ce_admin_email'];
     $password = $_REQUEST['ce_cms_password'];
@@ -140,8 +138,7 @@ function kaltura_import_ce()
     drupal_set_message('Congratulations!  You have successfully installed the All in One Video Module and registered for the Kaltura Partner Program.');
     drupal_goto('admin/settings/kaltura/general');
   }
-  catch(Exception $ex)
-  {
+  catch(Exception $ex) {
     drupal_set_message(t('Kaltura client exception: @message', array('@message' => $ex->getMessage())), 'error'); 
   }
 }
