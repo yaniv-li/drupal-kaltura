@@ -908,7 +908,6 @@ function kaltura_get_entry($entry_id) {
   return $result ;
 }
 
-
 /**
  * Wrapper to retrieve a Kaltura Entry.
  *
