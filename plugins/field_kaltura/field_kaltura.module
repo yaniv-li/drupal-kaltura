@@ -282,6 +282,9 @@ function create_node_kaltura($node, $items, $type) {
   }
 }
 
+/**
+ * Implement hook_field_insert()
+ */
 function node_field_insert($node) {
   $sql = 'INSERT INTO {node_kaltura} (vid, nid, kaltura_entryId, kaltura_tags, kaltura_admin_tags, kstatus, kaltura_media_type, kaltura_duration, '.
     'kaltura_thumbnail_url, kaltura_partner_data, kaltura_source, kaltura_source_id, kaltura_source_link, kaltura_width, kaltura_height, '.
@@ -294,29 +297,27 @@ function node_field_insert($node) {
   //kaltura_update_mix_node_taxonomy($node);
 }
 
-
+/**
+ *
+ */
 function kaltura_get_default_display($item, $teaser, $node) {
- 
- $node_update_access = node_access('update',$node);
- $show_embed = user_access('view Kaltura embed code');
-
+  $node_update_access = node_access('update',$node);
+  $show_embed = user_access('view Kaltura embed code');
   $content_type = $item['#kaltura_field']['type_name'];
   $entries = explode(',', rtrim($item['value'], ','));
-  
   if (is_array($entries) && count($entries)) {
     foreach ($entries as $entry_id) {
       $width = $item['#kaltura_field']['player_width'];
       $height = $item['#kaltura_field']['player_height'];
       $uiconf = (empty($item['#kaltura_field']['entry_widget']) ? '' : 'uiconf_id="'.$item['#kaltura_field']['entry_widget'].'"');
       $dim ="";
-      if (!$entry_id) continue;
-      
-      if (!empty($width) && !empty($height))
-      {
-    $dim = ' width="'.$width.'" height="'.$height.'"';
+      if (!$entry_id) {
+        continue;
+      }
+      if (!empty($width) && !empty($height)) {
+        $dim = ' width="'.$width.'" height="'.$height.'"';
       }
      $text = '<div class="field-entry-'. $entry_id .'">[kaltura-widget mix="'. $entry_id .'" size="large" '. $uiconf . $dim.' /]</div>';
-
     }
   }
  
@@ -837,11 +838,7 @@ function kaltura_is_kaltura_field($field_name) {
  * Implementation of hook_nodeapi().
  */
 function field_kaltura_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
-
-
- 
   if ($op == 'presave') {
-
     // do something only if tags vocabulary applied and not empty on this node
     if ($node->taxonomy['tags']) {
       // get all tags as string
