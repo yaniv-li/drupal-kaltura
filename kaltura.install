@@ -261,3 +261,12 @@ function kaltura_update_6000() {
   db_change_field($ret, 'node_kaltura', 'vid', 'vid', $new_field);
   return $ret;
 }
+
+/**
+ * Implementation of hook_update_N.
+ *
+ * [#352569] renamed some theme functions.
+ */
+function kaltura_update_6001() {
+  cache_clear_all();
+}

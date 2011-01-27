@@ -462,7 +462,7 @@ function node_kaltura_entry_form_alter(&$form, &$form_state, $form_id) {
  * helper function to inject the node with tags and admin tags to the
  * corresponding taxonomy vocabularies
  */
-function update_entry_node_taxonomy(&$node) {
+function kaltura_update_entry_node_taxonomy(&$node) {
   $voc_id = variable_get('kaltura_entry_tags_voc', '');
   $avoc_id = variable_get('kaltura_entry_admin_tags_voc', '');
   $terms['tags'] = array();
@@ -493,7 +493,7 @@ function node_kaltura_entry_insert(&$node) {
     $node->kaltura_duration, $node->kaltura_thumbnail_url, $node->kaltura_partner_data, $node->kaltura_source, $node->kaltura_source_id,
     $node->kaltura_source_link, $node->kaltura_width, $node->kaltura_height, $node->kaltura_download_url, $node->kaltura_media_date, $node->kaltura_views,
     $node->kaltura_plays, $node->kaltura_votes, $node->kaltura_rank, $node->kaltura_total_rank, $node->kaltura_entry_data, $node->kaltura_video_comment);
-  update_entry_node_taxonomy($node);
+  kaltura_update_entry_node_taxonomy($node);
 }
 
 /**
@@ -545,7 +545,7 @@ function node_kaltura_entry_update($node) {
       $first = ', ';
     }
     // we don't expose the tags and admin tags fields, to no need to update taxonomy by hand.
-//    update_entry_node_taxonomy($node);
+    /* kaltura_update_entry_node_taxonomy($node); */
     if ($node->notification_update !== TRUE) {
       kaltura_update_entry_tags_from_taxonomy($node);
     }

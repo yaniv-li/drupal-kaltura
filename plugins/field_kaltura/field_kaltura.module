@@ -172,8 +172,7 @@ function field_kaltura_field($op, &$node, $field, &$items, $teaser, $page) {
   switch ($op) {
     case 'view':
     case 'insert' :
-  //    var_dump($field); var_dump($items);
-      create_node_kaltura($node, $items, $field['type']);
+      field_kaltura_create_node($node, $items, $field['type']);
       break ; 
     case 'validate':
       $allowed_values = content_allowed_values($field);
@@ -225,7 +224,7 @@ function field_kaltura_field($op, &$node, $field, &$items, $teaser, $page) {
 /**
  * Make sure there is an entry in the node_kaltura table for mixes that are in fields, so we have a common place to store metadata.
  */
-function create_node_kaltura($node, $items, $type) {
+function field_kaltura_create_node($node, $items, $type) {
   $kaltura_client = KalturaHelpers::getKalturaClient();
   $session_user = KalturaHelpers::getSessionUser();
   
@@ -276,7 +275,7 @@ function create_node_kaltura($node, $items, $type) {
         //TO DO: CM
         //add extras here like node_kaltura module
         
-        node_field_insert($node_kaltura);
+        field_kaltura_field_insert($node_kaltura);
       }
     }
   }
@@ -285,7 +284,7 @@ function create_node_kaltura($node, $items, $type) {
 /**
  * Implement hook_field_insert()
  */
-function node_field_insert($node) {
+function field_kaltura_field_insert($node) {
   $sql = 'INSERT INTO {node_kaltura} (vid, nid, kaltura_entryId, kaltura_tags, kaltura_admin_tags, kstatus, kaltura_media_type, kaltura_duration, '.
     'kaltura_thumbnail_url, kaltura_partner_data, kaltura_source, kaltura_source_id, kaltura_source_link, kaltura_width, kaltura_height, '.
     'kaltura_download_url, kaltura_media_date, kaltura_views, kaltura_plays, kaltura_votes, kaltura_rank, kaltura_total_rank, kaltura_entry_data)'.
