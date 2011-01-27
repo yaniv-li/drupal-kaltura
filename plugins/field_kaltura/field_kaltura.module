@@ -201,7 +201,7 @@ function field_kaltura_field($op, &$node, $field, &$items, $teaser, $page) {
             }
           }
           catch ( Exception $ex ) {
-            watchdog('field_kaltura', t('Kaltura Exception: %message, backtrace: <pre>!trace</pre>'), array('%message' => $ex->getMessage(), '!trace' => $ex->getTrace()));
+            watchdog('field_kaltura', t('Kaltura Exception: %message, backtrace: <pre>!trace</pre>'), array('%message' => $ex->getMessage(), '!trace' => print_r($ex->getTrace(),1)));
             switch ( $ex->getCode() ) {
               case 'ENTRY_ID_NOT_FOUND' :
                 form_set_error($error_element, t('Entry not found on Kaltura server: @message', array('@message' => $ex->getMessage())));
@@ -878,9 +878,10 @@ function field_kaltura_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
   
 }
 
-/*
+/**
  * helper function that calls Kaltura updateEntry service to update the kaltura DB with the metadata
  * of the node which a specific entry belongs to
+ *
  * TODO
  * CMAC 
  * changes
@@ -888,16 +889,19 @@ function field_kaltura_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
  * api call changed to new version
  */
 function kaltura_update_field_entries_tags($entries, $tags, $name) {
-  
-  $session_user = KalturaHelpers::getSessionUser();
-  $kaltura_client = KalturaHelpers::getKalturaClient();
-   //var_dump($kaltura_client->media);
-  //exit();
-  //$entry = new KalturaMediaEntry();
-  $entry = new KalturaMixEntry();
-  $entry->tags = $tags;
-  $entry->name = $name;
-  foreach ($entries as $entry_id) {
-    $result = $kaltura_client->mixing->update($entry_id, $entry);
+  try {
+    $session_user = KalturaHelpers::getSessionUser();
+    $kaltura_client = KalturaHelpers::getKalturaClient();
+    $entry = new KalturaMixEntry();
+    $entry->tags = $tags;
+    $entry->name = $name;
+    foreach ($entries as $entry_id) {
+      $result = $kaltura_client->mixing->update($entry_id, $entry);
+    }
+  }
+  catch ( Exception $ex ) {
+    // should be caught in field_kaltura_field('validate') anyway
+    watchdog('field_kaltura', t('Kaltura Exception: %message, backtrace: <pre>!trace</pre>'), array('%message' => $ex->getMessage(), '!trace' => print_r($ex->getTrace(),1)));
+    drupal_set_message(t('Kaltura client exception: @message', array('@message' => $ex->getMessage())), 'error'); 
   }
 }
