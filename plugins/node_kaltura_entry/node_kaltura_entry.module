@@ -482,9 +482,10 @@ function update_entry_node_taxonomy(&$node) {
 
 /**
  * Implementation of hook_insert().
+ *
+ * @TODO use db_write_record().
  */
 function node_kaltura_entry_insert(&$node) {
-
   $sql = 'INSERT INTO {node_kaltura} (vid, nid, kaltura_entryId, kaltura_tags, kaltura_admin_tags, kstatus, kaltura_media_type, kaltura_duration, '.
     'kaltura_thumbnail_url, kaltura_partner_data, kaltura_source, kaltura_source_id, kaltura_source_link, kaltura_width, kaltura_height, '.
     'kaltura_download_url, kaltura_media_date, kaltura_views, kaltura_plays, kaltura_votes, kaltura_rank, kaltura_total_rank, kaltura_entry_data, kaltura_video_comment)'.
@@ -768,7 +769,7 @@ function kaltura_update_entry_tags($eid, $tags, $admin_tags) {
   catch ( Exception $ex ) {
     // we catch the exception here, but typically this would be caught
     // in hook_validate() already. 
-    watchdog('node_kaltura_entry', t('Kaltura Exception: %message, backtrace: <pre>!trace</pre>'), array('%message' => $ex->getMessage(), '!trace' => $ex->getTrace()));
+    watchdog('node_kaltura_entry', t('Kaltura Exception: %message, backtrace: <pre>!trace</pre>'), array('%message' => $ex->getMessage(), '!trace' => print_r($ex->getTrace(),1)));
     drupal_set_message(t('Kaltura client exception: @message', array('@message' => $ex->getMessage())), 'error'); 
   }
 }

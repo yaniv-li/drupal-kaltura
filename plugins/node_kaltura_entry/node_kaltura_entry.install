@@ -7,6 +7,9 @@
  *
  */
 
+/**
+ * Implement hook_install().
+ */
 function node_kaltura_entry_install() {
   if (module_exists('taxonomy')) {
     $edit['nodes'] = array( 'kaltura_entry' => 1 );
@@ -27,5 +30,10 @@ function node_kaltura_entry_install() {
   }
 }
 
+/**
+ * Implement hook_uninstall().
+ */
 function node_kaltura_entry_uninstall() {
+
 }
+

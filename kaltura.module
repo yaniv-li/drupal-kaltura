@@ -26,21 +26,21 @@ function kaltura_init() {
   
   
   if (variable_get('kaltura_partner_id', '') != '') {
-    $server_url = (variable_get('kaltura_server_url', '') != '')? variable_get('kaltura_server_url', ''): KalturaSettings_SERVER_URL;
+    $server_url = (variable_get('kaltura_server_url', '') != '') ? variable_get('kaltura_server_url', '') : KalturaSettings_SERVER_URL;
     $GLOBALS['_kaltura_thumbnail_base_url'] = $server_url .'/p/'. variable_get('kaltura_partner_id', '') .'/sp/'. variable_get('kaltura_subp_id', '') .'/thumbnail';
   }
   
   $editor_type = variable_get('kaltura_mix_roughcut_editor_type', KalturaSettings_DEFAULT_EDITOR);
   
   if ($editor_type == 'Advanced_Editor' || $editor_type == KalturaSettings_AE_CUSTOM || $editor_type == KalturaSettings_AE_UICONF_ID) {
-    variable_set('kaltura_editor_width',KalturaSettings_AE_WIDTH);
-    variable_set('kaltura_editor_height',KalturaSettings_AE_HEIGHT);    
-    variable_set('kaltura_editor_URL',KalturaSettings_AE_URL);
+    variable_set('kaltura_editor_width', KalturaSettings_AE_WIDTH);
+    variable_set('kaltura_editor_height', KalturaSettings_AE_HEIGHT);    
+    variable_set('kaltura_editor_URL', KalturaSettings_AE_URL);
   }
   else {
-    variable_set('kaltura_editor_width',KalturaSettings_SE_WIDTH);
-    variable_set('kaltura_editor_height',KalturaSettings_SE_HEIGHT);
-    variable_set('kaltura_editor_URL',KalturaSettings_SE_URL);
+    variable_set('kaltura_editor_width', KalturaSettings_SE_WIDTH);
+    variable_set('kaltura_editor_height', KalturaSettings_SE_HEIGHT);
+    variable_set('kaltura_editor_URL', KalturaSettings_SE_URL);
   }
   
 }
@@ -188,10 +188,12 @@ function kaltura_theme() {
   return $themes;
 }
 
-/*
+/**
  * Implementation of module_invoke().
  *
- * used to call hooks exxposed by kaltura which other module implements
+ * Used to call hooks exxposed by kaltura which other module implements
+ *
+ * @TODO ??
  */
 function kaltura_invoke($hook, $data = NULL) {
   $hook = 'kaltura_'. $hook;
@@ -297,8 +299,8 @@ function kaltura_use_uiconf($default_uicid, $node_type, $theme_uicid, $media_typ
   $widget = variable_get('kaltura_'. $media_type .'_'. $node_type .'_widget', $default);
 
 
-  if (is_numeric($widget)) //we currently support names (to be fetched from static settings or numbers (real uiconf)
-  {
+  // we currently support names (to be fetched from static settings) or numbers (real uiconf)
+  if (is_numeric($widget)) {
     return $widget;
   }
   
@@ -453,39 +455,40 @@ function kaltura_add_result_to_entry_data($eid, $result, $replace = TRUE) {
 function kaltura_cron() {
   // get all entries from node_kaltura table,
   // use the getEntries service to retrieve the data of entries
-  try
-  {
-  $get_entries = 'SELECT kaltura_entryId FROM {node_kaltura} node_kaltura LEFT JOIN {node} node ON node.nid = node_kaltura.nid WHERE node.status = 1';
-  $entries = db_query($get_entries);
-  while ($entry = db_fetch_object($entries)) {
-    $all_entries[] = $entry->kaltura_entryId;
-  }
-  if (is_array($all_entries) && count($all_entries)) {
-    $my_entries = implode(',', $all_entries);
-    $result = kaltura_get_entries($my_entries, count($all_entries), true);
-  }
-  else {
-    $result = FALSE;
-  }
-  // if we got a good result, we update the entry data in the DB
-  if ($result !== FALSE) {
-    foreach ($result->objects as $resultObject) {
-      $update_entry = 'UPDATE {node_kaltura} SET kstatus = '.$resultObject->status.', kaltura_views = '
-      .$resultObject->views.', kaltura_plays = '.$resultObject->plays.', kaltura_rank = '.$resultObject->rank.
-      ', kaltura_total_rank = '.$resultObject->totalRank.',kaltura_duration = '.$resultObject->duration.', 
-      kaltura_votes = '.$resultObject->votes.', kaltura_thumbnail_url = \''.$resultObject->thumbnailUrl.
-      '\' WHERE kaltura_entryId = \''.$resultObject->id.'\'';
-      if ($resultObject->duration) {
-        $duration = $entry['duration'];
+  try {
+    $get_entries = 'SELECT kaltura_entryId FROM {node_kaltura} node_kaltura LEFT JOIN {node} node ON node.nid = node_kaltura.nid WHERE node.status = 1';
+    $entries = db_query($get_entries);
+    while ($entry = db_fetch_object($entries)) {
+      $all_entries[] = $entry->kaltura_entryId;
+    }
+    if (is_array($all_entries) && count($all_entries)) {
+      $my_entries = implode(',', $all_entries);
+      $result = kaltura_get_entries($my_entries, count($all_entries), TRUE);
+    }
+    else {
+      $result = FALSE;
+    }
+    // if we got a good result, we update the entry data in the DB
+    if ($result !== FALSE) {
+      foreach ($result->objects as $resultObject) {
+        // [#850378] needs DB escaping here
+        $update_entry = 'UPDATE {node_kaltura} SET kstatus = '.$resultObject->status.', kaltura_views = '
+          .$resultObject->views.', kaltura_plays = '.$resultObject->plays.', kaltura_rank = '.$resultObject->rank.
+          ', kaltura_total_rank = '.$resultObject->totalRank.',kaltura_duration = '.$resultObject->duration.', 
+           kaltura_votes = '.$resultObject->votes.', kaltura_thumbnail_url = \''.$resultObject->thumbnailUrl.
+          '\' WHERE kaltura_entryId = \''.$resultObject->id.'\'';
+        if ($resultObject->duration) {
+          $duration = $entry['duration'];
       }
 
-      $updated = db_query($update_entry, $resultObject->status, $resultObject->views, $resultObject->plays, $resultObject->rank, $resultObject->totalRank, $duration,
-      $resultObject->votes, $resultObject->thumbnailUrl, $resultObject->id);
+        $updated = db_query($update_entry, $resultObject->status, $resultObject->views, $resultObject->plays, $resultObject->rank, $resultObject->totalRank, $duration,
+                   $resultObject->votes, $resultObject->thumbnailUrl, $resultObject->id);
+      }
     }
   }
-  }
-  catch(Exception $ex)
-  {
+  catch (Exception $ex) {
+    watchdog('kaltura', t('Kaltura Exception: %message, backtrace: <pre>!trace</pre>'), array('%message' => $ex->getMessage(), '!trace' => print_r($ex->getTrace(),1)));
+    drupal_set_message(t('Kaltura client exception in cron: @message', array('@message' => $ex->getMessage())), 'error');
   }
 }
 
@@ -495,7 +498,7 @@ function kaltura_cron() {
  * need to amalgamate mix and media entries
  * returns an array made up of Mix and media entries
  */
-function kaltura_get_entries($entries, $totalEntries, $isAdmin = false) {
+function kaltura_get_entries($entries, $totalEntries, $isAdmin = FALSE) {
   $kaltura_client = KalturaHelpers::getKalturaClient($isAdmin);
   $session_user = KalturaHelpers::getSessionUser();
   $kmf = new KalturaBaseEntryFilter();
@@ -503,21 +506,25 @@ function kaltura_get_entries($entries, $totalEntries, $isAdmin = false) {
   $result = $kaltura_client->baseEntry->listAction($kmf);
   //$result = $kaltura_client->getEntries($session_user, $entries, ',', 1);
   //check if all entries accounted for
-  if ($result->totalCount<$totalEntries) {
+  if ($result->totalCount < $totalEntries) {
     //get the remaining mix entries
     $kmf = new KalturaMixEntryFilter();
     $kmf->idIn = $entries;
     $mixResult = $kaltura_client->mixing->listAction($kmf);
     //merge mix and media entries
-    if($result) {
+    if ($result) {
       $fullResult = new KalturaBaseEntryListResponse();
       $fullResult->objects = array_merge($result->objects, $mixResult->objects); 
       $fullResult->totalCount = $result->totalCount + $mixResult->totalCount;
     }
     else $fullResult = $mixResult; 
   }
-  if($fullResult)return $fullResult;
-  if($result) return $result;
+  if ($fullResult) {
+    return $fullResult;
+  }
+  if ($result) {
+    return $result;
+  }
 
   return FALSE;
 }
@@ -549,24 +556,22 @@ function kaltura_fetch_widget_html($widget_id) {
   return $embbed;
 }
 
-/*
+/**
  * define the settings form for choosing a default cw
  */
-
-function kaltura_choose_cw($cw_var, $cw_custom, $override_cw = 0)
-{
+function kaltura_choose_cw($cw_var, $cw_custom, $override_cw = 0) {
   global $base_path;
 
-$return_array = array();
-  if ($override_cw == 0)
-  {
+  $return_array = array();
+  if ($override_cw == 0) {
     $default_cw = variable_get($cw_var, KalturaSettings_CW_UICONF_ID);
   }
-  else
-  {
-  $default_cw = $override_cw;
+  else {
+    $default_cw = $override_cw;
   }
 
+  // any reason this is defined here? appears to be overwritten 
+  // about 40 lines later.
   $return_array[] = array(
     '#type' => 'select',
     '#title' => t('Uploader Type'),
@@ -618,10 +623,9 @@ $return_array = array();
  );
  
  return $return_array;
- 
 }
 
-/*
+/**
  * define the settings form for choosing a default player
  */
 function kaltura_choose_player($as_single_form, $type, $node_type, $return_widget_html = FALSE, $saved_player=48501) {
@@ -636,39 +640,38 @@ function kaltura_choose_player($as_single_form, $type, $node_type, $return_widge
     );
   }
   
-  if ($node_type == 'entry')
-  {
-      $variable_width = variable_get('kaltura_'.$type.'_'.$node_type.'_width', '410');
-    $variable_height = variable_get('kaltura_'.$type.'_'.$node_type.'_height', '364');
+  if ($node_type == 'entry') {
+    $variable_width  = variable_get('kaltura_'. $type .'_'. $node_type .'_width', '410');
+    $variable_height = variable_get('kaltura_'. $type .'_'. $node_type .'_height', '364');
   }
-  else
-  {
-      $variable_width = variable_get('kaltura_'.$type.'_width', '410');
-    $variable_height = variable_get('kaltura_'.$type.'_height', '364');
+  else {
+    $variable_width  = variable_get('kaltura_'. $type .'_width', '410');
+    $variable_height = variable_get('kaltura_'. $type .'_height', '364');
   }
-    $wid = '_'. variable_get('kaltura_partner_id', '');
-    if (!is_numeric($saved_player)) $saved_player = 48501;
+  $wid = '_'. variable_get('kaltura_partner_id', '');
+  if (!is_numeric($saved_player)) {
+    // mystic value is 48501
+    $saved_player = 48501;
+  }
   //  $saved_player = variable_get('kaltura_'.$type.'_'.$node_type.'_widget', KalturaSettings_DEFAULT_VIDEO_PLAYER_UICONF);
-
-    $site_players = array();
-    if ( $type == 'viewplaylist')
-    {
-      KalturaHelpers::getSitePlaylistPlayers($site_players);
-    }
-    else
-    {
-      KalturaHelpers::getSitePlayers($site_players);
-    }
-    reset($site_players);
-    $first_uiconf = key($site_players);
-    $players_name = array();
-    foreach($site_players as $one_player_id => $one_layer_props)
-    {
-      $players_name[$one_player_id] = $one_layer_props['name'];
-    }
-    
-    $replace_url = KalturaHelpers::getSwfUrlForWidget($wid  .'/entry_id/_KMCLOGO1/uiconf_id/##uiconf##');
-    $suffix = '<table><tr><td><span id="'.$type.'_ph"></span></td><td valign="middle"><span><a href="http://www.kaltura.com/index.php/kmc/kmc2#appstudio|players_list" target="_blank">Create new player</a></span></td></tr></table>
+  
+  $site_players = array();
+  if ( $type == 'viewplaylist') {
+    // mystic array is hardcoded in kaltura_client/kaltura_helpers.php
+    KalturaHelpers::getSitePlaylistPlayers($site_players);
+  }
+  else {
+    KalturaHelpers::getSitePlayers($site_players);
+  }
+  reset($site_players);
+  $first_uiconf = key($site_players);
+  $players_name = array();
+  foreach($site_players as $one_player_id => $one_layer_props) {
+    $players_name[$one_player_id] = $one_layer_props['name'];
+  }
+  
+  $replace_url = KalturaHelpers::getSwfUrlForWidget($wid  .'/entry_id/_KMCLOGO1/uiconf_id/##uiconf##');
+  $suffix = '<table><tr><td><span id="'.$type.'_ph"></span></td><td valign="middle"><span><a href="http://www.kaltura.com/index.php/kmc/kmc2#appstudio|players_list" target="_blank">Create new player</a></span></td></tr></table>
         <script type="text/javascript">
         function get_'.$type.'_defualt_width()
         {
@@ -726,12 +729,12 @@ function kaltura_choose_player($as_single_form, $type, $node_type, $return_widge
               try{if (change_dim == 1) set_'.$type.'_player_dimension(uiconf);}catch(ex){}
               }$(document).ready(function() {try{change_'.$type.'_player("'.$saved_player.'", 0);}catch(ex){}});</script>';
     $form['default_widget'] = array(
-    '#type' => 'select',
-    '#title' => t('Video Player for Node'),
-    '#options' => $players_name,
-    '#suffix' => $suffix,
-    '#attributes' => array('onChange' => 'change_'.$type.'_player(this.options[this.selectedIndex].value, 1)'),
-    '#default_value' => $saved_player,
+      '#type' => 'select',
+      '#title' => t('Video Player for Node'),
+      '#options' => $players_name,
+      '#suffix' => $suffix,
+      '#attributes' => array('onChange' => 'change_'.$type.'_player(this.options[this.selectedIndex].value, 1)'),
+      '#default_value' => $saved_player,
     );
     if ($as_single_form) {
       return system_settings_form($form);
@@ -739,7 +742,6 @@ function kaltura_choose_player($as_single_form, $type, $node_type, $return_widge
     else {
       return $form;
     }
-//  }
   
   $widgets = new KalturaSettings;
   $pid = variable_get('kaltura_partner_id', '');
@@ -768,13 +770,13 @@ function kaltura_choose_player($as_single_form, $type, $node_type, $return_widge
   }
 }
 
-/*
+/**
  * function to choose to what URL the user will be redirected to after AddEntry in the CW
  *
  * This function exposes a hook_cw_destination()
  */
 function kaltura_cw_destination() {
-  $url = kaltura_invoke('cw_destination', $data = NULL);
+  $url = kaltura_invoke('cw_destination');
   if ($url) {
     return $url[0];
   }
