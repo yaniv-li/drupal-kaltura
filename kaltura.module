@@ -36,7 +36,8 @@ function kaltura_init() {
     variable_set('kaltura_editor_width',KalturaSettings_AE_WIDTH);
     variable_set('kaltura_editor_height',KalturaSettings_AE_HEIGHT);    
     variable_set('kaltura_editor_URL',KalturaSettings_AE_URL);
-  } else {
+  }
+  else {
     variable_set('kaltura_editor_width',KalturaSettings_SE_WIDTH);
     variable_set('kaltura_editor_height',KalturaSettings_SE_HEIGHT);
     variable_set('kaltura_editor_URL',KalturaSettings_SE_URL);
@@ -360,13 +361,13 @@ function kaltura_list_entries() {
   $result = db_query(db_rewrite_sql($get_all, 'node', 'nid'));
   while ($node_nid = db_fetch_object($result)) {
     $nodes[$node_nid->nid] = $node_nid;
-
   }
   $html = theme("kaltura_list_of_entries", $nodes, $allow_insert, $field_name);
   $pager = '';
   if (ceil($node_count->c/20) > 1) {
     $pager = theme('pager', NULL, 20, 0, array(), ceil($node_count->c/20));
   }
+
   if ($allow_insert && $field_name) {
     $html =     '<div> </div><div id="media-upload-header">
   <ul id="sidemenu">
