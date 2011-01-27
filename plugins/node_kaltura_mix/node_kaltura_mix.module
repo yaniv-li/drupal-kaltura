@@ -792,6 +792,8 @@ function kaltura_update_mix_node_taxonomy(&$node) {
 
 /**
  * Implementation of hook_update().
+ *
+ * @TODO: [#646350] - with revisions enabled, we don't do updates correctly.
  */
 function node_kaltura_mix_update($node) {
   // if this is a new node or we're adding a new revision,

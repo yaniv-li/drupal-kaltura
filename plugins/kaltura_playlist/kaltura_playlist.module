@@ -232,12 +232,14 @@ function kaltura_playlist_theme() {
 function kaltura_playlist_insert(&$node) {
   watchdog('playlist', 'node created '. print_r($node, TRUE));
   $sql = 'INSERT INTO {node_kaltura_playlist} (vid, nid, playlist_view, tag_filter_operator, tag_filter) 
-			VALUES(%d, %d, \'%s\', \'%s\', \'%s\' )';
+      VALUES(%d, %d, \'%s\', \'%s\', \'%s\' )';
   db_query($sql, $node->vid, $node->nid, $node->playlist_view, $node->tag_filter_operator, $node->tag_filter);
 }
 
 /**
  * Implementation of hook_update().
+ *
+ * @TODO: [#646350] - with revisions enabled, we don't do updates correctly.
  */
 function kaltura_playlist_update($node) {
   if ($node->revision) {
@@ -341,9 +343,9 @@ function kaltura_get_view_raw_data($view_details, $tag_filter = '', $tag_filter_
     }
     if (!empty($view->display['default']->display_options['filters']['kaltura_tags']))
     {
-		$view->display['default']->display_options['filters']['kaltura_tags']['value'] = $tag_filter;
-		$view->display['default']->display_options['filters']['kaltura_tags']['operator'] = $tag_filter_op;
-	}
+    $view->display['default']->display_options['filters']['kaltura_tags']['value'] = $tag_filter;
+    $view->display['default']->display_options['filters']['kaltura_tags']['operator'] = $tag_filter_op;
+  }
     $view->display['default']->display_options['filters']['kaltura_media_type_1'] = array(
       'operator' => 'not in',
       'value' => array(
