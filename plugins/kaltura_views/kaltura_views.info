@@ -1,7 +1,7 @@
 ; $Id$: kaltura_views
 name = Kaltura Media Views
 package = Kaltura Media Management
-core = 6.x
+core = 7.x
 dependencies[] = kaltura
 dependencies[] = views
 description = View your top videos, most viewed, users videos, etc'.
