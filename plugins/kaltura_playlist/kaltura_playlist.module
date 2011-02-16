@@ -131,8 +131,7 @@ function kaltura_playlist_form(&$node, &$param) {
   {
 	switch(val)
 	{';
-  foreach ($tags_views as $name => $val)
-  {
+  foreach ($tags_views as $name => $val) {
 	$js_script .= 'case "'.$name.'":
 	';
   }
