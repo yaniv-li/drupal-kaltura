@@ -528,6 +528,8 @@ function node_kaltura_entry_validate($node, &$form) {
  * This hook can be initiated in two cases:
  * 1) the node was updated in drupal
  * 2) the node was updated in kaltura (or in one of kaltura's widgets) and a notification of update_entry was received
+ *
+ * @TODO: [#646350] - with revisions enabled, we don't do updates correctly.
  */
 function node_kaltura_entry_update($node) {
   // if this is a new node or we're adding a new revision,
