@@ -691,17 +691,19 @@ function kaltura_form_alter(&$form, &$form_state, $form_id) {
   }
 }
 
-/*
- * callback function for url admin/settings/kaltura/import
- *CMAC
- *changes
+/**
+ * callback function for url admin/settings/kaltura/entries/import
+ *
+ * CMAC
+ * changes
  * KalturaEntryFilter changed to KalturaMediaEntryFilter
- * this may need some reworking
+ *
+ * @TODO this may need some reworking
  */
 function kaltura_import_entries_page() {
   // initialise variables
-  $foundFlag = true;      // set to false if there are no entries
-  $enabledFlag = false;     // set to true if mix or media node is enabled
+  $foundFlag = TRUE;      // set to false if there are no entries
+  $enabledFlag = FALSE;     // set to true if mix or media node is enabled
   $entries = array();     // mix entries
   $mediaEntries = array();  // media entries
   $entries_need_import = array();
@@ -724,48 +726,55 @@ function kaltura_import_entries_page() {
   if (empty($_GET['p'])) {
     $_GET['p'] = 1;
   }
-  else
-  {
+  else {
     $current_page = $_GET['p'];
   }
   
-  while (!$finished)
-  {
+  while (!$finished) {
     set_time_limit(30); 
     //get the mix entries
     if ($get_mixes) {
       $filter = new KalturaMixEntryFilter();
       list($total, $entries) = kaltura_get_my_entries($filter, KalturaEntryType::MIX, $each_page, $current_page);
-      if($total==0)$foundFlag = false;
-      $enabledFlag = true;
+      if($total==0) {
+        $foundFlag = FALSE;
+      }
+      $enabledFlag = TRUE;
     }
     // get the media entries
     if ($get_entries) {
       $filter = new KalturaMediaEntryFilter();
       list($mediaTotal, $mediaEntries) = kaltura_get_my_entries($filter, KalturaEntryType::MEDIA_CLIP, $each_page, $current_page);
-      if($mediaTotal==0)$foundFlag=false;
-      $enabledFlag = true;
+      if($mediaTotal==0) {
+        $foundFlag = FALSE;
+      }
+      $enabledFlag = TRUE;
     }
     if(!$enabledFlag) {
       return t('Can\'t import entries, you did not enable the node_kaltura_entries module.');
     }
     
-    $entries_need_import = array_merge($entries_need_import, $entries, $mediaEntries);
-
-    //list($total, $each_page, $entries) = kaltura_get_my_entries($filter, $each_page = 30, $_GET['p']);
     if ($entries === NULL) {
       return t('No entries found.');
     }
+
+    if ( is_array($mediaEntries) ) {
+      $entries_need_import = array_merge($entries_need_import, $mediaEntries);
+    }
+
+    if ( is_array($entries) ) {
+      $entries_need_import = array_merge($entries_need_import, $entries);
+    }
+
     $entries_need_import = kaltura_remove_existing_entries($entries_need_import);
     
-    if (count($entries_need_import) >= $each_page)
-    {
-      $finished = true;
+    if (count($entries_need_import) >= $each_page) {
+      $finished = TRUE;
     }
     
-    if (($mediaTotal < $current_page * $each_page) && ($total < $current_page * $each_page))
-    {
-      $finished = true;
+    $shown = $current_page*$each_page;
+    if (($mediaTotal < $shown) && ($total < $shown)) {
+      $finished = TRUE;
     }
     $current_page++;
   }
@@ -774,8 +783,7 @@ function kaltura_import_entries_page() {
     return t('No entries needed to be imported.');
   }
   
-  if (count($entries_need_import) > $each_page)
-  {
+  if (count($entries_need_import) > $each_page) {
     $multi_dim = array_chunk  ( $entries_need_import  , $each_page, true );
     $entries_need_import = $multi_dim[0];
   }
@@ -817,17 +825,7 @@ function kaltura_import_entries_page() {
   return $pager . $output . $pager;
 }
 
-
-
-
-
-
-
-
-
-
-
-/*
+/**
  * helper function that uses kaltura_get_entries() to retreive a list of specific entries
  * belongs to the partner, and call kaltura_import_entry() for each of the retreived list
  */
