@@ -477,29 +477,20 @@ function kaltura_cron() {
     ->execute()
     ->fetchCol();
 
-      /*
-       *$get_entries = 'SELECT kaltura_entryId FROM {node_kaltura} node_kaltura LEFT JOIN {node} node ON node.nid = node_kaltura.nid WHERE node.status = 1';
-       *$entries = db_query($get_entries);
-       *  while ($entry = db_fetch_object($entries)) {
-       *  $all_entries[] = $entry->kaltura_entryId;
-       *}
-       */
       if (is_array($all_entries) && count($all_entries)) {
-        $my_entries = implode(',', $all_entries);
-        $result = kaltura_get_entries($my_entries, count($all_entries), TRUE);
+        $result = kaltura_get_entries($all_entries, TRUE);
       }
       else {
         $result = FALSE;
       }
       // if we got a good result, we update the entry data in the DB
-      if ($result !== FALSE) {
-        foreach ($result->objects as $resultObject) {
+      if ($result[0] !== FALSE) {
+        foreach ($result[0]->objects as $resultObject) {
           /*
            *if ($resultObject->duration) {
            *  $duration = $entry['duration'];
            *}
            */
-          dd($resultObject->name);
           $ent['kaltura_entryid'] = $resultObject->id;
           $ent['kaltura_tags'] = $resultObject->tags;
           $ent['kaltura_admin_tags'] = $resultObject->adminTags;
@@ -519,8 +510,7 @@ function kaltura_cron() {
           $ent['kaltura_total_rank'] = $resultObject->totalRank;
           $ent['kaltura_title'] = $resultObject->name;
           $ent['kaltura_description'] = $resultObject->description;
-          $a = drupal_write_record('node_kaltura', $ent, 'kaltura_entryid');
-          dd($a);
+          drupal_write_record('node_kaltura', $ent, 'kaltura_entryid');
           /*
            *$update_entry = 'UPDATE {node_kaltura} SET kstatus = %d, kaltura_views = %d, kaltura_plays = %d, kaltura_rank = %d, kaltura_total_rank = %d, kaltura_duration = %d, kaltura_votes = %d, kaltura_thumbnail_url = \'%s\' WHERE kaltura_entryId = \'%s\'';
            *$updated = db_query($update_entry, $resultObject->status, $resultObject->views, $resultObject->plays, $resultObject->rank, $resultObject->totalRank, $duration, $resultObject->votes, $resultObject->thumbnailUrl, $resultObject->id);
@@ -542,35 +532,23 @@ function kaltura_cron() {
  * need to amalgamate mix and media entries
  * returns an array made up of Mix and media entries
  */
-function kaltura_get_entries($entries, $totalEntries, $isAdmin = FALSE) {
-  $kaltura_client = KalturaHelpers::getKalturaClient($isAdmin);
-  $session_user = KalturaHelpers::getSessionUser();
-  $kmf = new KalturaBaseEntryFilter();
-  $kmf->idIn = $entries;
-  $result = $kaltura_client->baseEntry->listAction($kmf);
-  //$result = $kaltura_client->getEntries($session_user, $entries, ',', 1);
-  //check if all entries accounted for
-  if ($result->totalCount<$totalEntries) {
-    //get the remaining mix entries
-    $kmf = new KalturaMixEntryFilter();
-    $kmf->idIn = $entries;
-    $mixResult = $kaltura_client->mixing->listAction($kmf);
-    //merge mix and media entries
-    if ($result) {
-      $fullResult = new KalturaBaseEntryListResponse();
-      $fullResult->objects = array_merge($result->objects, $mixResult->objects);
-      $fullResult->totalCount = $result->totalCount + $mixResult->totalCount;
-    }
-    else $fullResult = $mixResult;
+function kaltura_get_entries($entries, $isAdmin = FALSE) {
+  $chunks = array_chunk($entries, '100');
+  foreach ($chunks as $chunk) {
+		$entries_list = implode(',', $chunk);
+    $kaltura_client = KalturaHelpers::getKalturaClient($isAdmin);
+    $session_user = KalturaHelpers::getSessionUser();
+    $kmf = new KalturaBaseEntryFilter();
+    $kmp = new KalturaFilterPager('100');
+    $kmf->idIn = $entries_list;
+    $results[] = $kaltura_client->baseEntry->listAction($kmf, $kmp);
   }
-  if ($fullResult) {
-    return $fullResult;
-  }
+  $result = array_values($results);
   if ($result) {
     return $result;
   }
 
-  return FALSE;
+	return FALSE;
 }
 
 /**
