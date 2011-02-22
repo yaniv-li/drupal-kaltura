@@ -499,7 +499,8 @@ function kaltura_cron() {
            *  $duration = $entry['duration'];
            *}
            */
-          $ent[kaltura_entryid] = $resultObject->id;
+          dd($resultObject->name);
+          $ent['kaltura_entryid'] = $resultObject->id;
           $ent['kaltura_tags'] = $resultObject->tags;
           $ent['kaltura_admin_tags'] = $resultObject->adminTags;
           $ent['kstatus'] = $resultObject->status;
@@ -516,7 +517,10 @@ function kaltura_cron() {
           $ent['kaltura_votes'] = $resultObject->votes;
           $ent['kaltura_rank'] = $resultObject->rank;
           $ent['kaltura_total_rank'] = $resultObject->totalRank;
-          drupal_write_record('node_kaltura', $ent, 'kaltura_entryid');
+          $ent['kaltura_title'] = $resultObject->name;
+          $ent['kaltura_description'] = $resultObject->description;
+          $a = drupal_write_record('node_kaltura', $ent, 'kaltura_entryid');
+          dd($a);
           /*
            *$update_entry = 'UPDATE {node_kaltura} SET kstatus = %d, kaltura_views = %d, kaltura_plays = %d, kaltura_rank = %d, kaltura_total_rank = %d, kaltura_duration = %d, kaltura_votes = %d, kaltura_thumbnail_url = \'%s\' WHERE kaltura_entryId = \'%s\'';
            *$updated = db_query($update_entry, $resultObject->status, $resultObject->views, $resultObject->plays, $resultObject->rank, $resultObject->totalRank, $duration, $resultObject->votes, $resultObject->thumbnailUrl, $resultObject->id);

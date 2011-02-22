@@ -159,6 +159,18 @@ function kaltura_schema() {
         'default' => 0,
         'not null' => FALSE,
       ),
+      'kaltura_title' => array(
+        'description' => 'The entry title',
+        'type' => 'text',
+        'default' => NULL,
+        'not null' => FALSE
+      ),
+      'kaltura_description' => array(
+        'description' => 'The entry description',
+        'type' => 'text',
+        'default' => NULL,
+        'not null' => FALSE
+      ),
     ),
     'primary key' => array('kaltura_entryid'),
     );
