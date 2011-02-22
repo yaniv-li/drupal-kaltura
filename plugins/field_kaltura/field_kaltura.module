@@ -30,7 +30,7 @@ function field_kaltura_field_info() {
         'kcw' => KalturaSettings_CW_UICONF_ID
       ),
       'default_widget' => 'all_media',
-      'default_formatter' => 'full',
+      'default_formatter' => 'field_kaltura_player_default',
     )
     );
 }
@@ -39,8 +39,13 @@ function field_kaltura_field_info() {
  * Implementation of hook_field_settings_form().
  */
 
-function field_kaltura_field_settings_form($field, $instance) {
+function field_kaltura_field_settings_form($field, $instance, $has_data) {
   dsm($instance);
+  dsm($field);
+  dsm($has_data);
+  //$field['cardinality'] = 1;
+  //TODO: find a way of making the filed except only one value
+  $settings = $field['settings'];
       $form = array();
  //specific field setting can come here (taxonomy integration/player selection/etc...)
       $form['thumbsize'] = array(
@@ -52,13 +57,13 @@ function field_kaltura_field_settings_form($field, $instance) {
         '#type' => 'textfield',
         '#title' => t('Thumbnail Width'),
         '#size' => 5,
-        '#default_value' => !empty($field['thumbsize_width']) ? $field['thumbsize_width'] : '',
+        '#default_value' => !empty($settings['thumbsize']['thumbsize_width']) ? $settings['thumbsize']['thumbsize_width'] : '',
       );
       $form['thumbsize']['thumbsize_height'] = array(
         '#type' => 'textfield',
         '#title' => t('Thumbnail Height'),
         '#size' => 5,
-        '#default_value' => !empty($field['thumbsize_height']) ? $field['thumbsize_height'] : '',
+        '#default_value' => !empty($settings['thumbsize']['thumbsize_height']) ? $settings['thumbsize']['thumbsize_height'] : '',
       );
     $saved_player = !empty($field['entry_widget']) ? $field['entry_widget'] : KalturaSettings_DEFAULT_VIDEO_PLAYER_UICONF;
     $players = kaltura_choose_player(0, 'video', 'entry', FALSE, $saved_player);
@@ -85,19 +90,14 @@ function field_kaltura_field_settings_form($field, $instance) {
         '#title' => t('Player Width'),
         '#size' => 5,
         '#prefix' => $dynamic_dimension_js,
-        '#default_value' => !empty($field['player_width']) ? $field['player_width'] : '400',
+        '#default_value' => !empty($settings['kaltura_entry_video_display']['player_width']) ? $settings['kaltura_entry_video_display']['player_width'] : '400',
       );
 
       $form['kaltura_entry_video_display']['player_height'] = array(
         '#type' => 'textfield',
         '#title' => t('Player Height'),
         '#size' => 5,
-        '#default_value' => !empty($field['player_height']) ? $field['player_height'] : '330',
-      );
-      $form['kaltura_entry_video_display']['dispaly_metadata'] = array(
-        '#type' => 'checkbox',
-        '#title' => t('Dispaly Metadata'),
-        '#default_value' => !empty($field['dispaly_metadata']) ? $field['dispaly_metadata'] : '0',
+        '#default_value' => !empty($settings['kaltura_entry_video_display']['player_height']) ? $settings['kaltura_entry_video_display']['player_height'] : '330',
       );
       $form['kaltura_entry_video_display']['rotate'] = array(
         '#type' => 'checkbox',
@@ -248,7 +248,6 @@ function kaltura_widget_hendler ($instance, $entry, $mediat) {
   );
   $widget['button'] = array(
     '#type' => 'item',
-    '#description' => $element['#description'],
     '#markup' => $action_buttons,
   );
   return $widget;
@@ -593,7 +592,17 @@ function field_kaltura_field_presave($entity_type, $entity, $field, $instance, $
   foreach ($items as $item) {
     $rec['kaltura_entryid'] = $item['entryid'];
     $rec['kaltura_media_type'] = $item['mediatype'];
-    drupal_write_record('node_kaltura', $rec, 'kaltura_entryid');
+    $query = db_select('node_kaltura', 'k')
+      ->fields('k', array('kaltura_entryid'))
+      ->condition('kaltura_entryid', $item['entryid'], '=')
+      ->execute()
+      ->fetchCol();
+    if (empty($query)) {
+      drupal_write_record('node_kaltura', $rec);
+    }
+    else {
+      drupal_write_record('node_kaltura', $rec, 'kaltura_entryid');
+    }
   }
 }
 

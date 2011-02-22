@@ -267,12 +267,14 @@ function kaltura_build_search() {
     $node->body = kaltura_replace_tags($node->body, FALSE, TRUE);
   }
 
-  function kaltura_node_presave($node) {
-    $node_update_access = node_access('update', $node);
-    $show_embed = user_access('view Kaltura embed code');
-    $node->body = kaltura_replace_tags($node->body, FALSE, FALSE, $node_update_access, $show_embed, $node->type);
-    $node->teaser = kaltura_replace_tags($node->teaser);
-  }
+  /* don't think we need this one
+   *function kaltura_node_presave($node) {
+   *  $node_update_access = node_access('update', $node);
+   *  $show_embed = user_access('view Kaltura embed code');
+   *  $node->body = kaltura_replace_tags($node->body, FALSE, FALSE, $node_update_access, $show_embed, $node->type);
+   *  $node->teaser = kaltura_replace_tags($node->teaser);
+   *}
+   */
 
 /*
  * This function determines in which playedr widget we need to use

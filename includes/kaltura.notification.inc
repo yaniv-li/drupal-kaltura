@@ -60,8 +60,9 @@ function kaltura_notification_handler() {
  * This function saves the received notification to the DB
  */
 function kaltura_notification_save($notification_id, $notification_data) {
-  $insert_query = 'INSERT INTO {kaltura_notifications} (notification_id, data, received_at) VALUES (%d, \'%s\', \''. date('Y-m-d H:i:s') .'\')';
-  $result = db_query($insert_query, $notification_id, serialize($notification_data));
+  $notify['data'] = $notification_data;
+  $notify['received_at'] = time();
+  drupal_write_record('kaltura_notifications', $notify);
 }
 
 /*
