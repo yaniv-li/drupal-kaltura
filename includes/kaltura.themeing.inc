@@ -459,7 +459,6 @@ function theme_kaltura_contribution_wizard($theme_params) {
  * in case we add entries as a standalone nodes or a new roughcut
  */
 function theme_kaltura_contribution_wizard_add($theme_params, $navigate_back = TRUE) {
-  dd($theme_params);
 
   $goto_url = kaltura_cw_destination();
   $javascript = '
@@ -650,7 +649,6 @@ function theme_kaltura_contribution_wizard_field($theme_params, $field_id, $no_c
     var goto_url = "'. $goto_url .'";
     var node_url = "'. (($theme_params->mix_id)? url("node/". $theme_params->mix_id): '') .'";
     function onContributionWizardAfterAddEntry(obj) {
-      console.dir(obj);
       str = obj[0]["entryId"];
       type = obj[0]["mediaType"];
       '.

@@ -597,10 +597,6 @@ function field_kaltura_field_presave($entity_type, $entity, $field, $instance, $
   }
 }
 
-/****** dispalys should move to a different file and implemented diffrently *******/
-
-
-
 
 function build_kaltura_embed($item, $type, $settings, $path, $uid, $thumb_url) {
   //dsm($settings);
