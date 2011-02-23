@@ -30,7 +30,6 @@ function kaltura_notification_handler() {
   watchdog('kaltura NH', print_r($params, TRUE));
   unset($params['q']);
   $noti = new KalturaNotificationClient($params, $admin_secret);
-  dd($noti);
   if ($noti->valid_signature === NULL) {
     watchdog('kaltura', 'notification params empty');
     return FALSE;
@@ -69,10 +68,17 @@ function kaltura_notification_save($notification_id, $notification_data) {
  * This function checks if the received notification was already handled - to avoid duplicates
  */
 function kaltura_notification_received($notification_id) {
-  $query = 'SELECT COUNT(notification_id) c FROM {kaltura_notifications} WHERE notification_id = %d';
-  $result = db_query($query, $notification_id);
-  $count_obj = db_fetch_object($result);
-  return $count_obj->c;
+  /*
+   *$query = 'SELECT COUNT(notification_id) c FROM {kaltura_notifications} WHERE notification_id = %d';
+   *$result = db_query($query, $notification_id);
+   *$count_obj = db_fetch_object($result);
+   */
+  $count = db_select('kaltura_notifications', 'notification_id')
+    ->countQuery()
+    ->condition('notification_id', $notification_id)
+    ->execute();
+
+  return $count;
 }
 
 /*
@@ -90,16 +96,16 @@ function kaltura_forward_notification($noti) {
 	  }
 	  else
 	  {
-		kaltura_notify_node_entry_add('entry', $noti);
+		kaltura_notify_entry_add('entry', $noti);
 	  }
       break;
-    case 'kshow_add': kaltura_notify_node_entry_add('mix', $noti);
+    case 'kshow_add': kaltura_notify_entry_add('mix', $noti);
       break;
     case 'kshow_update_info': watchdog('KNH', 'notification of type kshow_update_info received<br />'. serialize($noti));
       break;
     case 'entry_update_thumbnail': kaltura_update_entry_thumbnail($noti);
       break;
-    case 'entry_update': kaltura_notify_node_update($noti);
+    case 'entry_update': kaltura_notify_update($noti);
       break;
     case 'test': kaltura_test_notification_received();
       break;
@@ -120,94 +126,162 @@ function kaltura_test_notification_received() {
  * helper function to update the thumbnail url of an entry
  */
 function kaltura_update_entry_thumbnail($notification) {
-  $thumburl = $notification['thumbnail_url'];
-  $entry = $notification['entry_id'];
-  $update = 'UPDATE {node_kaltura} SET kaltura_thumbnail_url = \'%s\' WHERE kaltura_entryId = \'%s\'';
-  $result = db_query($update, $thumburl, $entry);
+  /*
+   *$thumburl = $notification['thumbnail_url'];
+   *$entry = $notification['entry_id'];
+   *$update = 'UPDATE {node_kaltura} SET kaltura_thumbnail_url = \'%s\' WHERE kaltura_entryId = \'%s\'';
+   *$result = db_query($update, $thumburl, $entry);
+   */
+  try {
+    db_update('node_kaltura')
+      ->fields(array('kaltura_thumbnail_url' => $notification['thumbnail_url']))
+      ->condition('kaltura_entryid', $notification['entry_id'])
+      ->execute();
+  }
+  catch (Exception $e) {
+    watchdog('kaltura', 'update entry thumbnail failed');
+  }
 }
 
 /*
  * function to handle with entry update notification
  */
-function kaltura_notify_node_update($notification) {
-  $get_nid_from_entry = 'SELECT nid FROM {node_kaltura} WHERE kaltura_entryId = \'%s\'';
-  $nodes = db_query($get_nid_from_entry, $notification['entry_id']);
-  while ($obj = db_fetch_object($nodes)) {
-    $node_ids[] = $obj->nid;
+
+/*
+ *function kaltura_notify_node_update($notification) {
+ *  dd($notification);
+ *  $get_nid_from_entry = 'SELECT nid FROM {node_kaltura} WHERE kaltura_entryId = \'%s\'';
+ *  $nodes = db_query($get_nid_from_entry, $notification['entry_id']);
+ *  while ($obj = db_fetch_object($nodes)) {
+ *    $node_ids[] = $obj->nid;
+ *  }
+ *
+ *  $updatable_data = array('tags' => 'kaltura_tags', 'admin_tags' => 'kaltura_admin_tags', 'status' => 'kstatus','name' => 'title');
+ *  if (count($node_ids) == 1) {
+ *    $updated_node = node_load($node_ids[0]);
+ *    $updated_node->notification_update = TRUE;
+ *    $updated_node->body = kaltura_get_entry_description($notification['media_type'], $notification['entry_id']);
+ *    foreach ($updatable_data as $notification_key => $node_key) {
+ *      if ($updated_node->$node_key != $notification[$notification_key]) {
+ *        $updated_node->$node_key = $notification[$notification_key];
+ *      }
+ *    }
+ *    kaltura_push_extra_data($updated_node, $notification);
+ *    node_save($updated_node);
+ *  }
+ *  else {
+ *    //watchdog('nod', 'found more than 1 node '. count($node_ids));
+ *  }
+ *}
+ */
+
+function kaltura_notify_update($notification) {
+  $entry['kaltura_tags'] =  $notification['tags'];
+  $entry['kaltura_admin_tags'] =  $notification['admin_tags'];
+  $entry['kstatus'] =  $notification['status'];
+  $entry['kaltura_title'] =  $notification['name'];
+  try {
+    db_insert('node_kaltura')
+      ->fields($entry)
+      ->execute();
+  }
+  catch (Exception $e) {
+    watchdog('kaltura', 'problem updating recored from notication');
   }
 
-  $updatable_data = array('tags' => 'kaltura_tags', 'admin_tags' => 'kaltura_admin_tags', 'status' => 'kstatus','name' => 'title');
-  if (count($node_ids) == 1) {
-    $updated_node = node_load($node_ids[0]);
-    $updated_node->notification_update = TRUE;
-    $updated_node->body = kaltura_get_entry_description($notification['media_type'], $notification['entry_id']);
-    foreach ($updatable_data as $notification_key => $node_key) {
-      if ($updated_node->$node_key != $notification[$notification_key]) {
-        $updated_node->$node_key = $notification[$notification_key];
-      }
-    }
-    kaltura_push_extra_data($updated_node, $notification);
-    node_save($updated_node);
-  }
-  else {
-    //watchdog('nod', 'found more than 1 node '. count($node_ids));
-  }
 }
 
 /*
  * function to handle both add entry notification and add kshow notification
  */
-function kaltura_notify_node_entry_add($type, $notification_data) {
-  if ($notification_data['partner_data']) {
-    $data_exploded  = explode('|', $notification_data['partner_data']);
-    foreach ($data_exploded as $data) {
-      $splited = explode('@', $data);
-      $partner_data[$splited[0]] = $splited[1];
-    }
-  }
-  $node->title = $notification_data['name'];
-//  $node->body = '';//'test '. time(); // print_r($notification_data,TRUE).PHP_EOL.print_r($_REQUEST,TRUE);
-  $node->body = kaltura_get_entry_description($notification_data['media_type'], $notification_data['entry_id']);
+/*function kaltura_notify_node_entry_add($type, $notification_data) {*/
+  /*if ($notification_data['partner_data']) {*/
+    /*$data_exploded  = explode('|', $notification_data['partner_data']);*/
+    /*foreach ($data_exploded as $data) {*/
+      /*$splited = explode('@', $data);*/
+      /*$partner_data[$splited[0]] = $splited[1];*/
+    /*}*/
+  /*}*/
+  /*$node->title = $notification_data['name'];*/
+/*//  $node->body = '';//'test '. time(); // print_r($notification_data,TRUE).PHP_EOL.print_r($_REQUEST,TRUE);*/
+  /*$node->body = kaltura_get_entry_description($notification_data['media_type'], $notification_data['entry_id']);*/
 
-  $node->type = 'kaltura_'. $type;
-  $node->uid = ($notification_data['puser_id'])? $notification_data['puser_id']: FALSE;
-  if ($node->uid === FALSE) {
-    $node->uid = ($partner_data['user_id'])? $partner_data['user_id']: 0;
-  }
-  $node->status = 1;
-  $node->created = time();
-  $node->comment = variable_get('comment_kaltura_entry', 2);
-  $node->changed = time();
-  $node->promote = 0;
-  $node->sticky = 0;
-  $node->kstatus = $notification_data['status'];
+  /*$node->type = 'kaltura_'. $type;*/
+  /*$node->uid = ($notification_data['puser_id'])? $notification_data['puser_id']: FALSE;*/
+  /*if ($node->uid === FALSE) {*/
+    /*$node->uid = ($partner_data['user_id'])? $partner_data['user_id']: 0;*/
+  /*}*/
+  /*$node->status = 1;*/
+  /*$node->created = time();*/
+  /*$node->comment = variable_get('comment_kaltura_entry', 2);*/
+  /*$node->changed = time();*/
+  /*$node->promote = 0;*/
+  /*$node->sticky = 0;*/
+  /*$node->kstatus = $notification_data['status'];*/
 
-  if ($partner_data['entry_as_comment'] == 'yes') {
-    $node->kaltura_video_comment = 1;
-  }
-  else {
-    $node->kaltura_video_comment = 0;
-  }
+  /*if ($partner_data['entry_as_comment'] == 'yes') {*/
+    /*$node->kaltura_video_comment = 1;*/
+  /*}*/
+  /*else {*/
+    /*$node->kaltura_video_comment = 0;*/
+  /*}*/
 
-  kaltura_push_extra_data($node, $notification_data);
-  $node->kaltura_entry_data = serialize(array($notification_data));
-  $node->kaltura_tags = $notification_data['tags'];
-  if ($type == 'entry') {
-    $node->kaltura_entryId = $notification_data['entry_id'];
+  /*kaltura_push_extra_data($node, $notification_data);*/
+  /*$node->kaltura_entry_data = serialize(array($notification_data));*/
+  /*$node->kaltura_tags = $notification_data['tags'];*/
+  /*if ($type == 'entry') {*/
+    /*$node->kaltura_entryId = $notification_data['entry_id'];*/
+  /*}*/
+  /*else {*/
+    /*if (WORK_WITH_KSHOW) {*/
+      /*$node->kaltura_entryId = $notification_data['kshow_id'];*/
+    /*}*/
+    /*else {*/
+      /*$node->kaltura_entryId = $notification_data['show_entry_id'];*/
+    /*}*/
+  /*}*/
+  /*$node->kaltura_admin_tags = '';*/
+  /*if (($type == 'mix' && $partner_data['create_kshow'] == 'yes') || $type == 'entry') {*/
+    /*node_save($node);*/
+    /*module_invoke('node_kaltura_'. $type, 'hook_insert', $node);*/
+  /*}*/
+/*}*/
+
+function kaltura_notify_entry_add($type, $notification_data) {
+  $entry = kmc_obj_to_drupal_array($notification_data);
+  $entry['kaltura_created_date'] = REQUEST_TIME; //we have no way when the entry was created on the KMC so the create date is when we received the notifcation
+  try {
+    db_insert('node_kaltura')
+      ->fields($entry)
+      ->execute();
   }
-  else {
-    if (WORK_WITH_KSHOW) {
-      $node->kaltura_entryId = $notification_data['kshow_id'];
-    }
-    else {
-      $node->kaltura_entryId = $notification_data['show_entry_id'];
-    }
+  catch (Exception $e) {
+    watchdog('kaltura', 'problem adding new recored from notication');
   }
-  $node->kaltura_admin_tags = '';
-  if (($type == 'mix' && $partner_data['create_kshow'] == 'yes') || $type == 'entry') {
-    node_save($node);
-    module_invoke('node_kaltura_'. $type, 'hook_insert', $node);
-  }
+}
+
+
+function kmc_obj_to_drupal_array($obj) {
+    $ent['kaltura_entryid'] = $obj->id;
+    $ent['kaltura_tags'] = $obj->tags;
+    $ent['kaltura_admin_tags'] = $obj->adminTags;
+    $ent['kstatus'] = $obj->status;
+    $ent['kaltura_media_type'] = $obj->mediaType;
+    $ent['kaltura_duration']= $obj->duration;
+    $ent['kaltura_thumbnail_url'] = $obj->thumbnailUrl;
+    $ent['kaltura_partner_data'] = $obj->partnerData;
+    $ent['kaltura_source'] = $obj->sourceType;
+    $ent['kaltura_width'] = $obj->width;
+    $ent['kaltura_height'] = $obj->height;
+    $ent['kaltura_download_url'] = $obj->downloadUrl;
+    $ent['kaltura_views'] = $obj->views;
+    $ent['kaltura_plays'] = $obj->plays;
+    $ent['kaltura_votes'] = $obj->votes;
+    $ent['kaltura_rank'] = $obj->rank;
+    $ent['kaltura_total_rank'] = $obj->totalRank;
+    $ent['kaltura_title'] = $obj->name;
+    $ent['kaltura_description'] = $obj->description;
+    return $ent;
 }
 
 /*
