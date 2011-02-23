@@ -1,7 +1,18 @@
-; $Id$: kaltura
-name = Kaltura
+; $Id: kaltura.info,v 1.1.2.5 2010/07/07 09:34:53 kaltura Exp $: kaltura
+name = Kaltura Module
 package = Kaltura Media Management
 project = Kaltura
 core = 7.x
-description = Infrastructure for managing video, audio and photos - allows to upload and import media files, manage them, and even allow users to collaboratively add and remix media 
-
+version = "7.x-3.0-dev"
+description = Infrastructure for managing video, audio and photos - allows to upload and import media files, manage them, and even allow users to collaboratively add and remix media
+files [] = kaltura_client/generate.php
+files [] = kaltura_client/KalturaClientBase.php
+files [] = kaltura_client/KalturaClient.php
+files [] = kaltura_client/kaltura_helpers.php
+files [] = kaltura_client/kaltura_logger.php
+files [] = kaltura_client/kaltura_notification_client.php
+files [] = kaltura_client/kaltura_settings.php
+files [] = kaltura_client/Php5ClientGenerator.php
+files [] = includes/kaltura.admin.inc
+files [] = includes/kaltura.notification.inc
+files [] = includes/kaltura.themeing.inc

@@ -1,5 +1,5 @@
 <?php
-// $Id$
+// $Id: kaltura_views_handler_filter_is_comment.inc,v 1.1.2.1 2010/08/09 04:33:33 univate Exp $
 
 /*
  * Declaration of new filter handler class that extends the basic operator class of views module

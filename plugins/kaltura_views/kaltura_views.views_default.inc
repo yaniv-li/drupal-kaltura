@@ -1,5 +1,5 @@
 <?php
-// $Id$
+// $Id: kaltura_views.views_default.inc,v 1.1.2.1 2010/08/09 04:33:33 univate Exp $
 
 /**
  * Implementation of hook_views_default_views().

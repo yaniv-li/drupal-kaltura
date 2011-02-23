@@ -1,5 +1,5 @@
 <?php
-// $Id$
+// $Id: kaltura_views_handler_field_kaltura_thumb.inc,v 1.1.2.1 2010/08/09 04:33:33 univate Exp $
 
 /*
  * Declaration of new field handler that extends the basic field handler of views module

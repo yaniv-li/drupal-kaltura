@@ -1,5 +1,5 @@
 <?php
-// $Id$
+// $Id: kaltura.install,v 1.2.2.5.2.4 2011/01/17 20:56:17 xuriz Exp $
 
 /*
  * @file
@@ -17,34 +17,21 @@ function kaltura_schema() {
   $schema['node_kaltura'] = array(
     'description' => 'The base table for Kaltura nodes.',
     'fields' => array(
-      'vid' => array(
-        'description' => 'The current {node_revisions}.vid version identifier.',
-        'type' => 'int',
-        'size' => 'normal',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-        'default' => 0),
-      'nid' => array(
-        'description' => 'The primary identifier for a node.',
-        'type' => 'int',
-        'size' => 'normal',
-        'unsigned' => TRUE,
-        'not null' => TRUE),
-      'kaltura_entryId' => array(
-        'description' => '',
+      'kaltura_entryid' => array(
+        'description' => 'Kaltura entry id',
         'type' => 'varchar',
         'length' => 10,
-        'default' => "",
+        'default' => '',
         'not null' => TRUE),
       'kaltura_tags' => array(
         'description' => 'tags from kaltura CW',
         'type' => 'text',
-        'default' => '',
+        'default' => NULL,
         'not null' => FALSE),
       'kaltura_admin_tags' => array(
         'description' => 'admin tags from kaltura CMS',
         'type' => 'text',
-        'default' => '',
+        'default' => NULL,
         'not null' => FALSE),
       'kstatus' => array(
         'description' => 'The status of the entry/roughcut',
@@ -113,13 +100,13 @@ function kaltura_schema() {
         'not null' => FALSE,
       ),
       'kaltura_media_date' => array(
-        'description' => 'Date of the image from EXIF data',
-        'type' => 'datetime',
+        'description' => 'Date of the image from exif data',
+        'type' => 'int',
         'not null' => FALSE,
       ),
       // A-sync data fields which should be updated by cron
       'kaltura_views' => array(
-        'description' => 'The number of times this item was viewed (not necessarily played)',
+        'description' => 'The number of times this item was viewed not necessarily played',
         'type' => 'int',
         'default' => 0,
         'not null' => FALSE,
@@ -160,8 +147,32 @@ function kaltura_schema() {
         'default' => 0,
         'not null' => FALSE,
       ),
+      'kaltura_created_date' => array(
+        'description' => 'The date and time the entry was created',
+        'type' => 'int',
+        'default' => 0,
+        'not null' => FALSE,
+      ),
+      'kaltura_updated_date' => array(
+        'description' => 'The date and time the entry was updated',
+        'type' => 'int',
+        'default' => 0,
+        'not null' => FALSE,
+      ),
+      'kaltura_title' => array(
+        'description' => 'The entry title',
+        'type' => 'text',
+        'default' => NULL,
+        'not null' => FALSE
+      ),
+      'kaltura_description' => array(
+        'description' => 'The entry description',
+        'type' => 'text',
+        'default' => NULL,
+        'not null' => FALSE
+      ),
     ),
-    'primary key' => array('vid'), /* [#1022310] */
+    'primary key' => array('kaltura_entryid'),
     );
   $schema['kaltura_notifications'] = array(
     'description' => 'table to "log" kaltura notifications, to ignore double notifications',
@@ -176,11 +187,11 @@ function kaltura_schema() {
       'data' => array(
         'description' => 'notification REQUEST params',
         'type' => 'text',
-        'default' => '',
+        'default' => NULL,
         'not null' => FALSE,
       ),
       'received_at' => array(
-        'type' => 'datetime',
+        'type' => 'int',
       ),
     ),
     'primary key' => array('notification_id'),
@@ -194,7 +205,6 @@ function kaltura_schema() {
 function kaltura_install() {
   $_kaltura_client_folder  = drupal_get_path('module', 'kaltura') .'/kaltura_client/';
   require_once($_kaltura_client_folder .'kaltura_settings.php');
-  drupal_install_schema('kaltura');
   drupal_set_message('<b>To '. l('complete installation', 'admin/settings/kaltura/general') .' of the Kaltura All in One Video Module installation, '.
     'you must '. l('get a Partner ID', 'admin/settings/kaltura/general') .'.</b>');
 }
@@ -209,10 +219,10 @@ function kaltura_uninstall() {
   drupal_uninstall_schema('kaltura');
   drupal_set_message('Kaltura module was uninstalled.');
   // get all kaltura_ variables, and delete theme
-  $get_vars = 'SELECT name FROM {variable} WHERE name LIKE \'%s\'';
-  $result = db_query($get_vars, 'kaltura\_%');
+  $get_vars = 'SELECT name FROM {variable} WHERE name LIKE :name';
+  $result = db_query($get_vars, array('name' => 'kaltura\_%'));
   $vars_deleted = '';
-  while ($var = db_fetch_object($result)) {
+  foreach ($result as $var) {
     variable_del($var->name);
     $vars_deleted .= $var->name .',';
   }
@@ -246,18 +256,3 @@ function kaltura_requirements($phase) {
   return $reqs;
 }
 
-/**
- * Expand node_kaltura nid and vid columns to full-sized int fields.
- */
-function kaltura_update_6000() {
-  $ret = array();
-  $new_field = array(
-    'type' => 'int',
-    'unsigned' => TRUE,
-    'not null' => TRUE,
-    'size' => 'normal',
-  );
-  db_change_field($ret, 'node_kaltura', 'nid', 'nid', $new_field);
-  db_change_field($ret, 'node_kaltura', 'vid', 'vid', $new_field);
-  return $ret;
-}

@@ -1,5 +1,5 @@
 <?php
-// $Id$
+// $Id: kaltura_views.views.inc,v 1.1.2.2 2010/08/28 10:21:00 xuriz Exp $
 
 /*
  * Implementation of hook_views_data().
