@@ -40,9 +40,12 @@ function field_kaltura_field_info() {
  */
 
 function field_kaltura_field_settings_form($field, $instance, $has_data) {
-  dsm($instance);
-  dsm($field);
-  dsm($has_data);
+  /*
+   *dsm($instance);
+   *dsm($field);
+   *dsm($has_data);
+   */
+
   //$field['cardinality'] = 1;
   //TODO: find a way of making the filed except only one value
   $settings = $field['settings'];
