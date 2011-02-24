@@ -17,6 +17,12 @@ function kaltura_views_data() {
     $media_id_help = ' '. t('To have this view listed in Kaltura Playlist node, you must add this field to the default fields (can be excluded from display).');
   }
   $data = array();
+
+  foreach (field_info_fields () as $field) {
+    if ($field['module'] == 'field_kaltura') {
+      //dsm($field);
+    }
+  }
   $data['node_kaltura'] = array(
     'table' => array(
       'group' => 'kaltura',

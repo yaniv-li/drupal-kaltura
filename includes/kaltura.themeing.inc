@@ -647,7 +647,6 @@ function theme_kaltura_contribution_wizard_field($theme_params, $field_id, $no_c
   $javascript = '
     var entry_list = '. (($no_collect_entries === TRUE)? '"'. $kshow_id .'"': '-1') .';
     var goto_url = "'. $goto_url .'";
-    var node_url = "'. (($theme_params->mix_id)? url("node/". $theme_params->mix_id): '') .'";
     function onContributionWizardAfterAddEntry(obj) {
       str = obj[0]["entryId"];
       type = obj[0]["mediaType"];

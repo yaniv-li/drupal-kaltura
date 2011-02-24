@@ -142,9 +142,11 @@ function field_kaltura_field_settings_form($field, $instance, $has_data) {
     return $form;
 }
 
-function field_kaltura_field_settings_form_validate($element, &$form_state) {
-  //TODO: add valdtion code
-}
+/*
+ *function field_kaltura_field_settings_form_validate($element, &$form_state) {
+ *  //TODO: add valdtion code
+ *}
+ */
 
 
 /**
@@ -526,6 +528,7 @@ function field_kaltura_field_formatter_settings_summary ($field, $instance, $vie
  */
 function field_kaltura_field_instance_settings_form($field, $instance) {
 }
+
 function field_kaltura_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
   $element = array();
   $settings = $field['settings']; // should be dispaly['settings'] when I figure it out

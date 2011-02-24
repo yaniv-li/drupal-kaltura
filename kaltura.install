@@ -205,8 +205,8 @@ function kaltura_schema() {
 function kaltura_install() {
   $_kaltura_client_folder  = drupal_get_path('module', 'kaltura') .'/kaltura_client/';
   require_once($_kaltura_client_folder .'kaltura_settings.php');
-  drupal_set_message('<b>To '. l('complete installation', 'admin/settings/kaltura/general') .' of the Kaltura All in One Video Module installation, '.
-    'you must '. l('get a Partner ID', 'admin/settings/kaltura/general') .'.</b>');
+  drupal_set_message('<b>To '. l('complete installation', 'admin/config/kaltura/general') .' of the Kaltura All in One Video Module installation, '.
+    'you must '. l('get a Partner ID', 'admin/config/kaltura/general') .'.</b>');
 }
 
 /**
@@ -238,14 +238,16 @@ function kaltura_requirements($phase) {
     return $reqs;
   }
   $status = variable_get('kaltura_partner_id', '');
-  if ($status != '' && $status) {
+  if (!empty($status)) {
     $status = 'Configured';
+    $severity = REQUIREMENT_OK;
+    $desc = 'All is ok';
   }
   else {
     $status = 'Not Configured';
     $severity = REQUIREMENT_ERROR;
     $desc = 'You did not complete the module configuration. you must configure the module with valid kaltura partner\'s details<br />'.
-      'Or perform registration. Go to '. l('kaltura module settings', 'admin/settings/kaltura/general') .' to complete configuration.';
+      'Or perform registration. Go to '. l('kaltura module settings', 'admin/config/kaltura/general') .' to complete configuration.';
   }
   $reqs['kaltura'] = array(
     'title' => 'Kaltura module',

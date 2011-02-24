@@ -358,6 +358,7 @@ function kaltura_list_entries() {
     $allow_insert = TRUE;
     $field_name = $args[1];
   }
+  //dsm($_GET);
   $media_types = new KalturaSettings;
   $title = 'Kaltura Content';
   $filter_media = '';
@@ -367,7 +368,21 @@ function kaltura_list_entries() {
   }
   drupal_set_title($title);
  // $node_count = db_fetch_object(db_query(db_rewrite_sql('SELECT COUNT(node.nid) c FROM {node} node LEFT JOIN {node_kaltura} knode on node.nid = knode.nid WHERE type like \'kaltura%\' AND status > 0 '. $filter_media, 'node', 'nid')));
-  $pager_total[0] = ceil($node_count->c/20);
+  if (!empty($filter_media)) {
+  $entries = db_select('node_kaltura', 'k')
+    ->fields('k', array('kaltura_entryid', 'kaltura_thumbnail_url', 'kaltura_title', 'kaltura_media_type'))
+    ->condition('kaltura_media_type', $filter_media, '=')
+    ->execute()
+    ->fetchAll();
+  }
+  else {
+  $entries = db_select('node_kaltura', 'k')
+    ->fields('k', array('kaltura_entryid', 'kaltura_thumbnail_url', 'kaltura_title', 'kaltura_media_type'))
+    ->execute()
+    ->fetchAll();
+  }
+  $ent_count = count($entries);
+  $pager_total[0] = ceil($ent_count/20);
   if ($_GET['page']) {
     $start = 20 * (int)$_GET['page'];
     $pager_page_array[0] = $_GET['page'];
@@ -375,16 +390,19 @@ function kaltura_list_entries() {
   else {
     $start = 0;
   }
-  $get_all = 'SELECT node.nid,node.title,node.type,knode.kaltura_entryId,knode.kaltura_thumbnail_url FROM {node} node '.
-    'LEFT JOIN {node_kaltura} knode on node.nid = knode.nid WHERE (node.type = \'kaltura_entry\' OR node.type = \'kaltura_mix\') '. $filter_media .' AND status > 0 ORDER BY nid DESC LIMIT '. $start .', 20';
-  //$result = db_query(db_rewrite_sql($get_all, 'node', 'nid'));
-  while ($node_nid = db_fetch_object($result)) {
-    $nodes[$node_nid->nid] = $node_nid;
 
-  }
-  $html = theme("list_of_entries", $nodes, $allow_insert, $field_name);
+/*
+ *  $get_all = 'SELECT node.nid,node.title,node.type,knode.kaltura_entryId,knode.kaltura_thumbnail_url FROM {node} node '.
+ *    'LEFT JOIN {node_kaltura} knode on node.nid = knode.nid WHERE (node.type = \'kaltura_entry\' OR node.type = \'kaltura_mix\') '. $filter_media .' AND status > 0 ORDER BY nid DESC LIMIT '. $start .', 20';
+ *  //$result = db_query(db_rewrite_sql($get_all, 'node', 'nid'));
+ *  while ($node_nid = db_fetch_object($result)) {
+ *    $nodes[$node_nid->nid] = $node_nid;
+ *
+ *  }
+ */
+  $html = theme("list_of_entries", $entries, $allow_insert, $field_name);
   $pager = '';
-  if (ceil($node_count->c/20) > 1) {
+  if (ceil($ent_count/20) > 1) {
     $pager = theme('pager', NULL, 20, 0, array(), ceil($node_count->c/20));
   }
   if ($allow_insert && $field_name) {
@@ -410,14 +428,14 @@ function kaltura_list_entries() {
 /*
  * function to render the HTML for the kaltura/entries page
  */
-function theme_list_of_entries($arr_nodes_nids, $allow_insert = FALSE, $field_name = '') {
+function theme_list_of_entries($entries, $allow_insert = FALSE, $field_name = '') {
+  //dsm($entries);
   $url_option = array('query' => array('cwurl' => $_GET['cwurl']));
   $filter = 'Show only: '. l('All', $_GET['q'], $url_option) .' | '. l('Videos', $_GET['q'], array('query' => array('filter' => '1', 'cwurl' => $_GET['cwurl']))) .' | ';
-  $filter .= l('Photos', $_GET['q'], array('query' => array('filter' => '2', 'cwurl' => $_GET['cwurl']))) .' | '.
-  l('Remixes', $_GET['q'], array('query' => array('filter' => '6', 'cwurl' => $_GET['cwurl'])));
+  $filter .= l('Photos', $_GET['q'], array('query' => array('filter' => '2', 'cwurl' => $_GET['cwurl'])));
   $filter .= ' | '. l('Audio', $_GET['q'], array('query' => array('filter' => '5', 'cwurl' => $_GET['cwurl'])));
   $str = '<div id="kaltura_entries_page" class="'. (($allow_insert)? 'minimal_mode': '') .'"><div class="kfilter">'. $filter .'</div><ul>';
-  if (is_array($arr_nodes_nids) && count($arr_nodes_nids)) {
+  if (is_array($entries) && count($entries)) {
     foreach ($arr_nodes_nids as $nid => $dets) {
       $str .= '<li class="kentry"><div class="kentry_title">'. l($dets->title, 'node/'. $nid, array('attributes' => array('target' => '_blank'))) .'</div>'. PHP_EOL;
       $str .= '<div class="kentry_thumb">'. theme('node_'. $dets->type .'_thumbnail_url', $dets, 0, $nosize = TRUE) .'</div>';
