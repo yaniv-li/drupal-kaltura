@@ -643,25 +643,29 @@ function theme_kaltura_contribution_wizard_simple($theme_params, $navigate_back 
  */
 function theme_kaltura_contribution_wizard_field($theme_params, $field_id, $no_collect_entries, $kshow_id, $add_filter = 1) {
   $goto_url = kaltura_cw_destination();
+  global $_kaltura_thumbnail_base_url;
+  $thumb_html = '<div class="kaltura_field_thumb"><img src="' . $_kaltura_thumbnail_base_url . '/StR"/></div>';
 
   $javascript = '
     var entry_list = '. (($no_collect_entries === TRUE)? '"'. $kshow_id .'"': '-1') .';
     var goto_url = "'. $goto_url .'";
     function onContributionWizardAfterAddEntry(obj) {
-      str = obj[0]["entryId"];
-      type = obj[0]["mediaType"];
+      var str = obj[0]["entryId"];
+      var type = obj[0]["mediaType"];
       '.
         (($no_collect_entries === TRUE)? '': 'if (entry_list == "-1") entry_list = str; else entry_list += str;') .'
          jQuery("#entryid input", window.parent.document).val(str);
          jQuery("#media-type input", window.parent.document).val(type);
+         var t = \'<div class="kaltura_field_thumb"><img src="' . $_kaltura_thumbnail_base_url . '/entry_id/\' + str + \'"/></div>\'
+      jQuery("#thumb-wrap", window.parent.document).replaceWith(t);
     }
 
     function onContributionWizardClose(modified) {
       if (modified == "0")
         setTimeout("window.top.kalturaCloseModalBox();", 0);
       else
+      window.location.href = "'. url("kaltura/insert_widget/") .'" + entry_list + "/'. $field_id .'";
         setTimeout("window.top.kalturaCloseModalBox();", 0);
-        window.location.href = "'. url("kaltura/insert_widget/") .'" + entry_list + "/'. $field_id .'";
     }
   ';
 
@@ -953,12 +957,22 @@ function kaltura_insert_widget() {
       $javascript .= ($field_name != 'edit-comment')? 'update_field_thumbs(window.top.document.getElementById(\''. $field_name .'\'), \''. $_kaltura_thumbnail_base_url .'\');': '';
       $javascript .= '
       window.top.kalturaCloseModalBox();
-  ';
+      ';
 
   $flash_embed = '';
 
   echo theme("kaltura_modal", array("javascript" => $javascript, "flashEmbed" => $flash_embed));
   exit;
+}
+
+function kaltura_thumb_html () {
+  global $_kaltura_thumbnail_base_url;
+  $args = func_get_args();
+  dd($args);
+  drupal_json_output(array('status' => 0, 'data' => '<div>123344</div>'));
+
+
+
 }
 
 /*

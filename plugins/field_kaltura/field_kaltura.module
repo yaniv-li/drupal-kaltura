@@ -174,21 +174,26 @@ function field_kaltura_field_widget_info() {
 }
 
 function field_kaltura_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+  //dsm($form_state);
   $entry_val = isset($items[$delta]['entryid']) ? $items[$delta]['entryid'] : '';
   $mediat_val = isset($items[$delta]['mediatype']) ? $items[$delta]['mediatype'] : '';
-  if (!empty($entry_val) && !empty($mediat_val)) {
-    $query = db_select('node_kaltura', 'k')
-      ->fields('k', array('kaltura_thumbnail_url'))
-      ->condition('kaltura_entryid', $entry_val, '=')
-      ->execute()
-      ->fetchCol();
-    $turl= $query[0];
-    $opts['path'] = $turl;
+  /*
+   *if (!empty($entry_val) && !empty($mediat_val)) {
+   *  $query = db_select('node_kaltura', 'k')
+   *    ->fields('k', array('kaltura_thumbnail_url'))
+   *    ->condition('kaltura_entryid', $entry_val, '=')
+   *    ->execute()
+   *    ->fetchCol();
+   *  $turl= $query[0];
+   *  $opts['path'] = $turl;
+   */
 
-    $element['thumb'] = array(
-      '#markup' => '<div class="tumb">'. theme('image', $opts) . '</div>',
+  $element['thumb'] = array(
+    '#prefix' => '<div id="thumb-wrap">',
+    '#suffix' => '</div>',
+    '#markup' => kaltura_get_field_thumbs ($entry_val, 'bal', '122', FALSE),
     );
-  }
+  //}
   $custom_cw  = $form_state['field'][$element['#field_name']][$element['#language']]['field']['settings']['custom_cw'];
   $element += array(
     '#delta' => $delta,
@@ -216,7 +221,7 @@ function field_kaltura_field_widget_form(&$form, &$form_state, $field, $instance
     $element += $widget;
     break;
    }
-
+//dsm($element);
   return $element;
 }
 
@@ -227,7 +232,7 @@ function kaltura_widget_hendler ($instance, $entry, $mediat) {
     'partner_data' => '',
     'type' => 'entry',
     'context' => 'field',
-    'field_id' => 'id',
+    'field_id' => 'thumb-wrap',
     'ui_conf' => $instance['uiconf'],
   ));
 
@@ -258,6 +263,30 @@ function kaltura_widget_hendler ($instance, $entry, $mediat) {
   return $widget;
 }
 
+function entry_ajax ($form, $form_state) {
+  dsm($form_state);
+  //dsm($element);
+  $form['thumb'] = array(
+    //'#markup' => kaltura_get_field_thumbs($element['#value'], $element['#name'], 'bla', FALSE),
+    '#markup' => '<div>123345566788</div>',
+  );
+  return $form['thumb'];
+}
+
+
+function kaltura_get_field_thumbs($field_value, $field_name, $type, $required) {
+  global $_kaltura_thumbnail_base_url;
+  $thumbs = array();
+  $entries = explode(',', $field_value);
+  foreach ($entries as $entry) {
+    if ($entry) {
+      $thumbs[] = '<div class="kaltura_field_thumb"><img src="'. $_kaltura_thumbnail_base_url .'/entry_id/'. $entry .'" /><br />'.
+        '<input type="button" title="remove item" onclick="remove_item_from_field(\''. $field_name .'\', \''. $entry .'\', \''. $_kaltura_thumbnail_base_url .'\');" class="remove_media" /></div>';
+    }
+  }
+  $span_required = ($required)? '<span class="form-required" title="This field is required.">*</span>': '';
+  return '<div class="title">Added '. $type .': '. $span_required . '</div>'. implode('', $thumbs) .'<div class="clear-block"></div>';
+}
 function field_kaltura_field_validate ($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
      //dsm($items);
 }

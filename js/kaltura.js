@@ -1,6 +1,6 @@
 /*
-This file is part of the Kaltura Collaborative Media Suite which allows users 
-to do with audio, video, and animation what Wiki platfroms allow them to do with 
+This file is part of the Kaltura Collaborative Media Suite which allows users
+to do with audio, video, and animation what Wiki platfroms allow them to do with
 text.
 
 Copyright (C) 2006-2008  Kaltura Inc.
@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-// initModalBox called from gotoCW - to open the contribution wizard as an iFrame in the 
+// initModalBox called from gotoCW - to open the contribution wizard as an iFrame in the
 
 // widget page
 
@@ -304,7 +304,7 @@ function remove_item_from_field(field_id, entry_id, kaltura_server) {
 
 }
 
-function get_title() { 
+function get_title() {
 
 	title = document.getElementById("edit-title").value;
 	
