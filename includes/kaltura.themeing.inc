@@ -644,8 +644,6 @@ function theme_kaltura_contribution_wizard_simple($theme_params, $navigate_back 
 function theme_kaltura_contribution_wizard_field($theme_params, $field_id, $no_collect_entries, $kshow_id, $add_filter = 1) {
   $goto_url = kaltura_cw_destination();
   global $_kaltura_thumbnail_base_url;
-  dd($field_id);
-  $thumb_html = '<div class="kaltura_field_thumb"><img src="' . $_kaltura_thumbnail_base_url . '/StR"/></div>';
 
   $javascript = '
     var entry_list = '. (($no_collect_entries === TRUE)? '"'. $kshow_id .'"': '-1') .';
@@ -657,8 +655,9 @@ function theme_kaltura_contribution_wizard_field($theme_params, $field_id, $no_c
         (($no_collect_entries === TRUE)? '': 'if (entry_list == "-1") entry_list = str; else entry_list += str;') .'
          jQuery("#' . $field_id . '-entryid input", window.parent.document).val(str);
          jQuery("#' . $field_id . '-media-type input", window.parent.document).val(type);
-         var t = \'<div class="kaltura_field_thumb"><img src="' . $_kaltura_thumbnail_base_url . '/entry_id/\' + str + \'"/></div>\'
-      jQuery("#' . $field_id . '-thumb-wrap .kaltura_field_thumb", window.parent.document).replaceWith(t);
+         var t = \'<div class="kaltura_field_thumb"><img src="' . $_kaltura_thumbnail_base_url . '/entry_id/\' + str + \'"/><br/> <input type="button" onclick="javascript: kaltura_remove" title="remove item" class="remove_media" /></div>\'
+           jQuery("#' . $field_id . '-thumb-wrap .kaltura_field_thumb", window.parent.document).replaceWith(t);
+          //Drupal.attachBehaviors(, window.parent.document);
     }
 
     function onContributionWizardClose(modified) {

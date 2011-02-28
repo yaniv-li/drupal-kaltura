@@ -21,6 +21,7 @@ function kaltura_init() {
 
   drupal_add_css(drupal_get_path("module", "kaltura") ."/style/kaltura.css");
   drupal_add_js(drupal_get_path("module", "kaltura") ."/js/kaltura.js");
+  drupal_add_js(drupal_get_path("module", "kaltura") ."/js/kaltura.behaviors.js");
   drupal_add_js(drupal_get_path("module", "kaltura") ."/js/swfobject.js");
 
   if (variable_get('kaltura_partner_id', '') != '') {

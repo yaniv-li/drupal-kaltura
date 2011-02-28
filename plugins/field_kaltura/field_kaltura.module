@@ -193,7 +193,7 @@ function field_kaltura_field_widget_form(&$form, &$form_state, $field, $instance
   $element['thumb'] = array(
     '#prefix' => '<div id="' . $name . '-thumb-wrap" class="kaltura-thumb-wrap">',
     '#suffix' => '</div>',
-    '#markup' => kaltura_get_field_thumbs ($entry_val, 'bal', '122', FALSE),
+    '#markup' => kaltura_get_field_thumbs ($entry_val, $name, 'Media', FALSE),
     );
   //}
   $custom_cw  = $form_state['field'][$element['#field_name']][$element['#language']]['field']['settings']['custom_cw'];
@@ -269,7 +269,8 @@ function kaltura_get_field_thumbs($field_value, $field_name, $type, $required) {
   global $_kaltura_thumbnail_base_url;
     if ($field_value) {
       $thumb = '<div class="kaltura_field_thumb"><img src="'. $_kaltura_thumbnail_base_url .'/entry_id/'. $field_value .'" /><br />'.
-        '<input type="button" title="remove item" onclick="remove_item_from_field(\''. $field_name .'\', \''. $field_value .'\', \''. $_kaltura_thumbnail_base_url .'\');" class="remove_media" /></div>';
+        //'<input type="button" title="remove item" onclick="remove_item_from_field(\''. $field_name .'\', \''. $field_value .'\', \''. $_kaltura_thumbnail_base_url .'\');" class="remove_media" /></div>';
+        '<input type="button" title="remove item" class="remove_media" /></div>';
     }
     else {
       $thumb = '<div class="kaltura_field_thumb"></div>';
