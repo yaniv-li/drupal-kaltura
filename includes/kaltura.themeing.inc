@@ -655,9 +655,9 @@ function theme_kaltura_contribution_wizard_field($theme_params, $field_id, $no_c
         (($no_collect_entries === TRUE)? '': 'if (entry_list == "-1") entry_list = str; else entry_list += str;') .'
          jQuery("#' . $field_id . '-entryid input", window.parent.document).val(str);
          jQuery("#' . $field_id . '-media-type input", window.parent.document).val(type);
-         var t = \'<div class="kaltura_field_thumb"><img src="' . $_kaltura_thumbnail_base_url . '/entry_id/\' + str + \'"/><br/> <input type="button" onclick="javascript: kaltura_remove" title="remove item" class="remove_media" /></div>\'
+         var t = \'<div class="kaltura_field_thumb"><img src="' . $_kaltura_thumbnail_base_url . '/entry_id/\' + str + \'"/><br/> <input type="button" title="remove item" class="remove_media" /></div>\'
            jQuery("#' . $field_id . '-thumb-wrap .kaltura_field_thumb", window.parent.document).replaceWith(t);
-          //Drupal.attachBehaviors(, window.parent.document);
+          Drupal.attachBehaviors("#' . $field_id . '-thumb-wrap", window.parent.document);
     }
 
     function onContributionWizardClose(modified) {

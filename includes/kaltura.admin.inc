@@ -354,17 +354,29 @@ function kaltura_settings_form() {
       $ceText ='<b>Using Kaltura Community Edition Beta</b><br/>Kaltua Comunity Edition will allow you to host, transcode and stream everything out of your own server for free.
              <br/><br/><b>This requires download, installation and configuration of the Kaltura CE server.</b><br/><br/><br/>';
       $form['kaltura_registration_mode'] = array(
-      '#type' => 'radios',
-      '#title' => t('Kaltura module has two modes of work'),
-      '#options' => array(1 => $saasText, 0 => $ceText),
-      '#default_value' => 1,
-        );
+        '#type' => 'radios',
+        '#title' => t('Kaltura module has two modes of work'),
+        '#options' => array(1 => $saasText, 0 => $ceText),
+        '#default_value' => 1,
+      );
+    $form['kaltura_server_url'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Kaltura Server URL'),
+      '#states' => array(
+        'invisible' => array(
+          ':input[name="kaltura_registration_mode"]' => array('checked' => TRUE),
+        ),
+      ),
+      '#default_value' => variable_get('kaltura_server_url', KalturaHelpers::getKalturaServerUrl()),
+      '#size' => 100,
+      '#maxlength' => 64
+    );
       $form['kaltura_registration']['buttons']['import_partner'] = array(
-          '#type' => 'button',
+        '#type' => 'button',
         '#title' => 'Continue >>',
-      '#value' => 'Continue >>',
-      '#default_value' => 'Continue >>',
-      '#weight' => 40,
+        '#value' => 'Continue >>',
+        '#default_value' => 'Continue >>',
+        '#weight' => 40,
       );
       }
 
@@ -376,67 +388,68 @@ function kaltura_settings_form() {
         variable_set('kaltura_registration_first_load', TRUE);
       }
       global $user;
-      if($_REQUEST['op'] == 'Continue >>' && $_REQUEST['kaltura_registration_mode'] == 0)
-      {
-        if ($_GET['register'] !== 'no') {
-          drupal_set_title('All in One Video Module by Kaltura Installation');
-          // registration form
-          $showing_reg = TRUE;
-        $information_text = 'For the Drupal module to work with your Kaltura CE installation you must fill in the following <br/>details regarding your kaltura CE server. ';
-        $notice_text = 'You must have a Kaltura Community Edition server(Kaltura CE) installed in order to continue.<br/><br/>1. Download Kaltura CE from <a href="http://www.kaltura.org/project/community_edition_video_platform" target="blank">Kaltura.org</a><br/><br/>2. Install Kaltura CE on your server based on the <a href="http://www.kaltura.org/kalturace-kaltura-community-edition-getting-started-guide" target="_blank">installation guide</a>';
-        $form['kaltura_settings_information'] = array(
-        '#prefix' => '<div class="kaltura_ce_notice">'.$notice_text.'</div>',
-        '#value' => t($information_text)
-        );
-
-          $form['ce_url'] = array(
-        '#type' => 'textfield',
-        '#title' => t('Kaltura CE URL'),
-        '#default_value' => '',
-        '#size' => 100,
-        '#maxlength' => 512
-          );
-
-          $form['ce_admin_email'] = array(
-        '#type' => 'textfield',
-        '#title' => t('Kaltura CE Admin Email'),
-        '#default_value' => $user->mail,
-        '#size' => 100,
-        '#maxlength' => 100
-          );
-
-          $form['ce_cms_password'] = array(
-        '#type' => 'textfield',
-        '#title' => t('Kaltura CE Password'),
-        '#default_value' => '',
-        '#size' => 100,
-        '#maxlength' => 100
-          );
-          $form['partner_url2'] = array(
-          '#type' => 'hidden',
-          '#title' => t('URL 2'),
-          '#default_value' => $base_url,
-          '#maxlength' => 1024
-          );
-
-          $form_state['storage']['submit'] = 'CE Register';
-          $form['buttons']['register'] = array(
-        '#type' => 'button',
-        '#title' => 'Complete Installation',
-        '#value' => 'Complete Installation',
-        '#default_value' => 'Complete Installation',
-        '#weight' => 40,
-          );
-
-          $switch_to_saas = '<a style="margin-left:50px;" href="#" onclick="switch_to_saas();return false;">Switch to Kaltura SaaS</a>';
-          $form['buttons']['switch_to_saas'] = array(
-           '#value' => t($switch_to_saas),
-        '#weight' => 60,
-        );
-        }
-      }
-      else
-      {
+/*
+ *      if($_REQUEST['op'] == 'Continue >>' && $_REQUEST['kaltura_registration_mode'] == 0) {
+ *        if ($_GET['register'] !== 'no') {
+ *          drupal_set_title('All in One Video Module by Kaltura Installation');
+ *          // registration form
+ *          $showing_reg = TRUE;
+ *        $information_text = 'For the Drupal module to work with your Kaltura CE installation you must fill in the following <br/>details regarding your kaltura CE server. ';
+ *        $notice_text = 'You must have a Kaltura Community Edition server(Kaltura CE) installed in order to continue.<br/><br/>1. Download Kaltura CE from <a href="http://www.kaltura.org/project/community_edition_video_platform" target="blank">Kaltura.org</a><br/><br/>2. Install Kaltura CE on your server based on the <a href="http://www.kaltura.org/kalturace-kaltura-community-edition-getting-started-guide" target="_blank">installation guide</a>';
+ *        $form['kaltura_settings_information'] = array(
+ *        '#prefix' => '<div class="kaltura_ce_notice">'.$notice_text.'</div>',
+ *        '#value' => t($information_text)
+ *        );
+ *
+ *          $form['ce_url'] = array(
+ *        '#type' => 'textfield',
+ *        '#title' => t('Kaltura CE URL'),
+ *        '#default_value' => '',
+ *        '#size' => 100,
+ *        '#maxlength' => 512
+ *          );
+ *
+ *          $form['ce_admin_email'] = array(
+ *        '#type' => 'textfield',
+ *        '#title' => t('Kaltura CE Admin Email'),
+ *        '#default_value' => $user->mail,
+ *        '#size' => 100,
+ *        '#maxlength' => 100
+ *          );
+ *
+ *          $form['ce_cms_password'] = array(
+ *        '#type' => 'textfield',
+ *        '#title' => t('Kaltura CE Password'),
+ *        '#default_value' => '',
+ *        '#size' => 100,
+ *        '#maxlength' => 100
+ *          );
+ *          $form['partner_url2'] = array(
+ *          '#type' => 'hidden',
+ *          '#title' => t('URL 2'),
+ *          '#default_value' => $base_url,
+ *          '#maxlength' => 1024
+ *          );
+ *
+ *          $form_state['storage']['submit'] = 'CE Register';
+ *          $form['buttons']['register'] = array(
+ *        '#type' => 'button',
+ *        '#title' => 'Complete Installation',
+ *        '#value' => 'Complete Installation',
+ *        '#default_value' => 'Complete Installation',
+ *        '#weight' => 40,
+ *          );
+ *
+ *          $switch_to_saas = '<a style="margin-left:50px;" href="#" onclick="switch_to_saas();return false;">Switch to Kaltura SaaS</a>';
+ *          $form['buttons']['switch_to_saas'] = array(
+ *           '#value' => t($switch_to_saas),
+ *        '#weight' => 60,
+ *        );
+ *        }
+ *      }
+ */
+      //else
+      //{
         $information_text = 'Once you complete the form below and click "Complete installation", '.
         'the All in One Video Module will be fully installed and ready to use.<br />'. PHP_EOL ;
         $registered = '<br /><a href="#" onclick="switch_to_exist_partner();return false;">Click here if you already have a Partner ID</a>';
@@ -456,6 +469,9 @@ function kaltura_settings_form() {
         '#title' => t('Registration'),
         '#collapsible' => FALSE,
         '#collapsed' => FALSE
+          );
+          $form['kaltura_registration']['enter_partner'] = array (
+            '#markup' => '<div class="registration">'. l(t('Click here to enter you partner info'), 'admin/config/kaltura/general', array('query' => array('register' => 'no'))) . '</div>',
           );
           $form['kaltura_registration']['partner_name'] = array(
         '#type' => 'textfield',
@@ -537,7 +553,7 @@ function kaltura_settings_form() {
         '#weight' => 40,
           );
         }
-      }
+      //}
     }
   }
   if ($_GET['register'] === 'no' || (!$showing_reg && !isset($_GET['register']))) {
@@ -632,13 +648,6 @@ function kaltura_settings_form() {
         '#maxlength' => 64
       );
     }
-    $form['kaltura_partner_settings']['kaltura_server_url'] = array(
-      '#type' => 'hidden',
-      '#title' => t('Kaltura Server URL'),
-      '#default_value' => variable_get('kaltura_server_url', KalturaHelpers::getKalturaServerUrl()),
-      '#size' => 100,
-      '#maxlength' => 64
-    );
   }
 
   $form['kaltura_credits'] = array(
