@@ -57,12 +57,18 @@ function kaltura_register_partner() {
    */
   $session_user = KalturaHelpers::getSessionUser();
   $config = KalturaHelpers::getServiceConfiguration();
+  $config->serviceUrl = $_REQUEST['kaltura_server_url']; //change service url for CE regestration
   $kaltura_client = new KalturaClient($config);
 //  $kaltura_client->setConfig($config);
 
   watchdog('regis', print_r($partner, TRUE));
-  $res = $kaltura_client->partner->register($partner, $_REQUEST['cms_password']);
-  debug($res);
+  try {
+    $res = $kaltura_client->partner->register($partner, $_REQUEST['cms_password']);
+  }
+  catch (Exception $e) {
+    drupal_set_message($e->getMessage(), 'error');
+
+  }
 
   $result = $res->id;
   if ($result) {
@@ -71,13 +77,12 @@ function kaltura_register_partner() {
     variable_set('kaltura_secret',             $res->secret);
     variable_set('kaltura_admin_secret',       $res->adminSecret);
     variable_set('kaltura_local_registration', 1);
-    variable_set('kaltura_server_url',    KalturaHelpers::getKalturaServerUrl());
+    variable_set('kaltura_server_url', $_REQUEST['kaltura_server_url']);
     variable_set('kaltura_partner_cms_email', $partner->adminEmail);
     variable_set('kaltura_partner_cms_password', $_REQUEST['cms_password']);
     variable_set('kaltura_partner_url2', $_REQUEST['partner_url2']);
     variable_set('kaltura_notification_type', 0);
     variable_set('kaltura_content_categories', $categories);
-
     kaltura_update_kaltura_partner(2, $partner->notificationUrl);
     kaltura_create_widgets_for_partner($partner->id, $secret);
     drupal_set_message('Congratulations!  You have successfully installed the All in One Video Module and registered for the Kaltura Partner Program.');
@@ -300,7 +305,7 @@ function kaltura_settings_form() {
   if ($_REQUEST['partner_name'] && $_REQUEST['op'] == 'Complete Installation') {
     if ($_REQUEST['kaltura_agree_terms'] == 1) {
       // no test or error handling?
-      kaltura_register_partner();
+        kaltura_register_partner();
     }
     else {
       drupal_set_message('You must agree to the terms of use', 'error');
@@ -454,7 +459,7 @@ function kaltura_settings_form() {
         'the All in One Video Module will be fully installed and ready to use.<br />'. PHP_EOL ;
         $registered = '<br /><a href="#" onclick="switch_to_exist_partner();return false;">Click here if you already have a Partner ID</a>';
         $not_registered = 'If you are not registered as a Kaltura partner, and would like to register '.
-        '<input type="button" onclick="switch_to_register();" value="Click Here" />';
+          '<input type="button" onclick="switch_to_register();" value="Click Here" />';
 
         $form['kaltura_settings_information'] = array(
         '#value' => t($information_text) . $registered
@@ -473,6 +478,11 @@ function kaltura_settings_form() {
           $form['kaltura_registration']['enter_partner'] = array (
             '#markup' => '<div class="registration">'. l(t('Click here to enter you partner info'), 'admin/config/kaltura/general', array('query' => array('register' => 'no'))) . '</div>',
           );
+          $form['kaltura_server_url'] = array(
+            '#type' => 'hidden',
+            '#title' => t('Kaltura Server URL'),
+            '#default_value' => $_REQUEST['kaltura_server_url'],
+            );
           $form['kaltura_registration']['partner_name'] = array(
         '#type' => 'textfield',
         '#title' => t('Website Name'),
@@ -686,7 +696,7 @@ function kaltura_settings_form() {
 function kaltura_form_alter(&$form, &$form_state, $form_id) {
   if (variable_get('kaltura_partner_id', '') == '') {
     if ($form_id == 'kaltura_settings_form') {
-      unset($form['buttons']['submit']);
+      unset($form['actions']['submit']);
       unset($form['buttons']['preview']);
       unset($form['buttons']['reset']);
     }
