@@ -1,6 +1,6 @@
 /*
-This file is part of the Kaltura Collaborative Media Suite which allows users 
-to do with audio, video, and animation what Wiki platfroms allow them to do with 
+This file is part of the Kaltura Collaborative Media Suite which allows users
+to do with audio, video, and animation what Wiki platfroms allow them to do with
 text.
 
 Copyright (C) 2006-2008  Kaltura Inc.
@@ -188,10 +188,10 @@ input.remove_media { background:url('../images/delete_icon.gif') no-repeat top l
 div.kaltura_field_thumb { padding:4px; float:left; height:130px; }
 
 div.kaltura_field_thumb img { height:100px; }
+div.kaltura-thumb-wrap {height: 150px;}
 
- 
 
-.kaltura_playlist { background:#2e2e2e; width:725px; padding-bottom:4px; } 
+.kaltura_playlist { background:#2e2e2e; width:725px; padding-bottom:4px; }
 
 div.playlist-item { border:none; background:#262626; cursor:pointer; padding:4px; color:#9f9f9f; line-height:14px; margin:4px 0px 4px 0px; width:282px; }
 
