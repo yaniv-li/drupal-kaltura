@@ -656,15 +656,15 @@ function theme_kaltura_contribution_wizard_field($theme_params, $field_id, $no_c
          jQuery("#' . $field_id . '-entryid input", window.parent.document).val(str);
          jQuery("#' . $field_id . '-media-type input", window.parent.document).val(type);
          var t = \'<div class="kaltura_field_thumb"><img src="' . $_kaltura_thumbnail_base_url . '/entry_id/\' + str + \'"/><br/> <input type="button" title="remove item" class="remove_media" /></div>\'
-           jQuery("#' . $field_id . '-thumb-wrap .kaltura_field_thumb", window.parent.document).replaceWith(t);
-          Drupal.attachBehaviors("#' . $field_id . '-thumb-wrap", window.parent.document);
+          jQuery("#' . $field_id . '-thumb-wrap .kaltura_field_thumb", window.parent.document).replaceWith(t);
+          window.top.Drupal.attachBehaviors();
     }
 
     function onContributionWizardClose(modified) {
       if (modified == "0")
         setTimeout("window.top.kalturaCloseModalBox();", 0);
       else
-      window.location.href = "'. url("kaltura/insert_widget/") .'" + entry_list + "/'. $field_id .'";
+      //window.location.href = "'. url("kaltura/insert_widget/") .'" + entry_list + "/'. $field_id .'";
         setTimeout("window.top.kalturaCloseModalBox();", 0);
     }
   ';
