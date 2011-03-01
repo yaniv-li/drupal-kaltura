@@ -895,6 +895,7 @@ function theme_advanced_editor($theme_params, $no_refresh) {
 
 /*
  * main theme for modal windows
+ * TODO: get raid of this use ctools modal or something
  */
 function theme_kaltura_modal($theme_params) {
   return '
@@ -906,7 +907,10 @@ function theme_kaltura_modal($theme_params) {
     </style>
     <script type="text/javascript" src="'. base_path() . drupal_get_path('module', 'kaltura') .'/js/kaltura.js"></script>
     <script type="text/javascript" src="'. base_path() .'misc/jquery.js"></script>
+    <script type="text/javascript" src="'. base_path() .'misc/jquery.once.js"></script>
+    <script type="text/javascript" src="'. base_path() .'misc/drupal.js"></script>
     <script type="text/javascript" src="'. base_path() . drupal_get_path('module', 'kaltura') .'/js/swfobject.js"></script>
+    <script type="text/javascript" src="'. base_path() . drupal_get_path('module', 'kaltura') .'/js/kaltura.behaviors.js"></script>
     <script type="text/javascript">
       '. $theme_params["javascript"] .'
     </script>

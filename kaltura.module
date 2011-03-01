@@ -206,7 +206,7 @@ function kaltura_theme() {
       'arguments' => array('element' => NULL),
     ),
     'list_of_entries' => array(
-      'arguments' => array('element' => NULL),
+      'variables' => array('entries' => array(), 'allow_insert' => FALSE, 'field_name' => NULL),
     ),
     'kaltura_server_status' => array(
       'arguments' => array('element' => NULL),
@@ -364,11 +364,10 @@ function kaltura_list_entries() {
   $title = 'Kaltura Content';
   $filter_media = '';
   if ($_GET['filter']) {
-    $filter_media = 'AND knode.kaltura_media_type = '. db_escape_string($_GET['filter']);
+    $filter_media = intval($_GET['filter']);
     $title .= ' (filter by - '. $media_types->media_types_map[$_GET['filter']] .')' ;
   }
   drupal_set_title($title);
- // $node_count = db_fetch_object(db_query(db_rewrite_sql('SELECT COUNT(node.nid) c FROM {node} node LEFT JOIN {node_kaltura} knode on node.nid = knode.nid WHERE type like \'kaltura%\' AND status > 0 '. $filter_media, 'node', 'nid')));
   if (!empty($filter_media)) {
   $entries = db_select('node_kaltura', 'k')
     ->fields('k', array('kaltura_entryid', 'kaltura_thumbnail_url', 'kaltura_title', 'kaltura_media_type'))
@@ -401,10 +400,10 @@ function kaltura_list_entries() {
  *
  *  }
  */
-  $html = theme("list_of_entries", $entries, $allow_insert, $field_name);
+  $html = theme("list_of_entries", array('entries' => $entries, 'allow_insert' => $allow_insert, 'field_name' => $field_name));
   $pager = '';
   if (ceil($ent_count/20) > 1) {
-    $pager = theme('pager', NULL, 20, 0, array(), ceil($node_count->c/20));
+    $pager = theme('pager', NULL, 20, 0, array(), ceil($ent_count/20));
   }
   if ($allow_insert && $field_name) {
     $html = '<div> </div><div id="media-upload-header">
@@ -429,19 +428,22 @@ function kaltura_list_entries() {
 /*
  * function to render the HTML for the kaltura/entries page
  */
-function theme_list_of_entries($entries, $allow_insert = FALSE, $field_name = '') {
-  //dsm($entries);
+function theme_list_of_entries($vars) {
+  $entries = $vars['entries'];
+  $allow_insert = $vars['allow_insert'];
+  $field_name = $vars['field_name'];
+
   $url_option = array('query' => array('cwurl' => $_GET['cwurl']));
   $filter = 'Show only: '. l('All', $_GET['q'], $url_option) .' | '. l('Videos', $_GET['q'], array('query' => array('filter' => '1', 'cwurl' => $_GET['cwurl']))) .' | ';
   $filter .= l('Photos', $_GET['q'], array('query' => array('filter' => '2', 'cwurl' => $_GET['cwurl'])));
   $filter .= ' | '. l('Audio', $_GET['q'], array('query' => array('filter' => '5', 'cwurl' => $_GET['cwurl'])));
   $str = '<div id="kaltura_entries_page" class="'. (($allow_insert)? 'minimal_mode': '') .'"><div class="kfilter">'. $filter .'</div><ul>';
   if (is_array($entries) && count($entries)) {
-    foreach ($arr_nodes_nids as $nid => $dets) {
-      $str .= '<li class="kentry"><div class="kentry_title">'. l($dets->title, 'node/'. $nid, array('attributes' => array('target' => '_blank'))) .'</div>'. PHP_EOL;
-      $str .= '<div class="kentry_thumb">'. theme('node_'. $dets->type .'_thumbnail_url', $dets, 0, $nosize = TRUE) .'</div>';
+    foreach ($entries as $ent) {
+      $str .= '<li class="kentry"><div class="kentry_title">'. t($ent->kaltura_title) .'</div>'. PHP_EOL;
+      $str .= '<div class="kentry_thumb">' . theme('kaltura_thumbnail_default', array('thub' => $ent->kaltura_thumbnail_url , 'title' => NULL, 'desc' => NULL, 'meta' => NULL)) . '</div>';
       if ($allow_insert) {
-        $str .= '<input type="button" class="kentry_add" value="" title="Insert" onclick="add_existing_media(\''. $field_name .'\', \''. $dets->kaltura_entryId .'\');" />';
+        $str .= '<input type="button" class="kentry_add" id="' . $ent->kaltura_entryid .'" value="'. $ent->kaltura_media_type . '" name="'. $field_name .'" title="Insert"/>';
       }
       $str .= '</li>';
     }
@@ -450,17 +452,6 @@ function theme_list_of_entries($entries, $allow_insert = FALSE, $field_name = ''
     $str .= '<div>None</div>'. PHP_EOL;
   }
   $str .= '</div><div class="clear-block"></div>';
-  global $_kaltura_thumbnail_base_url;
-  if ($allow_insert) {
-    $str .= '<script>
-              function add_existing_media(field_id, entry) {
-                field = window.top.document.getElementById(field_id);
-                field.value = entry;
-                update_field_thumbs(field, \''. $_kaltura_thumbnail_base_url .'\');
-                window.top.kalturaCloseModalBox();
-              }
-              </script>';
-  }
 
   return $str;
 }

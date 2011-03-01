@@ -568,7 +568,6 @@ function field_kaltura_field_formatter_view($entity_type, $entity, $field, $inst
   $metadata['total_rank'] = $query['kaltura_total_rank'];
   $thumb_url = $query['kaltura_thumbnail_url'];
   $meta = theme('kaltura_metadata', array('metadata' => $metadata));
-  $thumb = $query['kaltura_thumbnail_url'];
   $path = $entity->uri['path']; //could be aproblem if this is not a node
   $user_id = $entity->uid;
   switch ($display['type']) {
