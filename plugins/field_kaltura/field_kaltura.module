@@ -49,7 +49,7 @@ function field_kaltura_field_settings_form($field, $instance, $has_data) {
   //$field['cardinality'] = 1;
   //TODO: find a way of making the filed except only one value
   $settings = $field['settings'];
-  dsm($settings);
+  /*dsm($settings);*/
       $form = array();
  //specific field setting can come here (taxonomy integration/player selection/etc...)
       $form['thumbsize'] = array(
@@ -71,7 +71,6 @@ function field_kaltura_field_settings_form($field, $instance, $has_data) {
       );
     $saved_player = !empty($field['entry_widget']) ? $field['entry_widget'] : KalturaSettings_DEFAULT_VIDEO_PLAYER_UICONF;
       $players = kaltura_choose_player(0, 'video', 'entry', FALSE, $saved_player);
-      dsm($players);
     $form['kaltura_entry_video_display'] = array(
     '#type' => 'fieldset',
     '#title' => t('Video Display'),
@@ -124,7 +123,7 @@ function field_kaltura_field_settings_form($field, $instance, $has_data) {
         '#type' => 'select',
         '#title' => t('Please select delivery type'),
         '#options' => drupal_map_assoc(array('HTTP', 'RTMP')),
-        '#default_value' => 'HTTP',
+        '#default_value' => !empty($settings['delivery']) ? $settings['delivery'] : 'HTTP',
       );
 
       switch ($instance['widget']['type']) {
