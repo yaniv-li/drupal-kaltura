@@ -13,10 +13,12 @@ function field_kaltura_field_info() {
         'thumbsize_height' => variable_get('kaltura_video_entry_thumb_height', '90'),
         'player_height' => variable_get('kaltura_video_entry_height', '364'),
         'player_width' => variable_get('kaltura_video_entry_width', '410'),
+        'entry_widget' => '48501',
+        'custom_player' => '',
         'delivery' => 'HTTP',
         'stretch' => 0,
         'rotate' => 0,
-        'kcw' => KalturaSettings_CW_UICONF_ID
+        'custom_cw' => KalturaSettings_CW_UICONF_ID
         //add default settings here
       ),
       'instance_settings' => array(
@@ -24,10 +26,12 @@ function field_kaltura_field_info() {
         'thumbsize_height' => variable_get('kaltura_video_entry_thumb_height', '90'),
         'player_height' => variable_get('kaltura_video_entry_height', '364'),
         'player_width' => variable_get('kaltura_video_entry_width', '410'),
+        'entry_widget' => '48501',
+        'custom_player' => '',
         'delivery' => 'HTTP',
         'stretch' => 0,
         'rotate' => 0,
-        'kcw' => KalturaSettings_CW_UICONF_ID
+        'custom_cw' => KalturaSettings_CW_UICONF_ID
       ),
       'default_widget' => 'all_media',
       'default_formatter' => 'field_kaltura_player_default',
@@ -103,6 +107,11 @@ function field_kaltura_field_settings_form($field, $instance, $has_data) {
         '#size' => 5,
         '#default_value' => !empty($settings['kaltura_entry_video_display']['player_height']) ? $settings['kaltura_entry_video_display']['player_height'] : '330',
       );
+      $form['kaltura_entry_video_display']['custom_player'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Custom player ui_conf'),
+        '#size' => 6,
+      );
       $form['kaltura_entry_video_display']['rotate'] = array(
         '#type' => 'checkbox',
         '#title' => t('Preview video in thumbnail'),
@@ -116,7 +125,7 @@ function field_kaltura_field_settings_form($field, $instance, $has_data) {
 
       $form['custom_cw'] = array(
         '#type' => 'textfield',
-        '#title' => t('custom ui_conf'),
+        '#title' => t('Custom uploader widget ui_conf'),
         '#size' => 6,
       );
       $form['delivery'] = array(
@@ -177,6 +186,7 @@ function field_kaltura_field_widget_info() {
     ),
   );
 }
+
 
 function field_kaltura_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
   //dsm($form_state);
@@ -270,7 +280,6 @@ function kaltura_get_field_thumbs($field_value, $field_name, $type, $required) {
   global $_kaltura_thumbnail_base_url;
     if ($field_value) {
       $thumb = '<div class="kaltura_field_thumb"><img src="'. $_kaltura_thumbnail_base_url .'/entry_id/'. $field_value .'" /><br />'.
-        //'<input type="button" title="remove item" onclick="remove_item_from_field(\''. $field_name .'\', \''. $field_value .'\', \''. $_kaltura_thumbnail_base_url .'\');" class="remove_media" /></div>';
         '<input type="button" title="remove item" class="remove_media" /></div>';
     }
     else {
@@ -364,6 +373,8 @@ function field_kaltura_field_formatter_info() {
         'thumbsize_height' => variable_get('kaltura_video_entry_thumb_height', '90'),
         'player_height' => variable_get('kaltura_video_entry_height', '364'),
         'player_width' => variable_get('kaltura_video_entry_width', '410'),
+        'entry_widget' => '48501',
+        'custom_player' => '',
         'delivery' => 'HTTP',
         'stretch' => 0,
         'rotate' => 0,
@@ -377,6 +388,8 @@ function field_kaltura_field_formatter_info() {
         'thumbsize_height' => variable_get('kaltura_video_entry_thumb_height', '90'),
         'player_height' => variable_get('kaltura_video_entry_height', '364'),
         'player_width' => variable_get('kaltura_video_entry_width', '410'),
+        'entry_widget' => '48501',
+        'custom_player' => '',
         'delivery' => 'HTTP',
         'stretch' => 0,
         'rotate' => 0,
@@ -390,6 +403,8 @@ function field_kaltura_field_formatter_info() {
         'thumbsize_height' => variable_get('kaltura_video_entry_thumb_height', '90'),
         'player_height' => variable_get('kaltura_video_entry_height', '364'),
         'player_width' => variable_get('kaltura_video_entry_width', '410'),
+        'entry_widget' => '48501',
+        'custom_player' => '',
         'delivery' => 'HTTP',
         'stretch' => 0,
         'rotate' => 0,
@@ -403,6 +418,8 @@ function field_kaltura_field_formatter_info() {
         'thumbsize_height' => variable_get('kaltura_video_entry_thumb_height', '90'),
         'player_height' => variable_get('kaltura_video_entry_height', '364'),
         'player_width' => variable_get('kaltura_video_entry_width', '410'),
+        'entry_widget' => '48501',
+        'custom_player' => '',
         'delivery' => 'HTTP',
         'stretch' => 0,
         'rotate' => 0,
@@ -641,8 +658,7 @@ function field_kaltura_build_embed($item, $type, $settings, $path, $uid, $thumb_
  	$height = $settings['kaltura_entry_video_display']['player_height'];
   if($type == 1 || $type == 5) {
     $delivery = ($settings['delivery'] == 'RTMP') ? 'streamerType=rtmp&' : '';
-
-    $uiconf = $settings['kaltura_entry_video_display']['entry_widget'];
+    $uiconf = !empty($settings['kaltura_entry_video_display']['custom_player']) ? $settings['kaltura_entry_video_display']['custom_player'] : $settings['kaltura_entry_video_display']['entry_widget'];
     $kid = $item;
     $partnerId = variable_get('kaltura_partner_id', 0);
     $kaltura_server = (variable_get('kaltura_server_url', ''))? variable_get('kaltura_server_url', ''): KalturaSettings_SERVER_URL;

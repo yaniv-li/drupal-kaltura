@@ -767,7 +767,7 @@ function kaltura_choose_player($as_single_form, $type, $node_type, $return_widge
               kaltura_swf.addParam("allowNetworking", "all");
               kaltura_swf.write("'.$type.'_ph");
               try{if (change_dim == 1) set_'.$type.'_player_dimension(uiconf);}catch(ex){}
-              }$(document).ready(function() {try{change_'.$type.'_player("'.$saved_player.'", 0);}catch(ex){}});</script>';
+              }jQuery(document).ready(function() {try{change_'.$type.'_player("'.$saved_player.'", 0);}catch(ex){}});</script>';
     $form['default_widget'] = array(
     '#type' => 'select',
     '#title' => t('Video Player for Node'),
