@@ -736,13 +736,11 @@ function kaltura_import_entries_page() {
   if (empty($_GET['p'])) {
     $_GET['p'] = 1;
   }
-  else
-  {
+  else {
     $current_page = $_GET['p'];
   }
 
-  while (!$finished)
-  {
+  while (!$finished) {
     set_time_limit(30);
     //get the mix entries
     if ($get_mixes) {
