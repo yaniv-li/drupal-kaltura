@@ -180,7 +180,7 @@ function kaltura_notify_update($notification) {
  * @return void
  */
 function kaltura_notify_entry_add($type, $notification_data) {
-  $entry = mk_kaltura_array($notification_data);
+  $entry = kaltura_mk_karray($notification_data);
   $entry['kaltura_created_date'] = REQUEST_TIME; //we have no way when the entry was created on the KMC so the create date is when we received the notifcation
   try {
     db_insert('node_kaltura')
@@ -193,13 +193,13 @@ function kaltura_notify_entry_add($type, $notification_data) {
 }
 
 /**
- * mk_kaltura_array
+ * kaltura_mk_karray
  * create  an array of fields to add to kaltura table from the notification array
  * @param mixed $array
  * @access public
  * @return void
  */
-function mk_kaltura_array ($array) {
+function kaltura_mk_karray($array) {
   $ent['kaltura_entryid'] = $array['entry_id'];
   $ent['kaltura_tags'] = $array['tags'];
   $ent['kstatus'] = $array['status'];
@@ -213,7 +213,7 @@ function mk_kaltura_array ($array) {
   return $ent;
 }
 
-function kmc_obj_to_drupal_array($obj) {
+function kaltura_kmc_obj_to_drupal_array($obj) {
   $ent['kaltura_entryid'] = $obj->id;
   $ent['kaltura_tags'] = $obj->tags;
   $ent['kaltura_admin_tags'] = $obj->adminTags;

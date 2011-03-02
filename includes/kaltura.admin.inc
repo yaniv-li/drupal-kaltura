@@ -475,7 +475,7 @@ function kaltura_settings_form() {
         '#collapsible' => FALSE,
         '#collapsed' => FALSE
           );
-          $form['kaltura_registration']['enter_partner'] = array (
+          $form['kaltura_registration']['enter_partner'] = array(
             '#markup' => '<div class="registration">'. l(t('Click here to enter you partner info'), 'admin/config/kaltura/general', array('query' => array('register' => 'no'))) . '</div>',
           );
           $form['kaltura_server_url'] = array(
