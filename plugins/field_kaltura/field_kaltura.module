@@ -183,7 +183,8 @@ function field_kaltura_field_widget_form(&$form, &$form_state, $field, $instance
   $entry_val = isset($items[$delta]['entryid']) ? $items[$delta]['entryid'] : '';
   $mediat_val = isset($items[$delta]['mediatype']) ? $items[$delta]['mediatype'] : '';
   $name = $field['field_name'];
-  //dsm($field);
+  //dsm($element);
+
 
   $element['thumb'] = array(
     '#prefix' => '<div id="' . $name . '-thumb-wrap" class="kaltura-thumb-wrap">',
@@ -209,6 +210,11 @@ function field_kaltura_field_widget_form(&$form, &$form_state, $field, $instance
     break;
   case 'field_kaltura_image':
     $instance['uiconf'] = ($custom_cw) ? $custom_cw : KalturaSettings_CW_UICONF_ID_IMAGE;
+    $widget = kaltura_widget_hendler($instance, $entry_val, $mediat_val, $name);
+    $element += $widget;
+    break;
+  case 'field_kaltura_web_cam':
+    $instance['uiconf'] = ($custom_cw) ? $custom_cw : KalturaSettings_CW_COMMENTS_UICONF_ID;
     $widget = kaltura_widget_hendler($instance, $entry_val, $mediat_val, $name);
     $element += $widget;
     break;
@@ -546,6 +552,7 @@ function field_kaltura_field_instance_settings_form($field, $instance) {
 }
 
 function field_kaltura_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  //dsm($items);
   $element = array();
   $settings = $field['settings']; // should be dispaly['settings'] when I figure it out
   $item = $items[0]['entryid'];
@@ -629,13 +636,13 @@ function field_kaltura_field_presave($entity_type, $entity, $field, $instance, $
 
 
 function field_kaltura_build_embed($item, $type, $settings, $path, $uid, $thumb_url) {
-  //dsm($settings);
+  //dsm($GLOBALS);
  	$width = $settings['kaltura_entry_video_display']['player_width'];
  	$height = $settings['kaltura_entry_video_display']['player_height'];
   if($type == 1 || $type == 5) {
     $delivery = ($settings['delivery'] == 'RTMP') ? 'streamerType=rtmp&' : '';
 
-    $uiconf = reset($settings['kaltura_entry_video_display']['entry_widget']);
+    $uiconf = $settings['kaltura_entry_video_display']['entry_widget'];
     $kid = $item;
     $partnerId = variable_get('kaltura_partner_id', 0);
     $kaltura_server = (variable_get('kaltura_server_url', ''))? variable_get('kaltura_server_url', ''): KalturaSettings_SERVER_URL;

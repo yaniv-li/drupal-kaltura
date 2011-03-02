@@ -168,17 +168,6 @@ function kaltura_menu() {
     'access callback' => TRUE,
   );
 
-  // maybe variable check here and don't create the handler on unless
-  // enabled
-  $items['crossdomain.xml'] = array(
-    'title' => 'crossdomain.xml (auto by kaltura module)',
-    'file' => 'includes/kaltura.crossdomain.inc',
-    'description' => 'Provide crossdomain.xml handler for Kaltura',
-    'page callback' => 'kaltura_crossdomain_xml',
-    'type' => MENU_CALLBACK,
-    'access callback' => TRUE,
-  );
-
   return $items;
 }
 
@@ -391,15 +380,6 @@ function kaltura_list_entries() {
     $start = 0;
   }
 
-/*
- *  $get_all = 'SELECT node.nid,node.title,node.type,knode.kaltura_entryId,knode.kaltura_thumbnail_url FROM {node} node '.
- *    'LEFT JOIN {node_kaltura} knode on node.nid = knode.nid WHERE (node.type = \'kaltura_entry\' OR node.type = \'kaltura_mix\') '. $filter_media .' AND status > 0 ORDER BY nid DESC LIMIT '. $start .', 20';
- *  //$result = db_query(db_rewrite_sql($get_all, 'node', 'nid'));
- *  while ($node_nid = db_fetch_object($result)) {
- *    $nodes[$node_nid->nid] = $node_nid;
- *
- *  }
- */
   $html = theme("list_of_entries", array('entries' => $entries, 'allow_insert' => $allow_insert, 'field_name' => $field_name));
   $pager = '';
   if (ceil($ent_count/20) > 1) {

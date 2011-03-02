@@ -4,6 +4,5 @@ package = Kaltura Media Management
 dependencies[] = kaltura
 core = 7.x
 description = provides 2 new CCK fields based on the kaltura nodes
-files[] = field_kaltura.module
-files[] = field_kaltura.install
 
+files[] = ../../kaltura_client/kaltura_settings.php
