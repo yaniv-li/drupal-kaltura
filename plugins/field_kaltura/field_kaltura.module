@@ -180,18 +180,13 @@ function field_kaltura_field_widget_info() {
 
 function field_kaltura_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
   //dsm($form_state);
-  $entry_val = isset($items[$delta]['entryid']) ? $items[$delta]['entryid'] : '';
-  $mediat_val = isset($items[$delta]['mediatype']) ? $items[$delta]['mediatype'] : '';
   $name = $field['field_name'];
+  $entry_val = isset($items[$delta]['entryid']) ? $items[$delta]['entryid'] : '';
+  //$sub_val = !empty($form_state['input'][$name][$element['#language']])
+  $mediat_val = isset($items[$delta]['mediatype']) ? $items[$delta]['mediatype'] : '';
   //dsm($element);
 
 
-  $element['thumb'] = array(
-    '#prefix' => '<div id="' . $name . '-thumb-wrap" class="kaltura-thumb-wrap">',
-    '#suffix' => '</div>',
-    '#markup' => kaltura_get_field_thumbs ($entry_val, $name, 'Media', FALSE),
-    );
-  //}
   $custom_cw  = $form_state['field'][$element['#field_name']][$element['#language']]['field']['settings']['custom_cw'];
   $element += array(
     '#delta' => $delta,
@@ -228,6 +223,7 @@ function field_kaltura_field_widget_form(&$form, &$form_state, $field, $instance
   return $element;
 }
 
+
 function kaltura_widget_hendler ($instance, $entry, $mediat, $name) {
   //dsm($instance);
   $cw_vars = kaltura_format_cw_vars(array(
@@ -240,18 +236,11 @@ function kaltura_widget_hendler ($instance, $entry, $mediat, $name) {
   ));
 
   $action_buttons = '<input type="button" value="Add Kaltura Media" onclick="kalturaInitModalBox(\''. url('kaltura/contribution_wizard/'. $cw_vars) .'\', {width:680, height:380} );" />';
-  /*
-   *$field_thumbs = kaltura_get_field_thumbs($element['#value'][$field_key], $custom_name, 'Media', $element['#required']);
-   *$element['data'][$custom_name .'_thumbs'] = array(
-   *  '#type' => 'item',
-   *  '#value' => '<div id="'. $custom_name .'_thumbs_div">'. $field_thumbs .'</div>',
-   *);
-   */
   $widget['entryid'] = array(
-    '#prefix' => '<div id="' . $name . '-entryid">',
     '#suffix' => '</div>',
     '#type' => 'hidden',
     '#default_value' => $entry,
+    '#pre_render' => array(0 => 'field_kaltura_tumb_pre'),
   );
   $widget['mediatype'] = array(
     '#prefix' => '<div id="' . $name . '-media-type">',
@@ -265,6 +254,17 @@ function kaltura_widget_hendler ($instance, $entry, $mediat, $name) {
   );
   return $widget;
 }
+
+/*
+ * not sure the is a good way we shuld make this file a real drupal ajax filed some how
+ */
+function field_kaltura_tumb_pre ($element) {
+    $name = $element['#array_parents'][0];
+    $val = $element['#value'];
+    $element['#prefix'] = '<div id="' . $name . '-thumb-wrap" class="kaltura-thumb-wrap">' . kaltura_get_field_thumbs ($val, $name, 'Media', FALSE) . '</div><div id="' . $name . '-entryid">';
+  return $element;
+}
+
 
 function kaltura_get_field_thumbs($field_value, $field_name, $type, $required) {
   global $_kaltura_thumbnail_base_url;
@@ -281,14 +281,14 @@ function kaltura_get_field_thumbs($field_value, $field_name, $type, $required) {
 }
 
 function field_kaltura_field_validate ($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
-     //dsm($items);
+     //dsm($instance);
 }
 
 /**
  * Implements hook_field_widget_error().
  */
 function field_kaltura_field_widget_error($element, $error, $form, &$form_state) {
-  //debug($element);
+  //dsm($element);
 }
 
 /**
