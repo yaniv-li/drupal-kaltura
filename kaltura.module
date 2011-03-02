@@ -394,7 +394,7 @@ function kaltura_list_entries() {
           <li><span class="close" href="#" onclick="window.top.kalturaCloseModalBox();return false;">&nbsp;&nbsp;&nbsp;&nbsp;</span></li>
         </ul>
     </div><div class="ktitle"><h3>'. $title .'</h3></div>'. $html;
-    $js = '$(document).ready(function() { '. PHP_EOL .'window.top.document.getElementById("kaltura_modal_iframe").className += " remove_overflow"; ';
+    $js = 'jQuery(document).ready(function() { '. PHP_EOL .'window.top.document.getElementById("kaltura_modal_iframe").className += " remove_overflow"; ';
     $js .= PHP_EOL .'window.top.document.getElementById("kaltura_modal_iframe").scrolling = "";';
     $js .= PHP_EOL .'window.top.document.getElementById("modalbox").style.height = "500px";';
     $js .= PHP_EOL .'window.top.document.getElementById("kaltura_modal_iframe").height = "500";';

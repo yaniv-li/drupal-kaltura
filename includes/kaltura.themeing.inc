@@ -664,7 +664,6 @@ function theme_kaltura_contribution_wizard_field($theme_params, $field_id, $no_c
       if (modified == "0")
         setTimeout("window.top.kalturaCloseModalBox();", 0);
       else
-      //window.location.href = "'. url("kaltura/insert_widget/") .'" + entry_list + "/'. $field_id .'";
         setTimeout("window.top.kalturaCloseModalBox();", 0);
     }
   ';

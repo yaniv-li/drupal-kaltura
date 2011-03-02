@@ -179,7 +179,7 @@ div.ktitle h3 { padding:0px; margin:0px; }
 
 
 
-input.kentry_add { background:url('../images/add_icon.gif') no-repeat top left; width:23px; height:22px; cursor:pointer; border:none; }
+input.kentry_add { background:url('../images/add_icon.gif') no-repeat top left; width:23px; height:22px; cursor:pointer; border:none; text-indent: -99999px; }
 
 input.remove_media { background:url('../images/delete_icon.gif') no-repeat top left; width:23px; height:22px; cursor:pointer; border:none; }
 
