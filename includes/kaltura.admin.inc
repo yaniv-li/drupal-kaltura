@@ -570,7 +570,6 @@ function kaltura_settings_form() {
   }
   if ($_GET['register'] === 'no' || (!$showing_reg && !isset($_GET['register']))) {
     // normal settings form
-    dsm($_GET);
     if (variable_get('kaltura_partner_id', '') == '') {
       drupal_set_title('All in One Video Module by Kaltura Installation');
       $forgot_link_attributes = array(
