@@ -1,4 +1,3 @@
-// $Id: README.txt,v 1.2.2.3 2010/07/07 09:34:53 kaltura Exp $
 
 Kaltura All in One Video Module – add full video capabilities to your Drupal site with our open source video module
 ------------------------
@@ -18,11 +17,11 @@ more (recommended to enable all) additional modules:
 - Kaltura as CCK field
 - Kaltura Video Comments
 
-Now go to Administer -> Site configuration -> Kaltura -> Server Integration Settings. 
+Now go to Administer -> Site configuration -> Kaltura -> Server Integration Settings.
 
 Register to the Kaltura Partner Program using the registration form. Your Kaltura partner details will be automatically
 saved into the module configuration, and will be sent to you in an email as well.
-According to the modules you enabled, you can now start working with the Kaltura All in One Video Module 
+According to the modules you enabled, you can now start working with the Kaltura All in One Video Module
 to create nodes, and enable your site with full video and rich media capabilities.
 
 It is recommended to configure a cron job for your Drupal site, since
