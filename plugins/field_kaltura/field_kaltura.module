@@ -111,22 +111,26 @@ function field_kaltura_field_settings_form($field, $instance, $has_data) {
         '#type' => 'textfield',
         '#title' => t('Custom player ui_conf'),
         '#size' => 6,
+        '#default_value' => !empty($settings['kaltura_entry_video_display']['custom_player']) ? $settings['kaltura_entry_video_display']['custom_player'] : '',
       );
       $form['kaltura_entry_video_display']['rotate'] = array(
         '#type' => 'checkbox',
-        '#title' => t('Preview video in thumbnail'),
+        '#title' => t('Rotate Thumbnails for Video Items'),
         '#default_value' => !empty($field['rotate']) ? $field['rotate'] : '0',
       );
-      $form['kaltura_entry_video_display']['stretch'] = array(
-        '#type' => 'checkbox',
-        '#title' => t('Stretch video in thumbnail'),
-        '#default_value' => !empty($field['stretch']) ? $field['stretch'] : '0',
-      );
+      /*
+       *$form['kaltura_entry_video_display']['stretch'] = array(
+       *  '#type' => 'checkbox',
+       *  '#title' => t('Stretch video in thumbnail'),
+       *  '#default_value' => !empty($field['stretch']) ? $field['stretch'] : '0',
+       *);
+       */
 
       $form['custom_cw'] = array(
         '#type' => 'textfield',
         '#title' => t('Custom uploader widget ui_conf'),
         '#size' => 6,
+        '#default_value' => !empty($settings['custom_cw']) ? $settings['custom_cw'] : '',
       );
       $form['delivery'] = array(
         '#type' => 'select',
@@ -167,22 +171,37 @@ function field_kaltura_field_widget_info() {
     'field_kaltura_video' => array(
       'label' => t('Video only widget'),
       'field types' => array('field_kaltura_entryid'),
+      'behaviors' => array(
+        'multiple values' => FIELD_BEHAVIOR_DEFAULT,
+        'default value' => FIELD_BEHAVIOR_NONE,)
     ),
     'field_kaltura_audio' => array(
       'label' => t('audio only widget'),
       'field types' => array('field_kaltura_entryid'),
+      'behaviors' => array(
+        'multiple values' => FIELD_BEHAVIOR_DEFAULT,
+        'default value' => FIELD_BEHAVIOR_NONE,)
     ),
     'field_kaltura_image' => array(
       'label' => t('image only widget'),
       'field types' => array('field_kaltura_entryid'),
+      'behaviors' => array(
+        'multiple values' => FIELD_BEHAVIOR_DEFAULT,
+        'default value' => FIELD_BEHAVIOR_NONE,)
     ),
     'field_kaltura_all_media' => array(
       'label' => t('All media types widget'),
       'field types' => array('field_kaltura_entryid'),
+      'behaviors' => array(
+        'multiple values' => FIELD_BEHAVIOR_DEFAULT,
+        'default value' => FIELD_BEHAVIOR_NONE,)
     ),
     'field_kaltura_web_cam' => array(
-      'label' => t('Web cam widget'),
+      'label' => t('Webcam widget'),
       'field types' => array('field_kaltura_entryid'),
+      'behaviors' => array(
+        'multiple values' => FIELD_BEHAVIOR_DEFAULT,
+        'default value' => FIELD_BEHAVIOR_NONE,)
     ),
   );
 }
