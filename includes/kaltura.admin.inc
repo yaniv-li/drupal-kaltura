@@ -946,9 +946,10 @@ function kaltura_get_my_entries($page_size = 30, $page = 1) {
   $session_user = KalturaHelpers::getSessionUser();
   $kaltura_client = KalturaHelpers::getKalturaClient($isAdmin); // this is admin task and should be able to import all entries in the account
   $pager_filter = new KalturaFilterPager();
+  $kmf = new KalturaBaseEntryFilter();
   $pager_filter->pageIndex = $page;
   $pager_filter->pageSize = $page_size;
-  $result = $kaltura_client->baseEntry->listAction($kmp);
+  $result = $kaltura_client->baseEntry->listAction($kmf, $pager_filter);
   //$result = $kaltura_client->listMyEntries($session_user, $filter, 0, $page_size, $page);
   /*
    *switch($type){
@@ -987,7 +988,6 @@ function kaltura_get_my_entries($page_size = 30, $page = 1) {
  * which does not contain entries that are already represented as nodes
  */
 function kaltura_remove_existing_entries($entries) {
-  dd($entries);
   $count = 0;
   $new_entries = array();
   if (is_array($entries) && count($entries)) {
@@ -998,7 +998,6 @@ function kaltura_remove_existing_entries($entries) {
         ->countQuery()
         ->execute()
         ->fetchField();
-      dd($sel);
       //$sel = 'SELECT COUNT(nid) n FROM {node_kaltura} WHERE kaltura_entryId = \'%s\'';
       //$result = db_fetch_object(db_query($sel, $entry['id']));
       if ($sel == 0) {
