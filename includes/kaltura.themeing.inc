@@ -671,7 +671,7 @@ function theme_kaltura_contribution_wizard_field($theme_params, $field_id, $no_c
   $add_existing = '';
   $js  = '';
   if ($field_id != 'edit-comment') {
-    $js = '$(document).ready(function() { window.top.document.getElementById("kaltura_modal_iframe").className = ""; ';
+    $js = 'jQuery(document).ready(function() { window.top.document.getElementById("kaltura_modal_iframe").className = ""; ';
     $js .= PHP_EOL .'window.top.document.getElementById("kaltura_modal_iframe").scrolling = "no"; });';
     $js .= PHP_EOL .'window.top.document.getElementById("modalbox").style.height = "380px";';
     $js .= PHP_EOL .'window.top.document.getElementById("kaltura_modal_iframe").height = "380";';

@@ -150,10 +150,12 @@ function kaltura_import_ce() {
  * return array built using Kaltura Partner object
  *
  */
-function kaltura_get_partner_details($partner_id, $cms_email, $cms_password) {
+function kaltura_get_partner_details($partner_id, $cms_email, $cms_password, $server_url) {
 
   $session_user = KalturaHelpers::getSessionUser();
   $config = KalturaHelpers::getServiceConfiguration();
+  $config->serviceUrl = $server_url;
+  dd($config);
   $config->partnerId = $partner_id;
   $kaltura_client = new KalturaClient($config);
 //  $kaltura_client->setConfig();
@@ -324,7 +326,7 @@ function kaltura_settings_form() {
    */
 
   if ($_REQUEST['op'] == 'Complete Installation' && $_REQUEST['kaltura_partner_id']) {
-    list($pid, $subpid, $url2, $secret, $admin_secret) = kaltura_get_partner_details($_REQUEST['kaltura_partner_id'], $_REQUEST['cms_email'], $_REQUEST['cms_password']);
+    list($pid, $subpid, $url2, $secret, $admin_secret) = kaltura_get_partner_details($_REQUEST['kaltura_partner_id'], $_REQUEST['cms_email'], $_REQUEST['cms_password'], $_REQUEST['server_url']);
     if ($pid) {
       variable_set('kaltura_partner_id', $pid);
       variable_set('kaltura_subp_id', $subpid);
@@ -333,12 +335,12 @@ function kaltura_settings_form() {
       variable_set('kaltura_partner_url2', str_replace('/?q=kaltura/notification_handler', '', $url2));
       variable_set('kaltura_partner_cms_email', $_REQUEST['cms_email']);
       variable_set('kaltura_partner_cms_password', $_REQUEST['cms_password']);
-      variable_set('kaltura_server_url',    KalturaHelpers::getKalturaServerUrl());
+      variable_set('kaltura_server_url', $_REQUEST['server_url']);
       drupal_set_message('Your partner details were imported successfully. please check the '. l('notification settings', 'admin/settings/kaltura/general/notifications'));
       drupal_set_message('You can '. l('import Kaltura Media from your existing partner', 'admin/settings/kaltura/import'));
       kaltura_create_widgets_for_partner($pid, $secret);
       kaltura_update_kaltura_partner(2, $url2);
-      drupal_goto('admin/settings/kaltura/general');
+      drupal_goto('admin/config/kaltura/general');
     }
     else {
       drupal_set_message('Couldn\'t import partner details.<br />'. print_r($subpid, TRUE) . $subpid['code'] .': '. $subpid['desc'], 'error');
@@ -476,7 +478,7 @@ function kaltura_settings_form() {
         '#collapsed' => FALSE
           );
           $form['kaltura_registration']['enter_partner'] = array(
-            '#markup' => '<div class="registration">'. l(t('Click here to enter you partner info'), 'admin/config/kaltura/general', array('query' => array('register' => 'no'))) . '</div>',
+            '#markup' => '<div class="registration">'. l(t('Click here to enter you partner info'), 'admin/config/kaltura/general', array('query' => array('register' => 'no', 'server_url' => $_REQUEST['kaltura_server_url']))) . '</div>',
           );
           $form['kaltura_server_url'] = array(
             '#type' => 'hidden',
@@ -568,6 +570,7 @@ function kaltura_settings_form() {
   }
   if ($_GET['register'] === 'no' || (!$showing_reg && !isset($_GET['register']))) {
     // normal settings form
+    dsm($_GET);
     if (variable_get('kaltura_partner_id', '') == '') {
       drupal_set_title('All in One Video Module by Kaltura Installation');
       $forgot_link_attributes = array(
@@ -620,7 +623,7 @@ function kaltura_settings_form() {
     $form['kaltura_server_url'] = array(
       '#type' => 'hidden',
       '#title' => t('Kaltura Server URL'),
-      '#default_value' => $_REQUEST['kaltura_server_url'],
+      '#default_value' => $_GET['kaltura_server_url'],
       );
     if (!empty($partner_exist))
     {
