@@ -825,7 +825,7 @@ function kaltura_import_entries_page() {
         $pager .= '<a>'. $start .'</a>';
       }
       else {
-        $pager .= l($start, 'admin/settings/kaltura/import', array('query' => 'p='. $start));
+        $pager .= l($start, 'admin/config/kaltura/import', array('query' => array('p' => $start)));
       }
       $pager .= '&nbsp;';
     }
@@ -987,18 +987,18 @@ function kaltura_get_my_entries($page_size = 30, $page = 1) {
  * which does not contain entries that are already represented as nodes
  */
 function kaltura_remove_existing_entries($entries) {
-  //dsm($entries);
+  dd($entries);
   $count = 0;
   $new_entries = array();
   if (is_array($entries) && count($entries)) {
     foreach ($entries as $entry) {
       $sel = db_select('node_kaltura', 'k')
-        ->fields('kaltura_entryid')
+        ->fields('k', array('kaltura_entryid'))
         ->condition('kaltura_entryid', $entry['id'], '=')
         ->countQuery()
         ->execute()
         ->fetchField();
-      //dsm($sel);
+      dd($sel);
       //$sel = 'SELECT COUNT(nid) n FROM {node_kaltura} WHERE kaltura_entryId = \'%s\'';
       //$result = db_fetch_object(db_query($sel, $entry['id']));
       if ($sel == 0) {
