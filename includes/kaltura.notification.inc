@@ -60,16 +60,11 @@ function kaltura_notification_handler() {
  */
 function kaltura_notification_save($notification_id, $notification_data) {
   $notify['notification_id'] = $notification_id;
-  $notify['data'] = $notification_data;
+  $notify['data'] = serialize($notification_data);
   $notify['received_at'] = time();
-  try {
     db_insert('kaltura_notifications')
       ->fields($notify)
       ->execute();
-  }
-  catch (Exception $e) {
-    watchdog('kaltura', 'problem updateing notifaction table');
-  }
 }
 
 /*
@@ -135,39 +130,29 @@ function kaltura_test_notification_received() {
  * helper function to update the thumbnail url of an entry
  */
 function kaltura_update_entry_thumbnail($notification) {
-  /*
-   *$thumburl = $notification['thumbnail_url'];
-   *$entry = $notification['entry_id'];
-   *$update = 'UPDATE {node_kaltura} SET kaltura_thumbnail_url = \'%s\' WHERE kaltura_entryId = \'%s\'';
-   *$result = db_query($update, $thumburl, $entry);
-   */
-  try {
     db_update('node_kaltura')
       ->fields(array('kaltura_thumbnail_url' => $notification['thumbnail_url']))
       ->condition('kaltura_entryid', $notification['entry_id'])
       ->execute();
-  }
-  catch (Exception $e) {
-    watchdog('kaltura', 'update entry thumbnail failed');
-  }
 }
 
 
 function kaltura_notify_update($notification) {
-  //dd($notification);
-  $entry['kaltura_tags'] =  $notification['tags'];
-  $entry['kaltura_admin_tags'] =  $notification['admin_tags'];
-  $entry['kstatus'] =  $notification['status'];
-  $entry['kaltura_title'] =  $notification['name'];
-  try {
-    db_insert('node_kaltura')
-      ->fields($entry)
-      ->execute();
+  $sel = db_select('node_kaltura', 'k')
+          ->fields('k', array('kaltura_entryid', 'kaltura_tags', 'kstatus', 'kaltura_media_type', 'kaltura_thumbnail_url', 'kaltura_partner_data', 'kaltura_width', 'kaltura_height', 'kaltura_download_url', 'kaltura_title'))
+          ->condition('kaltura_entryid', $notification['entry_id'], '=')
+          ->execute()
+          ->fetchAssoc();
+  $noti = kaltura_mk_karray($notification);
+  foreach ($sel as $key => $data) {
+    if ($noti[$key] != $data) {
+      $update[$key] = $noti[$key];
+    }
   }
-  catch (Exception $e) {
-    watchdog('kaltura', 'problem updating recored from notication');
-  }
-
+  db_update('node_kaltura')
+    ->fields($update)
+    ->condition('kaltura_entryid', $notification['entry_id'], '=')
+    ->execute();
 }
 
 
@@ -182,15 +167,10 @@ function kaltura_notify_update($notification) {
 function kaltura_notify_entry_add($type, $notification_data) {
   $entry = kaltura_mk_karray($notification_data);
   $entry['kaltura_created_date'] = REQUEST_TIME; //we have no way when the entry was created on the KMC so the create date is when we received the notifcation
-  try {
-    db_insert('node_kaltura')
+  db_insert('node_kaltura')
       ->fields($entry)
       ->execute();
   }
-  catch (Exception $e) {
-    watchdog('kaltura', 'problem adding new recored from notication');
-  }
-}
 
 /**
  * kaltura_mk_karray
@@ -206,34 +186,12 @@ function kaltura_mk_karray($array) {
   $ent['kaltura_media_type'] = $array['media_type'];
   $ent['kaltura_thumbnail_url'] = $array['thumbnail_url'];
   $ent['kaltura_partner_data'] = $array['partner_data'];
-  $ent['kaltura_width'] = $array['width'];
-  $ent['kaltura_height'] = $array['height'];
+  $ent['kaltura_width'] = !empty($array['width']) ? $array['width'] : 0;
+  $ent['kaltura_height'] =!empty($array['height']) ? $array['height'] : 0;
   $ent['kaltura_download_url'] = $array['download_url'];
   $ent['kaltura_title'] = $array['name'];
   return $ent;
 }
 
-function kaltura_kmc_obj_to_drupal_array($obj) {
-  $ent['kaltura_entryid'] = $obj->id;
-  $ent['kaltura_tags'] = $obj->tags;
-  $ent['kaltura_admin_tags'] = $obj->adminTags;
-  $ent['kstatus'] = $obj->status;
-  $ent['kaltura_media_type'] = $obj->mediaType;
-  $ent['kaltura_duration']= $obj->duration;
-  $ent['kaltura_thumbnail_url'] = $obj->thumbnailUrl;
-  $ent['kaltura_partner_data'] = $obj->partnerData;
-  $ent['kaltura_source'] = $obj->sourceType;
-  $ent['kaltura_width'] = $obj->width;
-  $ent['kaltura_height'] = $obj->height;
-  $ent['kaltura_download_url'] = $obj->downloadUrl;
-  $ent['kaltura_views'] = $obj->views;
-  $ent['kaltura_plays'] = $obj->plays;
-  $ent['kaltura_votes'] = $obj->votes;
-  $ent['kaltura_rank'] = $obj->rank;
-  $ent['kaltura_total_rank'] = $obj->totalRank;
-  $ent['kaltura_title'] = $obj->name;
-  $ent['kaltura_description'] = $obj->description;
-  return $ent;
-}
 
 

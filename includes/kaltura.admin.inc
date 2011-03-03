@@ -617,6 +617,11 @@ function kaltura_settings_form() {
       '#default_value' => variable_get('kaltura_partner_cms_password', ''),
         '#attributes' => $readonly_attr,
     );
+    $form['kaltura_server_url'] = array(
+      '#type' => 'hidden',
+      '#title' => t('Kaltura Server URL'),
+      '#default_value' => $_REQUEST['kaltura_server_url'],
+      );
     if (!empty($partner_exist))
     {
       $form['kaltura_partner_settings']['kaltura_upd_data'] = array(
@@ -762,7 +767,7 @@ function kaltura_import_entries_page() {
 
     $entries_need_import = array_merge($entries_need_import, $entries, $mediaEntries);
 
-    //list($total, $each_page, $entries) = kaltura_get_my_entries($filter, $each_page = 30, $_GET['p']);
+    list($total, $each_page, $entries) = kaltura_get_my_entries($filter, $each_page = 30, $_GET['p']);
     if ($entries === NULL) {
       return t('No entries found.');
     }
@@ -848,7 +853,7 @@ function kaltura_import_entries($entries) {
   foreach ($my_entries->objects as $entry) {
     kaltura_import_entry($entry);
   }
-  drupal_set_message('<b>Please Note: All imported nodes are not yet published (node status 0)</b>');
+  //drupal_set_message('<b>Please Note: All imported nodes are not yet published (node status 0)</b>');
 }
 
 /*
@@ -856,51 +861,90 @@ function kaltura_import_entries($entries) {
  * builds a node object according to entry, and invokes node_insert to save the node
  */
 function kaltura_import_entry($entry_details) {
-  global $user;
-  $node = new stdClass();
-  if ($entry_details->type == 1) {
-    $type = 'entry';
-  }
-  elseif ($entry_details->type == 2) {
-    $type = 'mix';
-  }
-  else {
-    $type = '';
-  }
-  $node->type = 'kaltura_'. $type;
-  $node->title = $entry_details->name;
-  $node->kaltura_entryId = $entry_details->id;
-  $node->uid = $user->uid;
-  $node->body = '';
-  $node->status = 0;
-  $node->created = time();
-  $node->comment = FALSE;
-  $node->changed = time();
-  $node->promote = 0;
-  $node->sticky = 0;
-  $node->kstatus = $entry_details->status;
-  $node->kaltura_entry_data = serialize($entry_details);
-  $node->kaltura_tags = $entry_details->tags;
-  $node->kaltura_admin_tags = '';
-  $node->kaltura_media_type = $entry_details->mediaType;
-  $node->kaltura_duration = $entry_details->duration;
-  $node->kaltura_thumbnail_url = $entry_details->thumbnailUrl;
-  $node->kaltura_partner_data = 'imported '. $type;
-  //$node->kaltura_source = $entry_details['source'];
-  //$node->kaltura_source_id = $entry_details['sourceId'];
-  //$node->kaltura_source_link = $entry_details['sourceLink'];
-  $node->kaltura_width = $entry_details->width;
-  $node->kaltura_height = $entry_details->height;
-  $node->kaltura_download_url = $entry_details->downloadUrl;
-  //$node->kaltura_media_date = $entry_details['mediaDate'];
-  $node->kaltura_views = $entry_details->views;
-  $node->kaltura_plays = $entry_details->plays;
-  $node->kaltura_votes = $entry_details->votes;
-  $node->kaltura_rank = $entry_details->rank;
-  $node->kaltura_total_rank = $entry_details->totalRank;
-  node_save($node);
-  module_invoke('node_kaltura_'. $type, 'hook_insert', $node);
-  drupal_set_message('Kaltura item imported: '. l($node->title, 'node/'. $node->nid) .' (id: '. $node->kaltura_entryId .')');
+ // global $user;
+  $entry = kaltura_kmc_obj_to_drupal_array($entry_details);
+  $entry['kaltura_created_date'] = REQUEST_TIME; //we have no way when the entry was created on the KMC so the create date is when we received the notifcation
+  //ask gonen should we add the "imported coment"
+  //db_write_recored
+
+  /*
+   *$node = new stdClass();
+   *if ($entry_details->type == 1) {
+   *  $type = 'entry';
+   *}
+   *elseif ($entry_details->type == 2) {
+   *  $type = 'mix';
+   *}
+   *else {
+   *  $type = '';
+   *}
+   *$node->type = 'kaltura_'. $type;
+   *$node->title = $entry_details->name;
+   *$node->kaltura_entryId = $entry_details->id;
+   *$node->uid = $user->uid;
+   *$node->body = '';
+   *$node->status = 0;
+   *$node->created = time();
+   *$node->comment = FALSE;
+   *$node->changed = time();
+   *$node->promote = 0;
+   *$node->sticky = 0;
+   *$node->kstatus = $entry_details->status;
+   *$node->kaltura_entry_data = serialize($entry_details);
+   *$node->kaltura_tags = $entry_details->tags;
+   *$node->kaltura_admin_tags = '';
+   *$node->kaltura_media_type = $entry_details->mediaType;
+   *$node->kaltura_duration = $entry_details->duration;
+   *$node->kaltura_thumbnail_url = $entry_details->thumbnailUrl;
+   *$node->kaltura_partner_data = 'imported '. $type;
+   *$node->kaltura_source = $entry_details['source'];
+   *$node->kaltura_source_id = $entry_details['sourceId'];
+   *$node->kaltura_source_link = $entry_details['sourceLink'];
+   *$node->kaltura_width = $entry_details->width;
+   *$node->kaltura_height = $entry_details->height;
+   *$node->kaltura_download_url = $entry_details->downloadUrl;
+   *$node->kaltura_media_date = $entry_details['mediaDate'];
+   *$node->kaltura_views = $entry_details->views;
+   *$node->kaltura_plays = $entry_details->plays;
+   *$node->kaltura_votes = $entry_details->votes;
+   *$node->kaltura_rank = $entry_details->rank;
+   *$node->kaltura_total_rank = $entry_details->totalRank;
+   *node_save($node);
+   *module_invoke('node_kaltura_'. $type, 'hook_insert', $node);
+   *drupal_set_message('Kaltura item imported: '. l($node->title, 'node/'. $node->nid) .' (id: '. $node->kaltura_entryId .')');
+   */
+}
+
+
+
+/**
+ * kaltura_kmc_obj_to_drupal_array
+ * this function gets and object retrived be the kaltura API and terns it to an entry array to be incerted in to the drupal db
+ * @param mixed $obj
+ * @access public
+ * @return void
+ */
+function kaltura_kmc_obj_to_drupal_array($obj) {
+  $ent['kaltura_entryid'] = $obj->id;
+  $ent['kaltura_tags'] = $obj->tags;
+  $ent['kaltura_admin_tags'] = $obj->adminTags;
+  $ent['kstatus'] = $obj->status;
+  $ent['kaltura_media_type'] = $obj->mediaType;
+  $ent['kaltura_duration']= $obj->duration;
+  $ent['kaltura_thumbnail_url'] = $obj->thumbnailUrl;
+  $ent['kaltura_partner_data'] = $obj->partnerData;
+  $ent['kaltura_source'] = $obj->sourceType;
+  $ent['kaltura_width'] = $obj->width;
+  $ent['kaltura_height'] = $obj->height;
+  $ent['kaltura_download_url'] = $obj->downloadUrl;
+  $ent['kaltura_views'] = $obj->views;
+  $ent['kaltura_plays'] = $obj->plays;
+  $ent['kaltura_votes'] = $obj->votes;
+  $ent['kaltura_rank'] = $obj->rank;
+  $ent['kaltura_total_rank'] = $obj->totalRank;
+  $ent['kaltura_title'] = $obj->name;
+  $ent['kaltura_description'] = $obj->description;
+  return $ent;
 }
 
 /*
@@ -976,9 +1020,15 @@ function kaltura_remove_existing_entries($entries) {
   $new_entries = array();
   if (is_array($entries) && count($entries)) {
     foreach ($entries as $entry) {
-      $sel = 'SELECT COUNT(nid) n FROM {node_kaltura} WHERE kaltura_entryId = \'%s\'';
-      $result = db_fetch_object(db_query($sel, $entry['id']));
-      if ($result->n == 0) {
+      $sel = db_select('node_kaltura', 'k')
+        ->fields('kaltura_entryid')
+        ->condition('kaltura_entryid', $entry['id'], '=')
+        ->countQuery()
+        ->execute()
+        ->fetchField();
+      //$sel = 'SELECT COUNT(nid) n FROM {node_kaltura} WHERE kaltura_entryId = \'%s\'';
+      //$result = db_fetch_object(db_query($sel, $entry['id']));
+      if ($sel == 0) {
         $new_entries[] = $entry;
       }
       else {
