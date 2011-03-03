@@ -730,13 +730,13 @@ function kaltura_import_entries_page() {
 
   if ($_POST['op'] == 'import selected') {
     kaltura_import_entries($_POST['entries_to_import']);
-    drupal_goto('admin/settings/kaltura/import');
+    drupal_goto('admin/config/kaltura/import');
   }
   if (variable_get('kaltura_partner_id', '') == '') {
     return t('You have not configured your partner details yet. Import cannot be performed until you setup your partner details');
   }
-  $get_entries = module_exists('node_kaltura_entry');
-  $get_mixes = module_exists('node_kaltura_mix');
+  //$get_entries = module_exists('node_kaltura_entry');
+  //$get_mixes = module_exists('node_kaltura_mix');
 
   if (empty($_GET['p'])) {
     $_GET['p'] = 1;
@@ -748,29 +748,37 @@ function kaltura_import_entries_page() {
   while (!$finished) {
     set_time_limit(30);
     //get the mix entries
-    if ($get_mixes) {
-      $filter = new KalturaMixEntryFilter();
-      list($total, $entries) = kaltura_get_my_entries($filter, KalturaEntryType::MIX, $each_page, $current_page);
-      if($total==0)$foundFlag = false;
-      $enabledFlag = true;
-    }
+    /*
+     *if ($get_mixes) {
+     *  $filter = new KalturaMixEntryFilter();
+     *  list($total, $entries) = kaltura_get_my_entries($filter, KalturaEntryType::MIX, $each_page, $current_page);
+     *  if($total==0)$foundFlag = false;
+     *  $enabledFlag = true;
+     *}
+     */
     // get the media entries
-    if ($get_entries) {
-      $filter = new KalturaMediaEntryFilter();
-      list($mediaTotal, $mediaEntries) = kaltura_get_my_entries($filter, KalturaEntryType::MEDIA_CLIP, $each_page, $current_page);
-      if($mediaTotal==0)$foundFlag=false;
-      $enabledFlag = true;
-    }
+    //if ($get_entries) {
+      //$filter = new KalturaMediaEntryFilter();
+      list($mediaTotal, $mediaEntries) = kaltura_get_my_entries($each_page, $current_page);
+      if ($mediaTotal == 0) {
+        $foundFlag=false;
+      }
+      else {
+        $enabledFlag = true;
+      }
+    //}
     if(!$enabledFlag) {
       return t('Can\'t import entries, you did not enable the node_kaltura_entries module.');
     }
 
     $entries_need_import = array_merge($entries_need_import, $entries, $mediaEntries);
 
-    list($total, $each_page, $entries) = kaltura_get_my_entries($filter, $each_page = 30, $_GET['p']);
-    if ($entries === NULL) {
-      return t('No entries found.');
-    }
+    //list($total, $each_page, $entries) = kaltura_get_my_entries($each_page = 30, $_GET['p']);
+    /*
+     *if ($entries === NULL) {
+     *  return t('No entries found.');
+     *}
+     */
     $entries_need_import = kaltura_remove_existing_entries($entries_need_import);
 
     if (count($entries_need_import) >= $each_page)
@@ -829,6 +837,7 @@ function kaltura_import_entries_page() {
     $entries_options = array();
   }
   $output = drupal_get_form('kaltura_create_entries_form', array($entries_options));
+  $output = drupal_render($output);
   return $pager . $output . $pager;
 }
 
@@ -848,9 +857,9 @@ function kaltura_import_entries_page() {
  */
 function kaltura_import_entries($entries) {
   $entries_list = implode(',', $entries);
-  $my_entries = kaltura_get_entries($entries_list, count($entries), true);
+  $my_entries = kaltura_get_entries($entries, count($entries), true);
 
-  foreach ($my_entries->objects as $entry) {
+  foreach ($my_entries[0]->objects as $entry) {
     kaltura_import_entry($entry);
   }
   //drupal_set_message('<b>Please Note: All imported nodes are not yet published (node status 0)</b>');
@@ -864,55 +873,11 @@ function kaltura_import_entry($entry_details) {
  // global $user;
   $entry = kaltura_kmc_obj_to_drupal_array($entry_details);
   $entry['kaltura_created_date'] = REQUEST_TIME; //we have no way when the entry was created on the KMC so the create date is when we received the notifcation
+  db_insert('node_kaltura')
+      ->fields($entry)
+      ->execute();
   //ask gonen should we add the "imported coment"
   //db_write_recored
-
-  /*
-   *$node = new stdClass();
-   *if ($entry_details->type == 1) {
-   *  $type = 'entry';
-   *}
-   *elseif ($entry_details->type == 2) {
-   *  $type = 'mix';
-   *}
-   *else {
-   *  $type = '';
-   *}
-   *$node->type = 'kaltura_'. $type;
-   *$node->title = $entry_details->name;
-   *$node->kaltura_entryId = $entry_details->id;
-   *$node->uid = $user->uid;
-   *$node->body = '';
-   *$node->status = 0;
-   *$node->created = time();
-   *$node->comment = FALSE;
-   *$node->changed = time();
-   *$node->promote = 0;
-   *$node->sticky = 0;
-   *$node->kstatus = $entry_details->status;
-   *$node->kaltura_entry_data = serialize($entry_details);
-   *$node->kaltura_tags = $entry_details->tags;
-   *$node->kaltura_admin_tags = '';
-   *$node->kaltura_media_type = $entry_details->mediaType;
-   *$node->kaltura_duration = $entry_details->duration;
-   *$node->kaltura_thumbnail_url = $entry_details->thumbnailUrl;
-   *$node->kaltura_partner_data = 'imported '. $type;
-   *$node->kaltura_source = $entry_details['source'];
-   *$node->kaltura_source_id = $entry_details['sourceId'];
-   *$node->kaltura_source_link = $entry_details['sourceLink'];
-   *$node->kaltura_width = $entry_details->width;
-   *$node->kaltura_height = $entry_details->height;
-   *$node->kaltura_download_url = $entry_details->downloadUrl;
-   *$node->kaltura_media_date = $entry_details['mediaDate'];
-   *$node->kaltura_views = $entry_details->views;
-   *$node->kaltura_plays = $entry_details->plays;
-   *$node->kaltura_votes = $entry_details->votes;
-   *$node->kaltura_rank = $entry_details->rank;
-   *$node->kaltura_total_rank = $entry_details->totalRank;
-   *node_save($node);
-   *module_invoke('node_kaltura_'. $type, 'hook_insert', $node);
-   *drupal_set_message('Kaltura item imported: '. l($node->title, 'node/'. $node->nid) .' (id: '. $node->kaltura_entryId .')');
-   */
 }
 
 
@@ -953,7 +918,7 @@ function kaltura_kmc_obj_to_drupal_array($obj) {
  */
 function kaltura_create_entries_form($form) {
   $args = func_get_args();
-  $entries_options = $args[1][0];
+  $entries_options = $args[2][0];
   $form['entries_to_import'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Choose the entries you want to import'),
@@ -974,23 +939,27 @@ function kaltura_create_entries_form($form) {
  * changes:
  * now retrieving all media entries - needs to import mix entries as well
  */
-function kaltura_get_my_entries($filter, $type, $page_size = 30, $page = 1) {
+function kaltura_get_my_entries($page_size = 30, $page = 1) {
   $isAdmin = 1;
   $session_user = KalturaHelpers::getSessionUser();
   $kaltura_client = KalturaHelpers::getKalturaClient($isAdmin); // this is admin task and should be able to import all entries in the account
   $pager_filter = new KalturaFilterPager();
   $pager_filter->pageIndex = $page;
   $pager_filter->pageSize = $page_size;
+  $result = $kaltura_client->baseEntry->listAction($kmp);
   //$result = $kaltura_client->listMyEntries($session_user, $filter, 0, $page_size, $page);
-  switch($type){
-    case KalturaEntryType::MIX:
-      $result = $kaltura_client->mixing->listAction($filter,$pager_filter);
-      break;
-    case KalturaEntryType::MEDIA_CLIP:
-      $filter->mediaTypeEqual = KalturaEntryType::MEDIA_CLIP;
-      $result = $kaltura_client->media->listAction($filter,$pager_filter);
-      break;
-  }
+  /*
+   *switch($type){
+   *  case KalturaEntryType::MIX:
+   *    $result = $kaltura_client->mixing->listAction($filter,$pager_filter);
+   *    break;
+   *  case KalturaEntryType::MEDIA_CLIP:
+   *    $filter->mediaTypeEqual = KalturaEntryType::MEDIA_CLIP;
+   *    $result = $kaltura_client->media->listAction($filter,$pager_filter);
+   *    break;
+   *}
+   */
+ //dsm($result);
 
   if ($result->totalCount > 0) {
     $count = $result->totalCount;
@@ -1016,6 +985,7 @@ function kaltura_get_my_entries($filter, $type, $page_size = 30, $page = 1) {
  * which does not contain entries that are already represented as nodes
  */
 function kaltura_remove_existing_entries($entries) {
+  //dsm($entries);
   $count = 0;
   $new_entries = array();
   if (is_array($entries) && count($entries)) {
@@ -1026,6 +996,7 @@ function kaltura_remove_existing_entries($entries) {
         ->countQuery()
         ->execute()
         ->fetchField();
+      //dsm($sel);
       //$sel = 'SELECT COUNT(nid) n FROM {node_kaltura} WHERE kaltura_entryId = \'%s\'';
       //$result = db_fetch_object(db_query($sel, $entry['id']));
       if ($sel == 0) {
