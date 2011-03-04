@@ -155,7 +155,6 @@ function kaltura_get_partner_details($partner_id, $cms_email, $cms_password, $se
   $session_user = KalturaHelpers::getSessionUser();
   $config = KalturaHelpers::getServiceConfiguration();
   $config->serviceUrl = $server_url;
-  dd($config);
   $config->partnerId = $partner_id;
   $kaltura_client = new KalturaClient($config);
 //  $kaltura_client->setConfig();
