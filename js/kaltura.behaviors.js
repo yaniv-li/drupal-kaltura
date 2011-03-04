@@ -3,7 +3,7 @@
     attach: function(context, settings) {
       $('.remove_media', context).click( function () {
         $(this).parents('.kaltura-thumb-wrap').nextAll().children('input:hidden').val('');
-        $(this).parents('.kaltura-thumb-wrap').replaceWith('');
+        $(this).parents('.kaltura-thumb-wrap .kaltura_field_thumb').replaceWith('');
         });
       }
 

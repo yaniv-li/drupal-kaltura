@@ -12,6 +12,3 @@ files[] = kaltura_client/kaltura_logger.php
 files[] = kaltura_client/kaltura_notification_client.php
 files[] = kaltura_client/kaltura_settings.php
 files[] = kaltura_client/Php5ClientGenerator.php
-files[] = includes/kaltura.admin.inc
-files[] = includes/kaltura.notification.inc
-files[] = includes/kaltura.themeing.inc

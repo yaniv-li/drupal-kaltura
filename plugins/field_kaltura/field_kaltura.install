@@ -13,7 +13,7 @@
 function field_kaltura_field_schema($field) {
   //dsm($field);
   $columns = array(
-    'entryid' => array(
+    'entryId' => array(
       'description' => 'Kaltura entry id',
       'type' => 'varchar',
       'length' => 20,

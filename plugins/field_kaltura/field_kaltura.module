@@ -39,15 +39,28 @@ function field_kaltura_field_info() {
     );
 }
 
+
+/**
+ * Implementation of hook_form_FORM_ID_alter()
+ */
+function field_kaltura_form_field_ui_field_edit_form_alter(&$form, $form_state) {
+  $field = $form['#field'];
+  if ($field['type'] == 'field_kaltura_entryid') {
+    // Multiple values is not supported with kaltura file for now remove after adding support.
+    $form['field']['cardinality']['#access'] = FALSE;
+    $form['field']['cardinality']['#value'] = 1;
+  }
+}
+
+
+
 /**
  * Implementation of hook_field_settings_form().
  */
 
 function field_kaltura_field_settings_form($field, $instance, $has_data) {
   /*
-   *dsm($instance);
    *dsm($field);
-   *dsm($has_data);
    */
 
   //$field['cardinality'] = 1;
@@ -74,7 +87,7 @@ function field_kaltura_field_settings_form($field, $instance, $has_data) {
         '#default_value' => !empty($settings['thumbsize']['thumbsize_height']) ? $settings['thumbsize']['thumbsize_height'] : '45',
       );
     $saved_player = !empty($field['entry_widget']) ? $field['entry_widget'] : KalturaSettings_DEFAULT_VIDEO_PLAYER_UICONF;
-      $players = kaltura_choose_player(0, 'video', 'entry', FALSE, $saved_player);
+    $players = kaltura_choose_player(0, 'video', 'entry', FALSE, $saved_player);
     $form['kaltura_entry_video_display'] = array(
     '#type' => 'fieldset',
     '#title' => t('Video Display'),
