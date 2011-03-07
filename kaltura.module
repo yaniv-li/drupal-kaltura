@@ -417,7 +417,7 @@ function theme_list_of_entries($vars) {
   $filter = 'Show only: ' . l('All', $_GET['q'], $url_option) . ' | ' . l('Videos', $_GET['q'], array('query' => array('filter' => '1', 'cwurl' => $_GET['cwurl']))) . ' | ';
   $filter .= l('Photos', $_GET['q'], array('query' => array('filter' => '2', 'cwurl' => $_GET['cwurl'])));
   $filter .= ' | ' . l('Audio', $_GET['q'], array('query' => array('filter' => '5', 'cwurl' => $_GET['cwurl'])));
-  $str = l('Import entries from Kaltura', 'admin/config/kaltura/import');
+  $str = l('Import entries from Kaltura', 'admin/config/kaltura/import') . '<br/>';
   $str .= '<div id="kaltura_entries_page" class="' . (($allow_insert)? 'minimal_mode': '') . '"><div class="kfilter">' . $filter . '</div><ul>';
   if (is_array($entries) && count($entries)) {
     foreach ($entries as $ent) {
